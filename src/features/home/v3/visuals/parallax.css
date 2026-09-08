@@ -1,0 +1,92 @@
+/**
+ * Parallax for the acts' full-bleed background images.
+ *
+ * CSS scroll-driven animations (`animation-timeline: view()`), not a JS
+ * scroll listener. This is the currently-recommended approach for scroll
+ * parallax: it runs on the compositor off the main thread, needs no
+ * per-frame JS at all, and — the reason it belongs specifically in this
+ * feature — it cannot fight Lenis's smoothing the way a `scroll`-event
+ * handler can, and it cannot be caught mid-transform inside a
+ * `startViewTransition()` snapshot the way a JS-driven or GSAP `scrub`
+ * animation can (see the comment in
+ * `tests/motion/home-v3-no-pinned-boundaries.test.ts`): a scroll-driven
+ * animation's timeline is derived declaratively from scroll position, so a
+ * snapshot taken mid-scroll shows the correct in-between frame rather than a
+ * frame stuck from before a JS rAF loop's last tick.
+ *
+ * Feature-detected via `@supports`, so a browser without it (Firefox at time
+ * of writing) just gets the static, correctly-laid-out image with no
+ * parallax — never a broken or half-applied transform.
+ *
+ * Usage: wrap the full-bleed image in `.hv3-plx` (a clipping box with a
+ * fixed height — parallax only makes sense against a height that doesn't
+ * move with the translated layer) and put `.hv3-plx-layer` on the element
+ * that actually moves. Tune depth per call site with `--hv3-plx-shift`
+ * (how far the layer travels across its view range); the default is
+ * deliberately restrained so the effect reads as depth, not as a
+ * background sliding out from behind its own frame.
+ *
+ *   <div class="hv3-plx">
+ *     <img class="hv3-plx-layer" style="--hv3-plx-shift: 16%" ... />
+ *   </div>
+ */
+
+.hv3-plx {
+  position: relative;
+  overflow: clip;
+}
+
+.hv3-plx-layer {
+  --hv3-plx-shift: 12%;
+  will-change: transform;
+}
+
+@supports (animation-timeline: view()) and (animation-range: entry) {
+  .hv3-plx-layer {
+    /* translateY only — never `top`, `background-position`, `width` or
+       `height`, all of which force layout on every scroll tick instead of
+       compositing. The layer must already be taller than its wrapper (e.g.
+       `height: 120%`, set per call site) so a vertical shift never exposes
+       its edge. */
+    animation-name: hv3-plx-shift;
+    animation-timeline: view();
+    /* Runs across the element's own visibility, not just the "entry" edge,
+       so the shift is still progressing while the image is comfortably
+       on-screen rather than finishing the instant it clears the fold. */
+    animation-range: cover 0% cover 100%;
+    animation-fill-mode: both;
+    animation-timing-function: linear;
+  }
+
+  @keyframes hv3-plx-shift {
+    from {
+      transform: translateY(calc(-1 * var(--hv3-plx-shift)));
+    }
+    to {
+      transform: translateY(var(--hv3-plx-shift));
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hv3-plx-layer {
+    animation: none;
+    transform: none;
+  }
+}
+
+/*
+ * Call-site sizing for the acts' full-bleed art.
+ *
+ * `.hv3-art` (homeV3.css) is already `position: absolute; inset: 0; overflow:
+ * hidden`, which is exactly the clipping box this needs, so no wrapper is
+ * added. The layer only has to be taller than that box and pulled up by half
+ * the overshoot, so a +/-12% travel never exposes an edge: 124% tall, offset
+ * -12%. Keep those two numbers in step with `--hv3-plx-shift` — overshoot must
+ * be at least twice the shift.
+ */
+.hv3-art > .hv3-plx-layer {
+  position: relative;
+  height: 124%;
+  top: -12%;
+}

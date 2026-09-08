@@ -3,13 +3,18 @@ import { motion } from "motion/react";
 
 import { usePreloaderReady } from "@/shared/motion";
 import { EASE_OUT_EXPO } from "@/shared/motion/easing";
+import { useBackgroundVideo, ABOUT_HERO_LOOP } from "@/shared/components/useBackgroundVideo";
 
-/** The About hero background, featuring the Manila city dusk skyline image with ambient golden lighting glow. */
+/** The About hero background: a looping muted clip of the Manila skyline and the
+ *  office floor, cut from the brand film. Falls back to the poster still under
+ *  reduced motion / low power (`posterOnly`) or until it scrolls into view. */
 export function BackgroundReveal() {
   const ready = usePreloaderReady();
+  const { containerRef, videoRef, shouldLoad, posterOnly } = useBackgroundVideo();
 
   return (
     <Box
+      ref={containerRef}
       className="background-reveal-container"
       sx={{
         position: "absolute",
@@ -19,7 +24,7 @@ export function BackgroundReveal() {
         pointerEvents: "none",
       }}
     >
-      {/* Background Image Layer */}
+      {/* Background Video Layer */}
       <motion.div
         initial={{ opacity: 0, scale: 1.05 }}
         animate={ready ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 1.05 }}
@@ -34,16 +39,29 @@ export function BackgroundReveal() {
         }}
       >
         <Box
-          component="img"
-          src="/images/about-hero-bg.webp"
-          alt="Manila Skyline Dusk Hero Background"
+          component="video"
+          ref={videoRef}
+          autoPlay
+          muted
+          loop
+          playsInline
+          preload="none"
+          poster={ABOUT_HERO_LOOP.poster}
+          aria-label="Manila skyline and the Phitopolis office floor"
           sx={{
             width: "100%",
             height: "100%",
             objectFit: "cover",
             objectPosition: "center 40%",
           }}
-        />
+        >
+          {!posterOnly && shouldLoad && (
+            <>
+              <source src={ABOUT_HERO_LOOP.webm} type="video/webm" />
+              <source src={ABOUT_HERO_LOOP.mp4} type="video/mp4" />
+            </>
+          )}
+        </Box>
 
         {/* Left Dark Gradient Overlay for optimal text legibility - Fades out earlier in the center */}
         <Box

@@ -449,11 +449,9 @@ export const CONTENT = {
     }
   ],
   // Each use case is a vertical, near-full-viewport block on the home page; its
-  // `image` is a full-bleed soft 3D-isometric background that crossfades in as
-  // the block reaches the middle of the viewport (see `UseCasesNarrative` /
-  // `UseCaseBackdrop`). `side` places the copy column and must match the image's
-  // text-safe negative space; alternating sides stops three full-bleed images
-  // reading as a slideshow. `imageAlt` is the accessible description that
+  // `image` sits in a centred morphing frame that crossfades/scales in as the
+  // block reaches the middle of the viewport (see `UseCasesNarrative` /
+  // `UseCaseMorphStage`). `imageAlt` is the accessible description that
   // replaced the old inline SignalDiagram / PipelineDiagram / FollowTheSunDiagram.
   useCases: [
     {
@@ -470,8 +468,7 @@ export const CONTENT = {
       ],
       image: "/images/use-cases/uc-1.webp",
       imageAlt:
-        "Soft isometric clay model of a quantitative research studio: navy data blocks stepping upward, a gold marker ribbon threading left to right into one rising line, frosted noise shapes clearing toward the right",
-      side: "left" as const
+        "Soft isometric clay model of a quantitative research studio: navy data blocks stepping upward, a gold marker ribbon threading left to right into one rising line, frosted noise shapes clearing toward the right"
     },
     {
       id: "uc-2",
@@ -487,8 +484,7 @@ export const CONTENT = {
       ],
       image: "/images/use-cases/uc-2.webp",
       imageAlt:
-        "Soft isometric clay model of a data pipeline: navy intake pavilions on the left, pale channels merging into one causeway, rounded service pods fanning out on the right, two frost cloud slabs floating above",
-      side: "right" as const
+        "Soft isometric clay model of a data pipeline: navy intake pavilions on the left, pale channels merging into one causeway, rounded service pods fanning out on the right, two frost cloud slabs floating above"
     },
     {
       id: "uc-3",
@@ -504,11 +500,7 @@ export const CONTENT = {
       ],
       image: "/images/use-cases/uc-3.webp",
       imageAlt:
-        "Soft isometric clay model of a pale globe with navy continents on an off-white plinth, three small navy operations desks around it, a soft gold arc across the globe marking a working day",
-      side: "left" as const,
-      // uc-3's source is near-square with a dead-centre globe; `cover` alone
-      // can't crop it clear of the left-side copy. Bias the subject right.
-      subjectBiasPct: 14
+        "Soft isometric clay model of a pale globe with navy continents on an off-white plinth, three small navy operations desks around it, a soft gold arc across the globe marking a working day"
     }
   ],
   /**

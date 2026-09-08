@@ -12,17 +12,9 @@ import { useStagePresence } from "@/shared/components/stage/stagePresence";
 import { STAGE_ATTR, setActiveSection } from "@/shared/sections";
 import { NAV_ANCHORS } from "@/shared/components/NavbarContext";
 import { useNavbar } from "@/shared/components/navbarHooks";
-import { HeroCanvas as LegacyHeroCanvas, type HeroCanvasHandle } from "./HeroCanvas";
-import { WORDMARK_INSET_MD, WORDMARK_INSET_SM } from "./heroPlaneRenderer";
+import PhitopolisLogo from "@/shared/components/PhitopolisLogo";
+import { useBackgroundVideo, HERO_LOOP } from "@/shared/components/useBackgroundVideo";
 
-const SANS = "Inter, system-ui, -apple-system, sans-serif";
-
-const ACTIVE_NODE_DATA = [
-  { tag: "NODE 01 // TEAM", label: "Quantitative Research & Modeling Team" },
-  { tag: "NODE 02 // TEAM", label: "Core Execution & Systems Engineering Team" },
-  { tag: "NODE 03 // TEAM", label: "Market Data & Data Fabrics Team" },
-  { tag: "NODE 04 // TEAM", label: "Global Infrastructure & Trading Operations Team" },
-] as const;
 /**
  * The gunshot's drift wall — 24 photographs from the blog library, drifting behind a
  * perspective tilt. Replaces the two 50vh split panes that auto-panned here.
@@ -42,7 +34,7 @@ import { HERO_WALL_TILES } from "./heroWallTiles";
 import { CONTENT } from "@/shared/content";
 import { NOIR } from "@/shared/theme/palette";
 import { MONO, DISPLAY_FONT } from "@/shared/theme/theme";
-import { useReducedMotion, usePreloaderReady, useEntranceSettled, useHeroCascadeStep } from "@/shared/motion";
+import { usePreloaderReady, useEntranceSettled, useHeroCascadeStep } from "@/shared/motion";
 import { EASE_OUT_EXPO_CSS } from "@/shared/motion/easing";
 import { HERO_PIN_DISTANCE } from "@/shared/motion/heroPin";
 import { refreshPriorityFor } from "@/shared/motion/beatThresholds";
@@ -135,35 +127,30 @@ const GUNSHOT_TRACK_SX = {
 } as const;
 
 /**
- * The three directory link pills below the hero card.
+ * The three directory link pills, bottom-right of the hero.
  *
  * These were three byte-identical 17-line `sx` blocks — a repeated treatment, so it
- * earns a token rather than a third copy. Glass is safe here: the pills are siblings
- * of the scaled card, not children of it, so nothing re-samples their backdrop per
- * frame. (Anything *inside* the pin must stay opaque — see the note on the card's own
- * bgcolor.)
+ * earns a token rather than a third copy.
  *
- * The old `transition: all 0.9s` is gone twice over: `all` swept in `backdrop-filter`,
- * which recomputes the blur on every frame of the transition, and 0.9s is nearly three
- * times the interaction ceiling.
+ * Transparent, not frosted glass: they now sit over the background video, where a
+ * `backdrop-filter` would recompute a blur of moving footage every frame. A hairline
+ * border + the video layer's own bottom legibility wash carry them instead. Hover
+ * still fills navy.
  */
 const LINK_PILL_SX = {
   borderRadius: "100px",
   textDecoration: "none !important",
-  border: "1px solid rgba(255, 255, 255, 0.85)",
-  outline: "1px solid rgba(10, 42, 102, 0.14)",
-  backgroundColor: "rgba(255, 255, 255, 0.72)",
-  backdropFilter: "blur(16px) saturate(180%)",
-  WebkitBackdropFilter: "blur(16px) saturate(180%)",
-  boxShadow: "0 8px 24px rgba(10, 42, 102, 0.12), inset 0 1px 1px rgba(255, 255, 255, 0.9)",
-  transition: `all 0.25s ${EASE_OUT_EXPO_CSS}`,
+  border: "1px solid rgba(10, 42, 102, 0.45)",
+  backgroundColor: "rgba(255, 255, 255, 0.06)",
+  boxShadow: "0 6px 20px rgba(6, 10, 22, 0.18)",
+  transition: `background-color 0.25s ${EASE_OUT_EXPO_CSS}, border-color 0.25s ${EASE_OUT_EXPO_CSS}, box-shadow 0.25s ${EASE_OUT_EXPO_CSS}, transform 0.25s ${EASE_OUT_EXPO_CSS}`,
   "&, & *": {
     textDecoration: "none !important",
   },
   "@media (hover: hover)": {
     "&:hover": {
       backgroundColor: "rgba(10, 42, 102, 0.92)",
-      outline: "1px solid rgba(255, 215, 0, 0.50)",
+      borderColor: "rgba(255, 215, 0, 0.55)",
       boxShadow: "0 12px 32px rgba(10, 42, 102, 0.35), 0 0 16px rgba(255, 215, 0, 0.30)",
       "& .btn-text": {
         color: `${NOIR.gold} !important`,
@@ -203,8 +190,15 @@ export function HeroSignalCore() {
   // target. A distinct ref from `containerRef` (the outer #hero box) so the
   // vars are written on the same element the sky Box is a direct child of.
   const cardRef = useRef<HTMLElement>(null);
-  const canvasHandleRef = useRef<HeroCanvasHandle | null>(null);
-  const reduced = useReducedMotion();
+  // The hero's background video — an autoplaying muted loop cut from the brand
+  // film, in place of the retired 2D-canvas "3D city". `posterOnly` (reduced
+  // motion / low power) keeps `<source>` off the element and shows the poster.
+  const {
+    containerRef: videoBoxRef,
+    videoRef,
+    shouldLoad: videoShouldLoad,
+    posterOnly: videoPosterOnly,
+  } = useBackgroundVideo();
   const ready = usePreloaderReady();
   // The post-intro hero cascade — 0..5, canvas is step 1, motto step 3,
   // buttons step 5. See `useHeroCascadeStep`'s docblock: defaults to 5 (fully
@@ -218,12 +212,6 @@ export function HeroSignalCore() {
   // seed effect below still paints the settled state, so a non-scrolling or
   // reduced-motion visitor is unaffected.
   const entranceSettled = useEntranceSettled();
-
-  const [selectedNodeIndex, setSelectedNodeIndex] = useState<number | null>(null);
-
-  const handleNodeSelect = (index: number) => {
-    setSelectedNodeIndex((prev) => (prev === index ? null : index));
-  };
 
   const [stage, setStage] = useState<HeroStage>(() => heroStage(0));
   const stageRef = useRef(stage);
@@ -409,7 +397,6 @@ export function HeroSignalCore() {
           if (pinRef.current) {
             writeHeroVars(pinRef.current, heroVars(p, false));
           }
-          canvasHandleRef.current?.setProgress(p);
 
           if (p < 0.20) setActiveSection("hero-flatten");
           else if (p < 0.35) setActiveSection("hero-align");
@@ -723,45 +710,12 @@ export function HeroSignalCore() {
           }}
         >
           {/*
-            The dawn ground. Lives INSIDE this card — the card is opaque
-            (bgcolor: NOIR.void) and full-bleed at progress 0, so anything
-            placed behind it is invisible (see "the one hard structural
-            fact" in docs/hero-upgrade/stage-4.md). Still no image assets:
-            two `background-image` layers on one Box.
-
-            REPLACES the six-stop vertical DAWN gradient. That gradient ran
-            zenith -> ember top to bottom and filled the frame, which made
-            the card read as *sky*; the brief is a card that reads as
-            *white*, ~70% of it, with the dawn arriving from the left. Two
-            changes carry that:
-
-              1. The sun moved from `82% 20%` (right) to `10% 30%` (left),
-                 and its shine is now a wide, weak warm wash rather than a
-                 hard disc. `--hp-sun` still scales the gold core, so
-                 `sunAltitude()` drives it exactly as before.
-              2. The base gradient runs *horizontally* (100deg), warm at the
-                 left edge and pure white by ~62% across, instead of
-                 vertically through six saturated stops.
-
-            The canvas city's own light agrees with this by construction:
-            `heroCity.ts`'s SHADOW_DIR points along +(1,1) in plane space,
-            which the -45deg camera maps to screen-right — i.e. away from
-            this sun. One light source, two layers, no disagreement.
-
-            No clouds. `DAWN.cloudMid`/`cloudLo` are deliberately unused
-            here; see the decision log.
-
-            Parallax: each layer gets its own `background-position` offset
-            off the same `--hp-mx`/`--hp-my` the canvas's pointer lerp
-            publishes onto `cardRef` — sun 8px (front-most), wash 3px.
-            `backgroundSize` is padded past 100% so parallax travel never
-            exposes an edge.
-
-            Fully gone by CONTAINER_START: opacity is `var(--hp-sky, 1)`,
-            and skyPresence(CONTAINER_START) === 0 exactly (pinned in
-            tests/motion/hero-phases.test.ts), so the card interior returns
-            to pure NOIR.void — byte-identical to what GroundLayer already
-            paints behind it at that point in the pin.
+            The underlay. Lives INSIDE this opaque, full-bleed card, so it is
+            what shows if the video poster 404s or is still decoding, and what
+            the card interior returns to as `--hp-sky` fades toward
+            `skyPresence(CONTAINER_START) === 0` (pinned in
+            tests/motion/hero-phases.test.ts) — byte-identical to the
+            NOIR.void GroundLayer already paints behind the card by then.
           */}
           <Box
             aria-hidden
@@ -775,176 +729,129 @@ export function HeroSignalCore() {
             }}
           />
 
-          {/* The city: streets, buildings, dawn shadows, signal pulses and the P
-              mark's own district — one canvas, no DOM per scene object. */}
+          {/* The brand-film background loop. Replaces the 2D-canvas "3D city".
+              Plays full through pin progress 0.20, then crossfades to white
+              (the `.hero-sky` underlay) over 0.20 -> 0.34, driven straight off
+              `--hp` — no new phase math. The bottom-left P + wordmark lockup is
+              already on screen; once the frame is white it makes its up-then-
+              right move to centre (0.34 -> 0.56). `--hp-g`'s navy wash then
+              rises behind the shrinking card as before, from the gunshot at
+              0.60. Step 1 of the post-intro cascade still gates the reveal. */}
           <Box
+            ref={videoBoxRef}
             aria-hidden
             sx={{
               position: "absolute",
               inset: 0,
-              zIndex: 4,
-              // Step 1 of the post-intro hero cascade, and the one element
-              // that rises (bottom→top) rather than drops — every other step
-              // enters from above. `ready && heroStep >= 1`: on a warm/repeat
-              // visit `heroStep` is already 5, so this is exactly `ready`,
-              // today's behaviour unchanged.
-              opacity: ready && heroStep >= 1 ? (reduced ? 0.4 : 0.95) : 0,
+              zIndex: 1,
+              overflow: "hidden",
+              opacity:
+                ready && heroStep >= 1
+                  ? "clamp(0, calc((0.34 - var(--hp, 0)) / 0.14), 1)"
+                  : 0,
               transform: heroStep >= 1 ? "translateY(0)" : "translateY(32px)",
               transition: `opacity 0.6s ease-out, transform 0.7s ${EASE_OUT_EXPO_CSS}`,
             }}
           >
-            {/* `containerRef` (`#hero`), not `cardRef`: the mode badge and the
-                motto — the two DOM consumers of `--hp-px`/`--hp-py`/`--hp-pw`,
-                the P's projected position — are siblings of `.hero-card`, not
-                descendants of it, and a CSS custom property only cascades to
-                descendants. `--hp-mx`/`--hp-my` moving up here too is a strict
-                widening (`.hero-sky` is still a descendant of `#hero`), not a
-                behaviour change. */}
-            <LegacyHeroCanvas
-              handleRef={canvasHandleRef}
-              varsHostRef={containerRef}
-              activeNode={selectedNodeIndex}
-              onNodeSelect={handleNodeSelect}
+            <Box
+              component="video"
+              ref={videoRef}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="none"
+              poster={HERO_LOOP.poster}
+              sx={{
+                position: "absolute",
+                inset: 0,
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+              }}
+            >
+              {!videoPosterOnly && videoShouldLoad && (
+                <>
+                  <source src={HERO_LOOP.webm} type="video/webm" />
+                  <source src={HERO_LOOP.mp4} type="video/mp4" />
+                </>
+              )}
+            </Box>
+            {/* Legibility wash so the navy motto (top-left) and the P lockup
+                (bottom-left) hold their contrast over bright skyline frames. */}
+            <Box
+              aria-hidden
+              sx={{
+                position: "absolute",
+                inset: 0,
+                background:
+                  "linear-gradient(105deg, rgba(244,247,252,0.86) 0%, rgba(244,247,252,0.55) 26%, rgba(244,247,252,0.12) 52%, rgba(244,247,252,0) 72%), linear-gradient(0deg, rgba(244,247,252,0.72) 0%, rgba(244,247,252,0) 34%)",
+              }}
             />
           </Box>
 
-          {/* Active Node Telemetry HUD Chip (Single focused readout on click) */}
-          {selectedNodeIndex !== null && (
-            <Box
-              sx={{
-                position: "absolute",
-                top: { xs: 72, md: 88 },
-                left: "50%",
-                transform: "translateX(-50%)",
-                zIndex: 10,
-                display: "flex",
-                alignItems: "center",
-                gap: { xs: 1, md: 1.5 },
-                px: { xs: 2, md: 2.75 },
-                py: 0.9,
-                borderRadius: "100px",
-                backgroundColor: "rgba(6, 16, 38, 0.92)",
-                border: "1px solid rgba(255, 199, 44, 0.65)",
-                boxShadow: "0 12px 32px rgba(6, 10, 22, 0.45), 0 0 20px rgba(255, 199, 44, 0.25)",
-                backdropFilter: "blur(16px)",
-                WebkitBackdropFilter: "blur(16px)",
-                pointerEvents: "auto",
-                cursor: "pointer",
-                transition: `all 0.3s ${EASE_OUT_EXPO_CSS}`,
-              }}
-              onClick={() => setSelectedNodeIndex(null)}
-              title="Click to dismiss"
-            >
-              <Box
-                sx={{
-                  width: 7,
-                  height: 7,
-                  borderRadius: "50%",
-                  bgcolor: NOIR.gold,
-                  boxShadow: `0 0 8px ${NOIR.gold}`,
-                }}
-              />
-              <Typography
-                sx={{
-                  fontFamily: MONO,
-                  fontSize: { xs: "0.68rem", md: "0.72rem" },
-                  fontWeight: 800,
-                  letterSpacing: "0.12em",
-                  color: NOIR.gold,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {ACTIVE_NODE_DATA[selectedNodeIndex]?.tag}
-              </Typography>
-              <Box sx={{ width: "1px", height: 12, bgcolor: "rgba(255, 255, 255, 0.25)" }} />
-              <Typography
-                sx={{
-                  fontFamily: SANS,
-                  fontSize: { xs: "0.74rem", md: "0.8rem" },
-                  fontWeight: 600,
-                  color: NOIR.white,
-                  letterSpacing: "-0.01em",
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {ACTIVE_NODE_DATA[selectedNodeIndex]?.label}
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: MONO,
-                  fontSize: "0.65rem",
-                  fontWeight: 700,
-                  color: "rgba(255, 255, 255, 0.45)",
-                  ml: 0.5,
-                }}
-              >
-                ✕
-              </Typography>
-            </Box>
-          )}
+          {/* The flat 2D P mark + PHITOPOLIS wordmark. Sits bottom-left from
+              the start, over the video. Rather than sliding to centre, it
+              disappears (fade + shrink) at the bottom-left rest position,
+              holds hidden through a dead zone, then reappears (fade + grow)
+              dead centre of the card by ~0.56 — the same point the old
+              continuous slide used to land — where it holds through the
+              dwell and rides the card's scale-down into the gunshot.
 
-          {/*
-            The stage-4 in-card vignette used to live here: a centred ellipse
-            darkening the frame's edges toward `DAWN.cloudLo`. It is gone.
-
-            It existed to give a saturated six-stop sky somewhere to fall off
-            to. Against a ground that is now ~70% white it did the opposite of
-            its job — a grey ring around a white card reads as a rendering
-            artifact, and it fought the one thing the composition is built on,
-            which is that the light comes from a single point off the left
-            edge and nowhere else. A vignette is light coming from everywhere
-            at once.
-
-            Not replaced. The density mask in `heroCity.ts` already fades the
-            lattice toward the plane's margins, so the field has no visible
-            rectangular boundary without painting one.
-          */}
-
-
-          {/* PHITOPOLIS Word Transition — Legacy 2D Hero Sequence Mode */}
+              Driven by `--hp-lockup-opacity`/`-scale`/`-centered`, written
+              every frame by writeHeroVars from the phase math in
+              heroPhases.ts (lockupOpacity/lockupScale/lockupCentered) — kept
+              out of inline calc() so the boundaries are parity-locked by
+              tests/motion/hero-phases.test.ts like every other hero phase.
+              `--hp-lockup-centered` is a hard 0/1 step, not a ramp: it flips
+              inside the dead zone, where opacity is already 0, so the anchor
+              swap itself is never visible. */}
           <Box
-            className="hero-wordmark-frame"
             sx={{
               position: "absolute",
-              top: { xs: "calc(50% + 90px)", sm: "50%", md: "50%" },
               left: {
-                xs: "50%",
-                sm: `calc(50% - ${WORDMARK_INSET_SM}px)`,
-                md: `calc(50% - ${WORDMARK_INSET_MD}px)`,
+                xs: "calc(32px + var(--hp-lockup-centered, 0) * (50% - 32px))",
+                md: "calc(72px + var(--hp-lockup-centered, 0) * (50% - 72px))",
               },
-              width: "auto",
-              textAlign: { xs: "center", sm: "left" },
+              bottom: {
+                xs: "calc(120px + var(--hp-lockup-centered, 0) * (50% - 120px))",
+                md: "calc(148px + var(--hp-lockup-centered, 0) * (50% - 148px))",
+              },
+              transform:
+                "translate(calc(var(--hp-lockup-centered, 0) * -50%), calc(var(--hp-lockup-centered, 0) * 50%)) scale(var(--hp-lockup-scale, 1))",
               zIndex: 7,
-              overflow: "hidden",
-              clipPath: "inset(0 0 0 0)",
-              opacity: "var(--hp-word, 0)",
+              display: "flex",
+              alignItems: "center",
+              gap: { xs: 1.5, md: 2 },
+              whiteSpace: "nowrap",
+              opacity: ready && heroStep >= 1 ? "var(--hp-lockup-opacity, 1)" : 0,
               pointerEvents: "none",
-              transform: {
-                xs: "translate(-50%, -50%)",
-                sm: "translate(0, -50%)",
-              },
+              willChange: "left, bottom, transform, opacity",
             }}
           >
-            <Box sx={{ position: "relative", overflow: "hidden", py: 0.5 }}>
-              <Typography
-                variant="h1"
-                component="h1"
-                aria-label="Phitopolis"
-                className="hero-wordmark"
-                sx={{
-                  fontSize: { xs: "2.6rem", sm: "4.0rem", md: "5.8rem" },
-                  fontWeight: 900,
-                  letterSpacing: "0.02em",
-                  lineHeight: 1,
-                  textTransform: "uppercase",
-                  userSelect: "none",
-                  color: NOIR.navyField,
-                  transform: "translateY(calc(var(--hp-wordlift, 0) * 1%))",
-                }}
-              >
-                PH<Box component="span" sx={{ color: NOIR.gold }}>IT</Box>OPOLIS
-              </Typography>
-            </Box>
+            <PhitopolisLogo
+              title="Phitopolis"
+              color={NOIR.navyField}
+              accentColor={NOIR.gold}
+              style={{ width: "clamp(38px, 7vw, 68px)", height: "auto", flexShrink: 0 }}
+            />
+            <Typography
+              variant="h1"
+              component="h1"
+              aria-label="Phitopolis"
+              className="hero-wordmark"
+              sx={{
+                fontSize: { xs: "2rem", sm: "2.6rem", md: "3.4rem" },
+                fontWeight: 900,
+                letterSpacing: "0.02em",
+                lineHeight: 1,
+                textTransform: "uppercase",
+                userSelect: "none",
+                color: NOIR.navyField,
+              }}
+            >
+              PH<Box component="span" sx={{ color: NOIR.gold }}>IT</Box>OPOLIS
+            </Typography>
           </Box>
         </Box>
 
@@ -1006,10 +913,11 @@ export function HeroSignalCore() {
           sx={{
             position: "absolute",
             bottom: { xs: 28, md: 44 },
-            left: HERO_GUTTER,
+            right: HERO_GUTTER,
             zIndex: 7,
             display: "flex",
             flexDirection: "column",
+            alignItems: { xs: "stretch", sm: "flex-end" },
             gap: 1.2,
             // Step 5 — the last step. Was `translateY(16px) → 0`, which is
             // actually a RISE (16px below rest, moving up); flipped to drop
@@ -1032,6 +940,7 @@ export function HeroSignalCore() {
               letterSpacing: "0.16em",
               color: NOIR.navyField,
               textTransform: "uppercase",
+              textAlign: { xs: "left", sm: "right" },
             }}
           >
             EXPLORE PHITOPOLIS
@@ -1044,6 +953,7 @@ export function HeroSignalCore() {
               flexWrap: "wrap",
               gap: 1.5,
               alignItems: "stretch",
+              justifyContent: { xs: "stretch", sm: "flex-end" },
             }}
           >
             {/* Link 1: ABOUT */}
@@ -1143,15 +1053,15 @@ export function HeroSignalCore() {
         <Box
           sx={{
             position: { xs: "relative", md: "absolute" },
-            // Matches the directory's own bottom baseline (44) and the shared
-            // gutter (72) — both were bespoke numbers (48/56) that broke the
-            // rhythm the other bottom-anchored chrome holds.
+            // Bottom-left now — the directory pills took the bottom-right
+            // corner. Same baseline (44) and shared gutter as the other
+            // bottom-anchored chrome.
             bottom: { md: 44 },
-            right: HERO_GUTTER,
+            left: HERO_GUTTER,
             zIndex: 4,
             display: { xs: "none", md: "flex" },
             flexDirection: "column",
-            alignItems: "flex-end",
+            alignItems: "flex-start",
             gap: 1,
             opacity: ready ? "var(--hp-panel, 1)" : 0,
             transition: "opacity 2.4s ease-out",

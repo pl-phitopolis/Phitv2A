@@ -9,13 +9,11 @@ import { CONTENT } from "@/shared/content";
 import { Reveal } from "@/shared/components/Reveal";
 import { NAV_ANCHORS } from "@/shared/components/NavbarContext";
 import { useNavbarAnchor } from "@/shared/components/navbarHooks";
-import { JourneyTimeline } from "@/features/about/components/JourneyTimeline";
 import { BackgroundReveal } from "@/features/about/components/BackgroundReveal";
 import { HeroGallery } from "@/features/about/components/HeroGallery";
 import { SmoothSection } from "@/features/about/components/SmoothSection";
 import { MissionSection } from "@/features/about/components/MissionSection";
 import { PoweredBySection } from "@/features/about/components/PoweredBySection";
-import { GraduateHallOfFameSection } from "@/features/about/components/GraduateHallOfFameSection";
 import { CertificationsSection } from "@/features/about/components/CertificationsSection";
 import { PrinciplesValuesShowcase } from "@/features/about/components/PrinciplesValuesShowcase";
 import { TalentSection } from "@/features/about/components/TalentSection";
@@ -59,6 +57,21 @@ import { BlogSection } from "@/features/home/components/BlogSection";
 // It hands off into the deep-navy Blog beat, exactly as it did on home.
 const CurtainTransition = lazy(() =>
   import("@/shared/components/CurtainTransition").then((m) => ({ default: m.CurtainTransition })),
+);
+
+// JourneyTimeline is 892 lines driving a 480vh horizontal scrub over 26 photos,
+// and it sits fifth on the page — nobody sees it in the first viewport. Lazying
+// it keeps that weight (and its 26 image URLs) out of the eager route chunk,
+// which matters most on a client-side nav into /about from another page.
+//
+// Note this does NOT drop gsap from the eager chunk: `SmoothScroll` and
+// `GroundLayer` both import it at module scope and both mount at the top of
+// this route, so the gsap chunk stays a static edge either way. The win here is
+// JourneyTimeline's own weight, not the shared library.
+const JourneyTimeline = lazy(() =>
+  import("@/features/about/components/JourneyTimeline").then((m) => ({
+    default: m.JourneyTimeline,
+  })),
 );
 
 export const Route = createFileRoute("/about")({
@@ -217,7 +230,9 @@ function AboutPage() {
         
         <Box sx={{ mb: { xs: 12, md: 20 } }} ref={timelineAnchorRef}>
           <SmoothSection>
-            <JourneyTimeline />
+            <Suspense fallback={null}>
+              <JourneyTimeline />
+            </Suspense>
           </SmoothSection>
         </Box>
         
@@ -227,10 +242,6 @@ function AboutPage() {
           </SmoothSection>
         </Box>
 
-        <Box sx={{ mb: { xs: 12, md: 20 } }}>
-          <GraduateHallOfFameSection />
-        </Box>
-        
         <Box sx={{ mb: 0 }} ref={certsAnchorRef}>
           <SmoothSection>
             <CertificationsSection />

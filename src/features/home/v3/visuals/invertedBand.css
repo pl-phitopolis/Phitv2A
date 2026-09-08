@@ -1,0 +1,156 @@
+/**
+ * The one light band on the page.
+ *
+ * WHY THIS EXISTS. Every act of this page sits on one of four navy grounds, and
+ * at four screens of scroll that reads as one long unbroken field: the reader
+ * has no sense of having arrived anywhere. The delivery beat is the flattest
+ * part of it (centred type and three outlined boxes on flat navy), so it is the
+ * one that earns the inversion. One contrast beat, in the middle, deliberately
+ * placed where the page is otherwise weakest.
+ *
+ * WHY IT IS NOT A NEW PALETTE. `grounds.ts` still defines `void` in full, with
+ * its own foreground and its own measured `muted`/`rule` values for navy-on-
+ * light. Its docblock says the light grounds were "retired rather than
+ * redefined" when the site went dark, but the tokens were left intact and the
+ * type union still carries them, and `docs/design-bar.md` describes the system
+ * as "a per-section *ground* system (light and navy grounds)". So this revives
+ * a ground the registry already specifies rather than inventing an ivory:
+ *
+ *     bg     NOIR.void        #F4F7FC
+ *     fg     NOIR.navyField   #0A2A66      (~8:1 on that bg, clears AA)
+ *     muted  rgba(10, 42, 102, 0.82)
+ *     rule   rgba(10, 42, 102, 0.18)
+ *
+ * Those four values are restated below because a CSS file cannot import
+ * `grounds.ts`. They are a transcription, not a new decision. If `grounds.ts`
+ * ever changes them, change them here in the same edit.
+ *
+ * GOLD ON A LIGHT GROUND. `NOIR.gold` as *text* on this ground measures about
+ * 1.45:1 and fails AA. That was raised and accepted deliberately in 2026-08
+ * (see the docblock in `tests/accent-role.test.ts`, which records the decision
+ * and the rejected bronze alternative), so gold is used here only for FILLS and
+ * RULES, never for a text colour. Text on this band is navy.
+ */
+
+.hv3-band-light {
+  /* grounds.ts `void`, transcribed. See the docblock above. */
+  --hv3-band-bg: #f4f7fc;
+  --hv3-band-fg: #0a2a66;
+  --hv3-band-muted: rgba(10, 42, 102, 0.82);
+  --hv3-band-rule: rgba(10, 42, 102, 0.18);
+
+  background: var(--hv3-band-bg);
+  color: var(--hv3-band-fg);
+  position: relative;
+  isolation: isolate;
+}
+
+/* Type and copy inherit the ground's own foreground rather than the page's. */
+.hv3-band-light :is(h2, h3) {
+  color: var(--hv3-band-fg);
+}
+
+.hv3-band-light p,
+.hv3-band-light .hv3-delivery-intro,
+.hv3-band-light .hv3-delivery-footnote {
+  color: var(--hv3-band-muted);
+}
+
+/* Hairlines and step outlines take the ground's rule value, not the dark one. */
+.hv3-band-light .hv3-delivery-line,
+.hv3-band-light .hv3-step-node {
+  border-color: var(--hv3-band-rule);
+}
+
+.hv3-band-light .hv3-delivery-line {
+  background: var(--hv3-band-rule);
+}
+
+/* The kicker numeral is the one place gold survives here, as a fill on a chip
+   rather than as text on the light ground. Navy label on gold measures well. */
+/*
+ * The kicker becomes a chip, and must size to its own text.
+ *
+ * `.hv3-kicker` is `display: block` in `homeV3.css`, which is fine as a bare
+ * numeral on navy and wrong the moment it has a background: as a block it
+ * stretched to the full measure and painted a 1040px gold bar across the band.
+ * Inline-block with an auto width sizes it to the numeral, and the band's
+ * centred text alignment then centres the chip itself.
+ */
+.hv3-band-light .hv3-kicker {
+  display: inline-block;
+  width: auto;
+  max-width: max-content;
+  background: var(--hv3-gold);
+  color: var(--hv3-band-fg);
+  padding: 3px 10px;
+  border-radius: 2px;
+  letter-spacing: 0.08em;
+}
+
+.hv3-band-light .hv3-step-node {
+  color: var(--hv3-band-fg);
+  background: transparent;
+}
+
+/*
+ * Full bleed, with the copy still on the page's measure.
+ *
+ * `.hv3-delivery` is a 1040px centred column, which is right for the copy and
+ * wrong for the band: a light block that stops short of the viewport edges
+ * reads as a floating card dropped onto the navy rather than as the page
+ * changing ground under you, and the whole point of this beat is the latter.
+ * So the band itself goes edge to edge and the measure is restored on its
+ * children instead.
+ */
+.hv3-band-light.hv3-delivery {
+  max-width: none;
+  /*
+   * `.hv3 [data-hv3-act-panel]` pads this act by `--hv3-gutter` on both sides,
+   * so a band that merely drops its own max-width still stops short of the
+   * viewport by exactly that gutter. Pull back by it, then put it back as the
+   * band's own padding: the ground reaches the edges, the copy does not.
+   */
+  margin-inline: calc(-1 * var(--hv3-gutter));
+  padding: 120px var(--hv3-gutter);
+}
+
+/* Restore the reading measure on the content, not on the ground. `:where()`
+   keeps this at zero specificity so a child's own rules still win, and the
+   kicker is excluded because it is a chip sized to its own text, not a
+   column. */
+.hv3-band-light.hv3-delivery > :where(:not(.hv3-kicker)) {
+  max-width: 1040px;
+  margin-inline: auto;
+}
+
+/*
+ * The edges.
+ *
+ * A first attempt faded each edge with a 96px gradient of the neighbouring
+ * navy. It looked plausible in the abstract and was wrong in practice: the
+ * gradients sat on top of real content, so the section's kicker disappeared
+ * under the upper one and the closing footnote washed out under the lower one.
+ * At full bleed the ground change does not need softening to read as
+ * deliberate, so the gradients are gone and each edge takes a gold hairline
+ * instead. That is one accent used as a rule rather than as text, which is the
+ * one role gold is allowed on a light ground.
+ */
+.hv3-band-light::before,
+.hv3-band-light::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--hv3-gold);
+  pointer-events: none;
+}
+
+.hv3-band-light::before {
+  top: 0;
+}
+
+.hv3-band-light::after {
+  bottom: 0;
+}

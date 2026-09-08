@@ -13,9 +13,11 @@ import LocationOnIcon from "@mui/icons-material/LocationOn";
 import WorkIcon from "@mui/icons-material/Work";
 import SendIcon from "@mui/icons-material/Send";
 import OpenInNewIcon from "@mui/icons-material/OpenInNew";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 
-import { CAREER_POSITIONS } from "@/shared/careersData";
+import { queryClient } from "@/app/queryClient";
+import { careersPostQuery } from "@/features/careers/api";
 import { Reveal } from "@/shared/components/Reveal";
 import { Section } from "@/shared/components/Section";
 import { RouterButton } from "@/shared/components/RouterLink";
@@ -75,12 +77,21 @@ function validate(values: ApplicationValues): FieldErrors {
 }
 
 export const Route = createFileRoute("/careers/$jobId")({
+  // `head()` gets no query-client context of its own (unlike `loader`), so it
+  // reads the same singleton the router hands loaders elsewhere — same
+  // pattern as `/innovation-hub/$slug`. The loader below (and router-preload
+  // on hover from the register list) usually warms this exact cache entry
+  // before this runs.
   head: ({ params }) => {
-    const job = CAREER_POSITIONS.find((p) => p.id === params.jobId);
+    const job = queryClient.getQueryData(careersPostQuery(params.jobId).queryKey);
     return pageHead(
       `${job ? job.title : "Position Details"} | Phitopolis Careers`,
       job ? job.summary : "Explore career & graduate opportunities at Phitopolis R&D Manila."
     );
+  },
+  // Warm the cache without blocking or failing the route.
+  loader: ({ context, params }) => {
+    void context.queryClient.ensureQueryData(careersPostQuery(params.jobId)).catch(() => undefined);
   },
   component: JobDetailPage,
 });
@@ -88,7 +99,8 @@ export const Route = createFileRoute("/careers/$jobId")({
 function JobDetailPage() {
   const anchorRef = useNavbarAnchor(NAV_ANCHORS.CAREERS_PAGE, { dark: false });
   const { jobId } = Route.useParams();
-  const job = CAREER_POSITIONS.find((p) => p.id === jobId);
+  const jobQuery = useQuery(careersPostQuery(jobId));
+  const job = jobQuery.data;
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
@@ -116,6 +128,36 @@ function JobDetailPage() {
     (message): message is string => Boolean(message),
   );
 
+  // Query still in flight (and no cached data to show yet) — render a quiet
+  // loading state rather than flashing the 404 panel below.
+  if (job === undefined && jobQuery.isPending) {
+    return (
+      <Box
+        data-ground="light"
+        ref={anchorRef}
+        sx={{
+          width: "100%",
+          minHeight: "100dvh",
+          bgcolor: "var(--g-void)",
+          color: "var(--text-1)",
+          background: "var(--g-page)",
+          pt: { xs: 14, md: 22 },
+          pb: { xs: 10, md: 16 },
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        <Section>
+          <Typography variant="body1" sx={{ color: "var(--text-2)", textAlign: "center" }}>
+            Loading position…
+          </Typography>
+        </Section>
+      </Box>
+    );
+  }
+
+  // Unknown/unpublished slugs 404 on the public API — there is no honest
+  // fallback body for an arbitrary slug, so offer the way back instead.
   if (!job) {
     return (
       <Box
@@ -210,6 +252,13 @@ function JobDetailPage() {
       subject: `Application: ${job.title}`,
       message: `Applicant: ${fullName.trim()}\nInstitution/Company: ${university.trim()}\nPosition: ${job.title}\n\nCover Note:\n${coverNote.trim()}`,
       company_website: companyWebsite,
+      // `website_hp` is a second honeypot field the regenerated
+      // ContactMessageIn schema now requires (default "" server-side); this
+      // form only wires up `company_website`, so send the field's default
+      // explicitly rather than touching the shared contact API.
+      website_hp: "",
+      job_slug: job.slug,
+      job_title: job.title,
     });
   };
 
@@ -335,7 +384,7 @@ function JobDetailPage() {
                   /
                 </Typography>
                 <Chip
-                  label={job.type.toUpperCase()}
+                  label={job.employment_type.toUpperCase()}
                   size="small"
                   sx={{
                     fontFamily: MONO,

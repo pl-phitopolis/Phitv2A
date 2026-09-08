@@ -1,0 +1,56 @@
+/**
+ * SignalField wrapper. Scoped, `hv3-signal-` prefixed.
+ *
+ * Height is a CSS-only decision (`clamp`, driven by viewport units), never a
+ * JS measurement written back to the DOM. `SignalField.tsx` sizes its canvas
+ * off this element's `getBoundingClientRect()` but never resizes the element
+ * itself. That distinction matters here specifically: this component is
+ * meant to sit inside one of the four act-boundary markers, and a boundary's
+ * height is the crossing point a `ScrollTrigger` is anchored to (see
+ * `boundaries/ActBoundary.tsx`). If the canvas element grew or shrank with
+ * content, it would drag that trigger's position around underneath it and
+ * re-fire a transition that already fired. `clamp()` is stable across
+ * reflows for that reason, not for taste.
+ */
+.hv3-signal-field {
+  position: relative;
+  width: 100%;
+  height: clamp(180px, 32vh, 320px);
+  overflow: hidden;
+}
+
+.hv3-signal-field canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/*
+ * Fill modifier, for when a SignalField IS a boundary rather than sitting in
+ * one.
+ *
+ * The four `[data-hv3-boundary]` markers already own a height, and that height
+ * is the crossing point a ScrollTrigger is anchored to. Letting the field add
+ * its own height on top would move that trigger and re-fire it (a loop that has
+ * already been fixed once in `useActTransition.ts` and must not return), so in
+ * this mode the field takes its size from the boundary and contributes none of
+ * its own.
+ */
+.hv3-signal--fill {
+  position: absolute;
+  inset: 0;
+  height: auto;
+}
+
+/*
+ * The boundary markers become the positioning context for a filling field.
+ *
+ * `.hv3-boundary`'s height lives in `homeV3.css` and is deliberately not
+ * touched here; this only establishes the containing block a
+ * `.hv3-signal--fill` child needs, and clips it so a wide field cannot cause
+ * horizontal overflow on a narrow viewport.
+ */
+.hv3-boundary {
+  position: relative;
+  overflow: clip;
+}

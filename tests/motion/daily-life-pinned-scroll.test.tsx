@@ -9,7 +9,7 @@
 
 import { describe, expect, test, vi, afterEach } from "vitest";
 import React from "react";
-import { render } from "@testing-library/react";
+import { act, render } from "@testing-library/react";
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
@@ -25,6 +25,7 @@ import { aboutSection, sectionOrder } from "@/shared/sections";
 import { refreshPriorityFor } from "@/shared/motion/beatThresholds";
 import { SCROLL_SPEED } from "@/shared/motion/scrollSpeed";
 import * as motionHook from "@/shared/motion";
+import { triggerIntersect } from "../setup.motion";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -97,6 +98,82 @@ describe("render modes", () => {
 
     const pinned = createSpy.mock.calls.some(([cfg]) => cfg && (cfg as { pin?: unknown }).pin === true);
     expect(pinned).toBe(false);
-    expect(container.querySelector("video")?.getAttribute("src")).toBe("/videos/daily-life.mp4");
+
+    // The film is content, not decoration, so a reduced-motion visitor still
+    // gets the element and its poster. What they must NOT get is unprompted
+    // playback — asserted in the gating suite below.
+    const video = container.querySelector("video");
+    expect(video).not.toBeNull();
+    expect(video?.getAttribute("poster")).toBe("/videos/daily-life-poster.jpg");
+  });
+});
+
+/**
+ * The 18.7MB master used to be a hard-coded `src` with `autoPlay`, so every
+ * visitor to `/` and `/about` downloaded it on mount whether or not they ever
+ * scrolled this far. `useDailyLifeVideo` gates the bytes on approach. These
+ * tests pin the gate itself, because its whole value is what does NOT happen.
+ */
+describe("film loading gate", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  function videoOf(container: HTMLElement): HTMLVideoElement {
+    const video = container.querySelector("video");
+    if (!video) throw new Error("no <video> rendered");
+    return video as HTMLVideoElement;
+  }
+
+  test("no source is emitted until the section is approached", () => {
+    vi.spyOn(motionHook, "useReducedMotion").mockReturnValue(false);
+    const { container } = renderWithNavbar(<DailyLifeSection />);
+
+    const video = videoOf(container);
+    // Neither route to a fetch: no src attribute, and no <source> children.
+    expect(video.getAttribute("src")).toBeNull();
+    expect(video.querySelectorAll("source")).toHaveLength(0);
+    // preload must stay off too, or the element would fetch as soon as a
+    // source did appear, regardless of the observer.
+    expect(video.getAttribute("preload")).toBe("none");
+  });
+
+  test("intersecting the section emits the mp4 source", () => {
+    vi.spyOn(motionHook, "useReducedMotion").mockReturnValue(false);
+    const { container } = renderWithNavbar(<DailyLifeSection />);
+
+    const section = container.querySelector("#daily-life-stage");
+    expect(section).not.toBeNull();
+
+    // act(): the observer sets state, and the <source> only exists after React
+    // has re-rendered. Fails loudly if nothing was observing, rather than
+    // passing on zero.
+    let fired = 0;
+    act(() => {
+      fired = triggerIntersect(section!, true);
+    });
+    expect(fired).toBeGreaterThan(0);
+
+    const sources = videoOf(container).querySelectorAll("source");
+    expect(sources).toHaveLength(1);
+    expect(sources[0]?.getAttribute("src")).toBe("/videos/daily-life-reel.mp4");
+  });
+
+  test("reduced motion loads the film but never autoplays it", () => {
+    vi.spyOn(motionHook, "useReducedMotion").mockReturnValue(true);
+    const { container } = renderWithNavbar(<DailyLifeSection />);
+
+    const video = videoOf(container);
+    expect(video.hasAttribute("autoplay")).toBe(false);
+
+    const section = container.querySelector("#daily-life-stage");
+    let fired = 0;
+    act(() => {
+      fired = triggerIntersect(section!, true);
+    });
+    expect(fired).toBeGreaterThan(0);
+
+    // Still loadable and playable by hand — WCAG 2.2.2 is about motion that
+    // starts on its own, not about withholding the media.
+    expect(videoOf(container).querySelectorAll("source")).toHaveLength(1);
+    expect(video.hasAttribute("controls")).toBe(true);
   });
 });

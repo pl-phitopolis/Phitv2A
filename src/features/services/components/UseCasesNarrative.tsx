@@ -10,7 +10,7 @@ import { MONO, DISPLAY_FONT } from "@/shared/theme/theme";
 import { EASE_OUT_EXPO_CSS } from "@/shared/motion/easing";
 import { NAV_ANCHORS } from "@/shared/components/NavbarContext";
 import { useNavbarAnchor } from "@/shared/components/navbarHooks";
-import { UseCaseBackdrop } from "./UseCaseBackdrop";
+import { UseCaseMorphStage } from "./UseCaseMorphStage";
 
 /**
  * Light entrance rise for a block's copy — purely decorative. Scroll-driven (not
@@ -18,7 +18,19 @@ import { UseCaseBackdrop } from "./UseCaseBackdrop";
  * stranded hidden: worst case it reveals after 1.2s regardless. Disabled
  * entirely under reduced motion — DOM default is the lit state.
  */
-function BlockReveal({ children, disabled }: { children: ReactNode; disabled: boolean }) {
+function BlockReveal({
+  children,
+  disabled,
+  column,
+}: {
+  children: ReactNode;
+  disabled: boolean;
+  /** Desktop grid column to occupy. BlockReveal is itself the grid child, so
+   *  placement has to be declared here — setting it on the inner Box does
+   *  nothing, and auto-placement would drop the sub-content into the centre
+   *  cell (the see-through slot) right on top of the image. */
+  column?: number;
+}) {
   const ref = useRef<HTMLDivElement>(null);
   const [shown, setShown] = useState(disabled);
 
@@ -51,8 +63,13 @@ function BlockReveal({ children, disabled }: { children: ReactNode; disabled: bo
   }, [disabled]);
 
   return (
-    <div
+    // Box, not a plain <div>: the column placement has to be breakpoint-scoped.
+    // As a flat inline style it would also apply at `xs`, where the block is a
+    // single column — an explicit `grid-column: 3` there spawns implicit
+    // columns and shreds the mobile stack.
+    <Box
       ref={ref}
+      sx={{ gridColumn: { xs: "auto", md: column ?? "auto" } }}
       style={
         disabled
           ? undefined
@@ -65,12 +82,14 @@ function BlockReveal({ children, disabled }: { children: ReactNode; disabled: bo
       }
     >
       {children}
-    </div>
+    </Box>
   );
 }
 
 export function UseCasesNarrative() {
-  const anchorRef = useNavbarAnchor(NAV_ANCHORS.HOME_USE_CASES, { dark: false });
+  const anchorRef = useNavbarAnchor(NAV_ANCHORS.HOME_USE_CASES, {
+    dark: false,
+  });
   const blockRefs = useRef<(HTMLElement | null)[]>([]);
 
   const cases = CONTENT.useCases;
@@ -102,7 +121,7 @@ export function UseCasesNarrative() {
         color: NOIR.ink,
       }}
     >
-      <UseCaseBackdrop items={cases} blockRefs={blockRefs} />
+      <UseCaseMorphStage items={cases} blockRefs={blockRefs} />
 
       <Box sx={{ position: "relative", zIndex: 2 }}>
         {cases.map((uc, i) => {
@@ -119,16 +138,26 @@ export function UseCasesNarrative() {
               }}
               sx={{
                 minHeight: { xs: "auto", md: "90svh" },
-                display: "flex",
+                display: "grid",
+                gridTemplateColumns: {
+                  xs: "1fr",
+                  md: "1fr min(40vw, 560px) 1fr",
+                },
                 alignItems: "center",
-                justifyContent: uc.side === "left" ? "flex-start" : "flex-end",
+                columnGap: { md: 5 },
                 px: { xs: 3, sm: 5, md: 10 },
                 pt: first ? { xs: 6, md: 12 } : { xs: 8, md: 0 },
                 pb: last ? { xs: 10, md: 16 } : { xs: 8, md: 0 },
               }}
             >
-              <BlockReveal disabled={disabled}>
-                <Box sx={{ maxWidth: 640, textAlign: "left" }}>
+              <BlockReveal disabled={disabled} column={1}>
+                <Box
+                  sx={{
+                    maxWidth: 420,
+                    textAlign: { xs: "left", md: "right" },
+                    justifySelf: { xs: "start", md: "end" },
+                  }}
+                >
                   <Typography
                     sx={{
                       fontFamily: MONO,
@@ -166,13 +195,42 @@ export function UseCasesNarrative() {
                   >
                     {uc.line}
                   </Typography>
+                </Box>
+              </BlockReveal>
 
+              {/* Inline image — mobile/tablet only. The sticky morph stage
+                  (`UseCaseMorphStage`) is hidden below `md`, so this is the
+                  only image shown at those widths. */}
+              <Box
+                component="img"
+                src={uc.image}
+                alt={uc.imageAlt}
+                width={1536}
+                height={864}
+                loading={first ? "eager" : "lazy"}
+                decoding="async"
+                sx={{
+                  display: { xs: "block", md: "none" },
+                  width: "100%",
+                  aspectRatio: "4 / 3",
+                  objectFit: "cover",
+                  borderRadius: "16px",
+                  my: 3,
+                }}
+              />
+
+              <BlockReveal disabled={disabled} column={3}>
+                <Box
+                  sx={{
+                    maxWidth: 420,
+                    justifySelf: { xs: "start", md: "start" },
+                  }}
+                >
                   <Stack
                     direction="row"
                     spacing={1.25}
                     useFlexGap
                     flexWrap="wrap"
-                    sx={{ mt: 2.5 }}
                   >
                     {uc.stats.map((stat) => (
                       <Box
@@ -211,7 +269,10 @@ export function UseCasesNarrative() {
                     }}
                   >
                     {uc.specs.map((spec) => (
-                      <Box key={spec.num} sx={{ display: "flex", alignItems: "center", gap: 1.5 }}>
+                      <Box
+                        key={spec.num}
+                        sx={{ display: "flex", alignItems: "center", gap: 1.5 }}
+                      >
                         <Typography
                           sx={{
                             fontFamily: MONO,
@@ -223,7 +284,11 @@ export function UseCasesNarrative() {
                           {spec.num}
                         </Typography>
                         <Typography
-                          sx={{ fontSize: "0.95rem", fontWeight: 600, color: NOIR.navyField }}
+                          sx={{
+                            fontSize: "0.95rem",
+                            fontWeight: 600,
+                            color: NOIR.navyField,
+                          }}
                         >
                           {spec.name}
                         </Typography>
@@ -235,6 +300,13 @@ export function UseCasesNarrative() {
             </Box>
           );
         })}
+
+        {/* Exit rail: gives the sticky morph stage a screen of runway to
+            scroll off (its `marginBottom: -100svh` keeps it on screen past
+            the last block) before the section boundary hands off to
+            ProcessSection — otherwise the uc-3 image is still visible
+            painting behind the "From our practices" heading. */}
+        <Box aria-hidden sx={{ height: { xs: 0, md: "70svh" } }} />
       </Box>
     </Box>
   );

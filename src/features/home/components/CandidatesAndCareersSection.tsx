@@ -49,13 +49,33 @@ const CAREER_BG_IMAGES: Record<string, string> = {
 /** Fallback when a role has no mapped image. */
 const CAREER_BG_FALLBACK = "/images/careers/AboutPageHero.webp";
 
+/**
+ * `CONTENT.careers` (src/shared/content.ts) is hand-tuned home-page copy —
+ * title/role/stack only, no slug — so this section can't get a Heimdall
+ * job-posting slug from its own data source. The values below are the same
+ * slugs the /careers route already treats as canonical (see
+ * `src/features/careers/api.ts` and the migration off `careersData.ts`),
+ * mapped by the exact title strings `CONTENT.careers` uses today. Not owned
+ * by this fix: if `CONTENT.careers`'s copy is ever retitled, this map needs
+ * updating alongside it — flagged for whoever owns that content next.
+ */
+const CAREER_TITLE_TO_SLUG: Record<string, string> = {
+  "Quantitative Researcher": "quant-researcher",
+  "Software Engineer": "software-engineer",
+  "Full Stack Developer": "full-stack-developer",
+  "Data Scientist": "data-scientist",
+  "DevOps Engineer": "devops-engineer",
+  "Technical Graduate Program": "technical-graduate-program",
+  "R&D Internship Program": "rd-internship-program",
+};
+
 export function CandidatesAndCareersSection() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const reducedMotion = useReducedMotion();
   const [activeIndex, setActiveIndex] = useState<number>(0);
   const [brochureOpen, setBrochureOpen] = useState(false);
-  const [selectedJobTitle, setSelectedJobTitle] = useState<string | null>(null);
+  const [selectedJobSlug, setSelectedJobSlug] = useState<string | null>(null);
   const anchorRef = useNavbarAnchor(NAV_ANCHORS.ABOUT_CANDIDATES, { dark: false });
 
   const openBrochure = useCallback(() => {
@@ -69,12 +89,17 @@ export function CandidatesAndCareersSection() {
   }, []);
 
   const openJobDetails = useCallback((title: string) => {
+    // No mapped slug means the title/slug map above is out of sync with
+    // CONTENT.careers — fail honestly (no drawer) rather than opening the
+    // wrong role's details.
+    const slug = CAREER_TITLE_TO_SLUG[title];
+    if (!slug) return;
     stopLenis();
-    setSelectedJobTitle(title);
+    setSelectedJobSlug(slug);
   }, []);
 
   const closeJobDetails = useCallback(() => {
-    setSelectedJobTitle(null);
+    setSelectedJobSlug(null);
     startLenis();
   }, []);
 
@@ -340,8 +365,8 @@ export function CandidatesAndCareersSection() {
 
       {/* 4. Job Details Right Drawer Modal */}
       <JobDetailsDrawer
-        open={Boolean(selectedJobTitle)}
-        jobTitle={selectedJobTitle}
+        open={Boolean(selectedJobSlug)}
+        jobSlug={selectedJobSlug}
         onClose={closeJobDetails}
       />
     </SectionBeat>

@@ -2,6 +2,7 @@ import Modal from "@mui/material/Modal";
 import Fade from "@mui/material/Fade";
 import Typography from "@mui/material/Typography";
 import Box from "@mui/material/Box";
+import CircularProgress from "@mui/material/CircularProgress";
 import { SpecularIconButton as IconButton } from "@/shared/components/ui/specular";
 import { SpecularButton as Button } from "@/shared/components/ui/specular";
 import Stack from "@mui/material/Stack";
@@ -10,7 +11,6 @@ import Grid from "@mui/material/Grid";
 import Container from "@mui/material/Container";
 import CloseIcon from "@mui/icons-material/Close";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
-import StarOutlineIcon from "@mui/icons-material/StarOutline";
 import LaunchIcon from "@mui/icons-material/Launch";
 import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import WorkOutlineIcon from "@mui/icons-material/WorkOutline";
@@ -20,11 +20,13 @@ import CodeIcon from "@mui/icons-material/Code";
 import StorageIcon from "@mui/icons-material/Storage";
 import PsychologylIcon from "@mui/icons-material/Psychology";
 import CloudQueueIcon from "@mui/icons-material/CloudQueue";
+import { useQuery } from "@tanstack/react-query";
 import { NOIR } from "@/shared/theme/palette";
 import { MONO } from "@/shared/theme/theme";
 import { SCROLL_SPEED } from "@/shared/motion/scrollSpeed";
-import { CAREER_POSITIONS } from "@/shared/careersData";
-import { JOB_DETAILS, type JobDetail } from "./jobDetails";
+import { careersPostQuery } from "@/features/careers/api";
+
+const APPLY_URL = "https://forms.gle/niyMK6Wkc4v5yfLm7";
 
 const MODAL_TRANSITION_MS = Math.round(SCROLL_SPEED * 1000);
 
@@ -229,36 +231,20 @@ function PaperBox({ label, sub, highlight }: { label: string; sub: string; highl
 
 interface JobDetailsDrawerProps {
   open: boolean;
-  jobTitle: string | null;
+  /** Heimdall job-posting slug (not the display title) — resolves via the
+      real `/api/v1/job-postings/{slug}` endpoint instead of a static map. */
+  jobSlug: string | null;
   onClose: () => void;
 }
 
-// A JOB_DETAILS miss must never silently show a different role's details.
-// Fall back to the position's own real copy from careersData.ts instead —
-// only the fields that exist there are populated; the rest stay unset so the
-// drawer renders honestly instead of padding with someone else's content.
-function buildFallbackDetail(title: string): JobDetail | null {
-  const position = CAREER_POSITIONS.find((candidate) => candidate.title === title);
-  if (!position) return null;
+export function JobDetailsDrawer({ open, jobSlug, onClose }: JobDetailsDrawerProps) {
+  const detailQuery = useQuery({
+    ...careersPostQuery(jobSlug ?? ""),
+    enabled: jobSlug !== null,
+  });
+  const detail = jobSlug !== null ? detailQuery.data : undefined;
 
-  return {
-    id: position.id,
-    title: position.title,
-    role: position.summary,
-    overview: position.description,
-    stack: position.stack,
-    location: position.location,
-    type: position.type,
-    applyUrl: "https://forms.gle/niyMK6Wkc4v5yfLm7",
-    responsibilities: position.responsibilities,
-    requirements: position.requirements,
-  };
-}
-
-export function JobDetailsDrawer({ open, jobTitle, onClose }: JobDetailsDrawerProps) {
-  const detail = jobTitle ? (JOB_DETAILS[jobTitle] ?? buildFallbackDetail(jobTitle)) : null;
-
-  if (!detail) return null;
+  if (jobSlug === null) return null;
 
   return (
     <Modal
@@ -329,7 +315,7 @@ export function JobDetailsDrawer({ open, jobTitle, onClose }: JobDetailsDrawerPr
               <Stack direction="row" spacing={2} alignItems="center">
                 <Button
                   variant="contained"
-                  href={detail.applyUrl}
+                  href={APPLY_URL}
                   target="_blank"
                   rel="noopener noreferrer"
                   endIcon={<LaunchIcon fontSize="small" />}
@@ -380,8 +366,13 @@ export function JobDetailsDrawer({ open, jobTitle, onClose }: JobDetailsDrawerPr
             }}
           >
             <Container maxWidth="lg">
+              {!detail ? (
+                <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
+                  <CircularProgress sx={{ color: NOIR.gold }} />
+                </Box>
+              ) : (
               <Stack spacing={4.5}>
-            
+
                 {/* Title & Metadata Header */}
                 <Stack spacing={2.5}>
                   <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap" useFlexGap>
@@ -400,7 +391,7 @@ export function JobDetailsDrawer({ open, jobTitle, onClose }: JobDetailsDrawerPr
                     />
                     <Chip
                       icon={<WorkOutlineIcon sx={{ fontSize: "0.9rem !important", color: "rgba(244, 247, 252, 0.7) !important" }} />}
-                      label={detail.type}
+                      label={detail.employment_type}
                       size="small"
                       variant="outlined"
                       sx={{
@@ -418,7 +409,7 @@ export function JobDetailsDrawer({ open, jobTitle, onClose }: JobDetailsDrawerPr
                   </Typography>
 
                   <Typography variant="h5" sx={{ color: "rgba(244, 247, 252, 0.78)", fontWeight: 400, lineHeight: 1.6, maxWidth: 850 }}>
-                    {detail.role}
+                    {detail.summary}
                   </Typography>
 
                   {/* Tech Stack Pills */}
@@ -442,7 +433,7 @@ export function JobDetailsDrawer({ open, jobTitle, onClose }: JobDetailsDrawerPr
                 </Stack>
 
                 {/* Visual Aid Diagram */}
-                <RoleVisualAid roleId={detail.id} />
+                <RoleVisualAid roleId={detail.slug} />
 
                 {/* Role Overview */}
                 <Box sx={{ p: 3.5, borderRadius: 4, bgcolor: "rgba(255, 255, 255, 0.03)", border: "1px solid rgba(255, 255, 255, 0.08)" }}>
@@ -450,7 +441,7 @@ export function JobDetailsDrawer({ open, jobTitle, onClose }: JobDetailsDrawerPr
                     ROLE OVERVIEW
                   </Typography>
                   <Typography variant="body1" sx={{ color: "rgba(244, 247, 252, 0.75)", lineHeight: 1.75, fontSize: "1.02rem" }}>
-                    {detail.overview}
+                    {detail.description}
                   </Typography>
                 </Box>
 
@@ -488,16 +479,18 @@ export function JobDetailsDrawer({ open, jobTitle, onClose }: JobDetailsDrawerPr
                   </Stack>
                 </Box>
 
-                {/* Desirable Skills — only rendered when the source data has this list */}
-                {detail.desirable && detail.desirable.length > 0 && (
+                {/* Benefits — sourced from the real `benefits` field on
+                    JobPostingOut (the old static JOB_DETAILS map had no
+                    equivalent "desirable skills" list backed by real data). */}
+                {detail.benefits.length > 0 && (
                 <Box>
                   <Typography variant="h5" sx={{ fontWeight: 800, mb: 2.5, color: NOIR.frost, fontSize: "1.3rem" }}>
-                    Desirable Skills & Experience
+                    Benefits & Compensation
                   </Typography>
                   <Stack spacing={1.8}>
-                    {detail.desirable.map((item, index) => (
-                      <Stack key={`des-${String(index)}`} direction="row" spacing={2} alignItems="flex-start">
-                        <StarOutlineIcon sx={{ color: NOIR.gold, mt: 0.3, fontSize: "1.2rem", flexShrink: 0 }} />
+                    {detail.benefits.map((item, index) => (
+                      <Stack key={`ben-${String(index)}`} direction="row" spacing={2} alignItems="flex-start">
+                        <CheckCircleOutlineIcon sx={{ color: NOIR.gold, mt: 0.3, fontSize: "1.2rem", flexShrink: 0 }} />
                         <Typography variant="body1" sx={{ color: "rgba(244, 247, 252, 0.8)", fontSize: "1rem", lineHeight: 1.65 }}>
                           {item}
                         </Typography>
@@ -530,7 +523,7 @@ export function JobDetailsDrawer({ open, jobTitle, onClose }: JobDetailsDrawerPr
                   <Button
                     variant="contained"
                     size="large"
-                    href={detail.applyUrl}
+                    href={APPLY_URL}
                     target="_blank"
                     rel="noopener noreferrer"
                     endIcon={<LaunchIcon />}
@@ -551,6 +544,7 @@ export function JobDetailsDrawer({ open, jobTitle, onClose }: JobDetailsDrawerPr
                 </Box>
 
               </Stack>
+              )}
             </Container>
           </Box>
         </Box>

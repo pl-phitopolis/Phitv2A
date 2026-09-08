@@ -1,8 +1,9 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Box from "@mui/material/Box";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import Chip from "@mui/material/Chip";
+import Pagination from "@mui/material/Pagination";
 import TextField from "@mui/material/TextField";
 import InputAdornment from "@mui/material/InputAdornment";
 import { SpecularButton as Button, SpecularIconButton as IconButton } from "@/shared/components/ui/specular";
@@ -12,10 +13,14 @@ import SearchIcon from "@mui/icons-material/Search";
 import CloseIcon from "@mui/icons-material/Close";
 import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
 import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown";
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "motion/react";
 
-import { CAREER_POSITIONS } from "@/shared/careersData";
+// api + components imported directly (not the barrel) so the eager loader
+// doesn't pull the components into the main bundle.
+import { careersPostsQuery } from "@/features/careers/api";
+import type { CareersListParams, JobPostingSummary } from "@/features/careers/api";
 import { Reveal } from "@/shared/components/Reveal";
 import { Section } from "@/shared/components/Section";
 import { RouterButton } from "@/shared/components/RouterLink";
@@ -27,13 +32,68 @@ import { NAV_ANCHORS } from "@/shared/components/NavbarContext";
 import { useNavbarAnchor } from "@/shared/components/navbarHooks";
 import { VideoPageHero } from "@/shared/components/VideoPageHero";
 import { CAREERS_LOOP } from "@/shared/components/useBackgroundVideo";
+// Relocated from /about: the graduate cohorts and the culture around them
+// belong beside the job register, not inside the company story. The category
+// chips above already read "Graduate Program" and "Internships".
+import { GraduateHallOfFameSection } from "@/features/careers/components/GraduateHallOfFameSection";
+import { FuntopolisSection } from "@/features/careers/components/FuntopolisSection";
+
+const PAGE_SIZE = 9;
+
+// Mirrors Heimdall's `JobPostingCreate.category` enum (schema.d.ts) — the
+// only categories the backend accepts as a filter.
+const CATEGORIES = [
+  "Graduate Program",
+  "Internships",
+  "Engineering & Quant",
+  "Cloud & Infrastructure",
+] as const;
+
+function isCareersCategory(value: unknown): value is (typeof CATEGORIES)[number] {
+  return typeof value === "string" && (CATEGORIES as readonly string[]).includes(value);
+}
+
+/** All params optional so plain links to /careers need no search object. */
+interface CareersSearch {
+  offset?: number | undefined;
+  category?: (typeof CATEGORIES)[number] | undefined;
+}
+
+function paramsFromSearch(search: CareersSearch): CareersListParams {
+  return {
+    limit: PAGE_SIZE,
+    offset: search.offset ?? 0,
+    ...(search.category !== undefined ? { category: search.category } : {}),
+  };
+}
 
 export const Route = createFileRoute("/careers/")({
+  validateSearch: (search: Record<string, unknown>): CareersSearch => {
+    const rawOffset = search["offset"];
+    const offset =
+      typeof rawOffset === "number" && Number.isInteger(rawOffset) && rawOffset > 0
+        ? rawOffset
+        : undefined;
+    const rawCategory = search["category"];
+    const category = isCareersCategory(rawCategory) ? rawCategory : undefined;
+    return {
+      ...(offset !== undefined ? { offset } : {}),
+      ...(category !== undefined ? { category } : {}),
+    };
+  },
   head: () =>
     pageHead(
       "Careers & Graduate Programs | Phitopolis R&D",
       "Join Phitopolis R&D in Manila to explore paid engineering internships, full-time technical graduate fellowships, and senior engineering roles."
     ),
+  loaderDeps: ({ search }) => search,
+  // Warm the cache without blocking or failing the route — the page renders
+  // its empty state immediately and swaps in live posts on arrival.
+  loader: ({ context, deps }) => {
+    void context.queryClient
+      .ensureQueryData(careersPostsQuery(paramsFromSearch(deps)))
+      .catch(() => undefined);
+  },
   component: CareersIndexPage,
 });
 
@@ -57,35 +117,54 @@ function CareersVideoHero() {
 
 export function CareersIndexPage() {
   const anchorRef = useNavbarAnchor(NAV_ANCHORS.CAREERS_PAGE, { dark: false });
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedJobId, setExpandedJobId] = useState<string | null>(null);
   const [brochureOpen, setBrochureOpen] = useState(false);
 
-  const categories = [
-    { label: "All", count: CAREER_POSITIONS.length },
-    { label: "Graduate Program", count: CAREER_POSITIONS.filter((p) => p.category === "Graduate Program").length },
-    { label: "Internships", count: CAREER_POSITIONS.filter((p) => p.category === "Internships").length },
-    { label: "Engineering & Quant", count: CAREER_POSITIONS.filter((p) => p.category === "Engineering & Quant").length },
-    { label: "Cloud & Infrastructure", count: CAREER_POSITIONS.filter((p) => p.category === "Cloud & Infrastructure").length },
-  ];
+  const page = useQuery(careersPostsQuery(paramsFromSearch(search)));
+  const data = page.data;
 
-  const filteredPositions = useMemo(() => {
-    return CAREER_POSITIONS.filter((position) => {
-      const matchesCategory = selectedCategory === "All" || position.category === selectedCategory;
-      const q = searchQuery.toLowerCase().trim();
-      const matchesSearch =
-        q === "" ||
-        position.title.toLowerCase().includes(q) ||
-        position.department.toLowerCase().includes(q) ||
-        position.summary.toLowerCase().includes(q) ||
-        position.stack.some((tech) => tech.toLowerCase().includes(q));
-      return matchesCategory && matchesSearch;
-    });
-  }, [selectedCategory, searchQuery]);
+  const selectedCategory = search.category ?? "All";
+  const pageCount = data ? Math.max(1, Math.ceil(data.total / data.limit)) : 1;
+  const currentPage = data ? Math.floor(data.offset / data.limit) + 1 : 1;
+
+  // The backend's `/api/v1/job-postings` list only accepts `category` +
+  // pagination — there's no free-text `q` search (unlike /blog-posts). So this
+  // filters only the CURRENTLY LOADED page of results, client-side, rather
+  // than querying the full category — a deliberate scope trade-off, not a bug.
+  const q = searchQuery.toLowerCase().trim();
+  const visiblePositions: JobPostingSummary[] = (data?.items ?? []).filter((position) => {
+    if (q === "") return true;
+    return (
+      position.title.toLowerCase().includes(q) ||
+      position.department.toLowerCase().includes(q) ||
+      position.summary.toLowerCase().includes(q) ||
+      position.stack.some((tech) => tech.toLowerCase().includes(q))
+    );
+  });
 
   const toggleExpanded = (id: string) => {
     setExpandedJobId((curr) => (curr === id ? null : id));
+  };
+
+  const onCategoryChange = (label: (typeof CATEGORIES)[number] | "All") => {
+    void navigate({
+      search: {
+        ...(label !== "All" ? { category: label } : {}),
+      },
+    });
+  };
+
+  const onPageChange = (pageNumber: number) => {
+    const offset = (pageNumber - 1) * PAGE_SIZE;
+    void navigate({
+      search: {
+        ...(search.category !== undefined ? { category: search.category } : {}),
+        ...(offset > 0 ? { offset } : {}),
+      },
+    });
   };
 
   return (
@@ -217,7 +296,8 @@ export function CareersIndexPage() {
                   gap: 2.5,
                 }}
               >
-                {/* Search Input Well */}
+                {/* Search Input Well — filters the currently loaded page only;
+                    the backend has no free-text search on this endpoint. */}
                 <Box sx={{ width: { xs: "100%", md: "380px" } }}>
                   <TextField
                     placeholder="Search by role, stack (e.g. C++, Python, AWS)..."
@@ -269,13 +349,14 @@ export function CareersIndexPage() {
                   />
                 </Box>
 
-                {/* Category Chips */}
+                {/* Category Chips — each sets/clears the `category` search
+                    param (server-side filter) and resets to page 1. */}
                 <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap justifyContent={{ xs: "flex-start", md: "flex-end" }}>
-                  {categories.map((cat) => {
-                    const isSelected = selectedCategory === cat.label;
+                  {(["All", ...CATEGORIES] as const).map((label) => {
+                    const isSelected = selectedCategory === label;
                     return (
                       <Chip
-                        key={cat.label}
+                        key={label}
                         label={
                           <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.8 }}>
                             <Typography
@@ -287,11 +368,11 @@ export function CareersIndexPage() {
                                 letterSpacing: "0.06em",
                               }}
                             >
-                              {cat.label.toUpperCase()} [{cat.count}]
+                              {label.toUpperCase()}
                             </Typography>
                           </Box>
                         }
-                        onClick={() => setSelectedCategory(cat.label)}
+                        onClick={() => onCategoryChange(label)}
                         sx={{
                           cursor: "pointer",
                           height: 32,
@@ -320,9 +401,12 @@ export function CareersIndexPage() {
             </Stack>
           </Reveal>
 
-          {/* ── Staggered Folder-Tab Register ── */}
+          {/* ── Register: one homogeneous list (a single page can't reliably
+              hold every category's full contents once paginated, so grouping
+              by category only makes sense while a single category is
+              selected) ── */}
           <Box>
-            {filteredPositions.length === 0 ? (
+            {visiblePositions.length === 0 ? (
               <Reveal>
                 <Box
                   sx={{
@@ -373,7 +457,7 @@ export function CareersIndexPage() {
                     size="small"
                     onClick={() => {
                       setSearchQuery("");
-                      setSelectedCategory("All");
+                      onCategoryChange("All");
                     }}
                     sx={{
                       fontFamily: MONO,
@@ -393,370 +477,380 @@ export function CareersIndexPage() {
                 </Box>
               </Reveal>
             ) : (
-              <Stack spacing={5}>
-                {categories
-                  .filter((cat) => cat.label !== "All")
-                  .map((cat) => {
-                    const groupPositions = filteredPositions.filter((p) => p.category === cat.label);
-                    if (groupPositions.length === 0) return null;
+              <Box>
+                {/* One hairline rule for the whole register, not per group —
+                    a page holds a single category (or an unfiltered mix). */}
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    gap: 1.5,
+                    pb: 1.2,
+                    mb: 2.5,
+                    borderBottom: "1px solid var(--divider)",
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontFamily: MONO,
+                      fontSize: TYPE_SCALE.micro,
+                      fontWeight: 700,
+                      letterSpacing: TRACKING.meta,
+                      color: "var(--text-2)",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {selectedCategory === "All" ? "ALL POSITIONS" : selectedCategory}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontFamily: MONO,
+                      fontSize: TYPE_SCALE.micro,
+                      color: "var(--text-3)",
+                    }}
+                  >
+                    {`[${String(data?.total ?? 0)}]`}
+                  </Typography>
+                </Box>
+
+                <Stack spacing={2}>
+                  {visiblePositions.map((position, index) => {
+                    const isExpanded = expandedJobId === position.slug;
 
                     return (
-                      <Box key={cat.label}>
-                        {/* One hairline rule per GROUP, not per row */}
+                      <Reveal key={position.slug} delay={0.04 * index}>
+                        {/* Flat File Card */}
                         <Box
                           sx={{
-                            display: "flex",
-                            alignItems: "baseline",
-                            gap: 1.5,
-                            pb: 1.2,
-                            mb: 2.5,
-                            borderBottom: "1px solid var(--divider)",
+                            borderRadius: "var(--r-card)",
+                            bgcolor: "var(--g-panel)",
+                            border: "1px solid",
+                            borderColor: "var(--glass-border-1)",
+                            boxShadow: isExpanded ? "var(--glass-shadow-2)" : "var(--glass-shadow-1)",
+                            transition: "background-color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out)",
+                            overflow: "hidden",
                           }}
                         >
+                  {/* Clickable Folder Header Trigger */}
+                  <Box
+                    component="button"
+                    type="button"
+                    id={`job-tab-${position.slug}`}
+                    aria-expanded={isExpanded}
+                    aria-controls={`job-peek-${position.slug}`}
+                    onClick={() => toggleExpanded(position.slug)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggleExpanded(position.slug);
+                      }
+                    }}
+                    sx={{
+                      width: "100%",
+                      display: "flex",
+                      flexDirection: { xs: "column", md: "row" },
+                      alignItems: { xs: "flex-start", md: "center" },
+                      justifyContent: "space-between",
+                      gap: { xs: 2, md: 3 },
+                      p: { xs: 2.5, sm: 3, md: 3.5 },
+                      bgcolor: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                      textAlign: "left",
+                      outline: "none",
+                      color: "inherit",
+                      "&:focus-visible": {
+                        outline: "2px solid var(--accent-fg)",
+                        boxShadow: "0 0 0 4px var(--focus-halo)",
+                        borderRadius: "var(--r-card)",
+                      },
+                      "&:hover": {
+                        "& .job-title": {
+                          color: "var(--accent-ink)",
+                        },
+                        "& .expand-indicator": {
+                          borderColor: "var(--accent-fg)",
+                          color: "var(--accent-ink)",
+                        },
+                      },
+                    }}
+                  >
+                    {/* Left: Title & Meta Info */}
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography
+                        variant="h3"
+                        component="h2"
+                        className="job-title"
+                        sx={{
+                          fontFamily: DISPLAY_FONT,
+                          fontSize: { xs: "1.25rem", sm: "1.4rem", md: "1.6rem" },
+                          fontWeight: 700,
+                          color: "var(--text-1)",
+                          lineHeight: LINE_HEIGHT.snug,
+                          letterSpacing: TRACKING.display,
+                          wordBreak: "break-word",
+                          transition: "color var(--dur) var(--ease-out)",
+                        }}
+                      >
+                        {position.title}
+                      </Typography>
+
+                      <Stack
+                        direction="row"
+                        spacing={1.5}
+                        alignItems="center"
+                        flexWrap="wrap"
+                        useFlexGap
+                        sx={{ mt: 1.2 }}
+                      >
+                        <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
+                          <LocationOnIcon sx={{ fontSize: "0.95rem", color: "var(--text-3)" }} />
                           <Typography
                             sx={{
-                              fontFamily: MONO,
-                              fontSize: TYPE_SCALE.micro,
-                              fontWeight: 700,
-                              letterSpacing: TRACKING.meta,
+                              fontFamily: BODY_FONT,
+                              fontSize: TYPE_SCALE.body2,
                               color: "var(--text-2)",
-                              textTransform: "uppercase",
+                              fontWeight: 500,
                             }}
                           >
-                            {cat.label}
-                          </Typography>
-                          <Typography
-                            sx={{
-                              fontFamily: MONO,
-                              fontSize: TYPE_SCALE.micro,
-                              color: "var(--text-3)",
-                            }}
-                          >
-                            {`[${String(groupPositions.length)}]`}
+                            {position.location}
                           </Typography>
                         </Box>
+                        <Box component="span" sx={{ color: "var(--glass-border-2)", userSelect: "none" }}>•</Box>
+                        <Typography
+                          sx={{
+                            fontFamily: BODY_FONT,
+                            fontSize: TYPE_SCALE.body2,
+                            color: "var(--text-3)",
+                          }}
+                        >
+                          {position.department}
+                        </Typography>
+                        <Chip
+                          label={position.employment_type}
+                          size="small"
+                          sx={{
+                            fontFamily: MONO,
+                            fontSize: TYPE_SCALE.micro,
+                            fontWeight: 700,
+                            letterSpacing: "0.05em",
+                            bgcolor: "var(--glass-fill-2)",
+                            color: "var(--text-2)",
+                            border: "1px solid var(--glass-border-1)",
+                            height: 22,
+                            "& .MuiChip-label": { px: 1 },
+                          }}
+                        />
+                      </Stack>
+                    </Box>
 
-                        <Stack spacing={2}>
-                          {groupPositions.map((position, index) => {
-                            const isExpanded = expandedJobId === position.id;
+                    {/* Right: Expand Affordance Button/Indicator */}
+                    <Box
+                      className="expand-indicator"
+                      sx={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 1,
+                        px: 2,
+                        py: 0.8,
+                        borderRadius: "var(--r-pill)",
+                        bgcolor: "var(--glass-fill-2)",
+                        border: "1px solid",
+                        borderColor: isExpanded ? "var(--glass-border-2)" : "var(--glass-border-1)",
+                        color: isExpanded ? "var(--text-1)" : "var(--text-2)",
+                        fontFamily: MONO,
+                        fontSize: TYPE_SCALE.micro,
+                        fontWeight: 700,
+                        letterSpacing: TRACKING.meta,
+                        transition: "all var(--dur) var(--ease-out)",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Box component="span">
+                        {isExpanded ? "COLLAPSE" : "PEEK DOSSIER"}
+                      </Box>
+                      <KeyboardArrowDownIcon
+                        sx={{
+                          fontSize: "1.1rem",
+                          transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
+                          transition: "transform var(--dur) var(--ease-out)",
+                        }}
+                      />
+                    </Box>
+                  </Box>
 
-                            return (
-                              <Reveal key={position.id} delay={0.04 * index}>
-                                {/* Flat File Card */}
-                                <Box
-                                  sx={{
-                                    borderRadius: "var(--r-card)",
-                                    bgcolor: "var(--g-panel)",
-                                    border: "1px solid",
-                                    borderColor: "var(--glass-border-1)",
-                                    boxShadow: isExpanded ? "var(--glass-shadow-2)" : "var(--glass-shadow-1)",
-                                    transition: "background-color var(--dur) var(--ease-out), border-color var(--dur) var(--ease-out), box-shadow var(--dur) var(--ease-out)",
-                                    overflow: "hidden",
-                                  }}
-                                >
-                          {/* Clickable Folder Header Trigger */}
+                  {/* In-Place Peek Expansion (Motion v12) */}
+                  <AnimatePresence initial={false}>
+                    {isExpanded && (
+                      <motion.div
+                        id={`job-peek-${position.slug}`}
+                        role="region"
+                        aria-labelledby={`job-tab-${position.slug}`}
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: "auto" }}
+                        exit={{ opacity: 0, height: 0 }}
+                        transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
+                        style={{ overflow: "hidden" }}
+                      >
+                        <Box
+                          sx={{
+                            px: { xs: 2.5, sm: 3, md: 3.5 },
+                            pb: { xs: 3, sm: 3.5, md: 4 },
+                            pt: 2.5,
+                            borderTop: "1px solid var(--glass-border-1)",
+                          }}
+                        >
+                          {/* Datasheet Meta-Rail — no surface, mono label treatment carries it */}
                           <Box
-                            component="button"
-                            type="button"
-                            id={`job-tab-${position.id}`}
-                            aria-expanded={isExpanded}
-                            aria-controls={`job-peek-${position.id}`}
-                            onClick={() => toggleExpanded(position.id)}
-                            onKeyDown={(e) => {
-                              if (e.key === "Enter" || e.key === " ") {
-                                e.preventDefault();
-                                toggleExpanded(position.id);
-                              }
-                            }}
                             sx={{
-                              width: "100%",
                               display: "flex",
-                              flexDirection: { xs: "column", md: "row" },
-                              alignItems: { xs: "flex-start", md: "center" },
-                              justifyContent: "space-between",
-                              gap: { xs: 2, md: 3 },
-                              p: { xs: 2.5, sm: 3, md: 3.5 },
-                              bgcolor: "transparent",
-                              border: "none",
-                              cursor: "pointer",
-                              textAlign: "left",
-                              outline: "none",
-                              color: "inherit",
-                              "&:focus-visible": {
-                                outline: "2px solid var(--accent-fg)",
-                                boxShadow: "0 0 0 4px var(--focus-halo)",
-                                borderRadius: "var(--r-card)",
-                              },
-                              "&:hover": {
-                                "& .job-title": {
-                                  color: "var(--accent-ink)",
-                                },
-                                "& .expand-indicator": {
-                                  borderColor: "var(--accent-fg)",
-                                  color: "var(--accent-ink)",
-                                },
-                              },
+                              flexWrap: "wrap",
+                              gap: { xs: 1, md: 2.5 },
+                              alignItems: "baseline",
+                              mb: 3.5,
                             }}
                           >
-                            {/* Left: Title & Meta Info */}
-                            <Box sx={{ flex: 1, minWidth: 0 }}>
-                              <Typography
-                                variant="h3"
-                                component="h2"
-                                className="job-title"
-                                sx={{
-                                  fontFamily: DISPLAY_FONT,
-                                  fontSize: { xs: "1.25rem", sm: "1.4rem", md: "1.6rem" },
-                                  fontWeight: 700,
-                                  color: "var(--text-1)",
-                                  lineHeight: LINE_HEIGHT.snug,
-                                  letterSpacing: TRACKING.display,
-                                  wordBreak: "break-word",
-                                  transition: "color var(--dur) var(--ease-out)",
-                                }}
-                              >
-                                {position.title}
-                              </Typography>
+                            <Typography sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.micro, letterSpacing: TRACKING.meta, color: "var(--text-3)" }}>
+                              DEPT // <Box component="span" sx={{ color: "var(--text-1)", fontWeight: 700 }}>{position.department.toUpperCase()}</Box>
+                            </Typography>
+                            <Box component="span" sx={{ color: "var(--glass-border-2)", userSelect: "none" }}>|</Box>
+                            <Typography sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.micro, letterSpacing: TRACKING.meta, color: "var(--text-3)" }}>
+                              LOC // <Box component="span" sx={{ color: "var(--text-1)", fontWeight: 700 }}>{position.location.toUpperCase()}</Box>
+                            </Typography>
+                            <Box component="span" sx={{ color: "var(--glass-border-2)", userSelect: "none", display: { xs: "none", sm: "inline" } }}>|</Box>
+                            <Typography sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.micro, letterSpacing: TRACKING.meta, color: "var(--text-3)" }}>
+                              TYPE // <Box component="span" sx={{ color: "var(--text-1)", fontWeight: 700 }}>{position.employment_type.toUpperCase()}</Box>
+                            </Typography>
+                          </Box>
 
-                              <Stack
-                                direction="row"
-                                spacing={1.5}
-                                alignItems="center"
-                                flexWrap="wrap"
-                                useFlexGap
-                                sx={{ mt: 1.2 }}
-                              >
-                                <Box sx={{ display: "inline-flex", alignItems: "center", gap: 0.5 }}>
-                                  <LocationOnIcon sx={{ fontSize: "0.95rem", color: "var(--text-3)" }} />
-                                  <Typography
-                                    sx={{
-                                      fontFamily: BODY_FONT,
-                                      fontSize: TYPE_SCALE.body2,
-                                      color: "var(--text-2)",
-                                      fontWeight: 500,
-                                    }}
-                                  >
-                                    {position.location}
-                                  </Typography>
-                                </Box>
-                                <Box component="span" sx={{ color: "var(--glass-border-2)", userSelect: "none" }}>•</Box>
-                                <Typography
-                                  sx={{
-                                    fontFamily: BODY_FONT,
-                                    fontSize: TYPE_SCALE.body2,
-                                    color: "var(--text-3)",
-                                  }}
-                                >
-                                  {position.department}
-                                </Typography>
+                          {/* Summary Prose (45-75ch measure) */}
+                          <Box sx={{ mb: 3.5 }}>
+                            <Typography
+                              sx={{
+                                fontFamily: MONO,
+                                fontSize: TYPE_SCALE.micro,
+                                letterSpacing: TRACKING.meta,
+                                color: "var(--text-3)",
+                                mb: 0.8,
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              ROLE SPECIFICATION SUMMARY
+                            </Typography>
+                            <Typography
+                              variant="body1"
+                              sx={{
+                                color: "var(--text-2)",
+                                lineHeight: LINE_HEIGHT.relaxed,
+                                fontSize: TYPE_SCALE.body1,
+                                maxWidth: "65ch",
+                              }}
+                            >
+                              {position.summary}
+                            </Typography>
+                          </Box>
+
+                          {/* Tech Stack Chips */}
+                          <Box sx={{ mb: 4 }}>
+                            <Typography
+                              sx={{
+                                fontFamily: MONO,
+                                fontSize: TYPE_SCALE.micro,
+                                letterSpacing: TRACKING.meta,
+                                color: "var(--text-3)",
+                                mb: 0.8,
+                                textTransform: "uppercase",
+                              }}
+                            >
+                              ENGINEERING STACK
+                            </Typography>
+                            <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                              {position.stack.map((tag) => (
                                 <Chip
-                                  label={position.type}
+                                  key={tag}
+                                  label={tag}
                                   size="small"
                                   sx={{
                                     fontFamily: MONO,
                                     fontSize: TYPE_SCALE.micro,
-                                    fontWeight: 700,
-                                    letterSpacing: "0.05em",
+                                    fontWeight: 600,
                                     bgcolor: "var(--glass-fill-2)",
-                                    color: "var(--text-2)",
+                                    color: "var(--text-1)",
                                     border: "1px solid var(--glass-border-1)",
-                                    height: 22,
-                                    "& .MuiChip-label": { px: 1 },
+                                    borderRadius: "var(--r-control)",
+                                    height: 26,
+                                    "& .MuiChip-label": { px: 1.2 },
                                   }}
                                 />
-                              </Stack>
-                            </Box>
-
-                            {/* Right: Expand Affordance Button/Indicator */}
-                            <Box
-                              className="expand-indicator"
-                              sx={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 1,
-                                px: 2,
-                                py: 0.8,
-                                borderRadius: "var(--r-pill)",
-                                bgcolor: "var(--glass-fill-2)",
-                                border: "1px solid",
-                                borderColor: isExpanded ? "var(--glass-border-2)" : "var(--glass-border-1)",
-                                color: isExpanded ? "var(--text-1)" : "var(--text-2)",
-                                fontFamily: MONO,
-                                fontSize: TYPE_SCALE.micro,
-                                fontWeight: 700,
-                                letterSpacing: TRACKING.meta,
-                                transition: "all var(--dur) var(--ease-out)",
-                                flexShrink: 0,
-                              }}
-                            >
-                              <Box component="span">
-                                {isExpanded ? "COLLAPSE" : "PEEK DOSSIER"}
-                              </Box>
-                              <KeyboardArrowDownIcon
-                                sx={{
-                                  fontSize: "1.1rem",
-                                  transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
-                                  transition: "transform var(--dur) var(--ease-out)",
-                                }}
-                              />
-                            </Box>
+                              ))}
+                            </Stack>
                           </Box>
 
-                          {/* In-Place Peek Expansion (Motion v12) */}
-                          <AnimatePresence initial={false}>
-                            {isExpanded && (
-                              <motion.div
-                                id={`job-peek-${position.id}`}
-                                role="region"
-                                aria-labelledby={`job-tab-${position.id}`}
-                                initial={{ opacity: 0, height: 0 }}
-                                animate={{ opacity: 1, height: "auto" }}
-                                exit={{ opacity: 0, height: 0 }}
-                                transition={{ duration: 0.35, ease: [0.16, 1, 0.3, 1] }}
-                                style={{ overflow: "hidden" }}
-                              >
-                                <Box
-                                  sx={{
-                                    px: { xs: 2.5, sm: 3, md: 3.5 },
-                                    pb: { xs: 3, sm: 3.5, md: 4 },
-                                    pt: 2.5,
-                                    borderTop: "1px solid var(--glass-border-1)",
-                                  }}
-                                >
-                                  {/* Datasheet Meta-Rail — no surface, mono label treatment carries it */}
-                                  <Box
-                                    sx={{
-                                      display: "flex",
-                                      flexWrap: "wrap",
-                                      gap: { xs: 1, md: 2.5 },
-                                      alignItems: "baseline",
-                                      mb: 3.5,
-                                    }}
-                                  >
-                                    <Typography sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.micro, letterSpacing: TRACKING.meta, color: "var(--text-3)" }}>
-                                      DEPT // <Box component="span" sx={{ color: "var(--text-1)", fontWeight: 700 }}>{position.department.toUpperCase()}</Box>
-                                    </Typography>
-                                    <Box component="span" sx={{ color: "var(--glass-border-2)", userSelect: "none" }}>|</Box>
-                                    <Typography sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.micro, letterSpacing: TRACKING.meta, color: "var(--text-3)" }}>
-                                      LOC // <Box component="span" sx={{ color: "var(--text-1)", fontWeight: 700 }}>{position.location.toUpperCase()}</Box>
-                                    </Typography>
-                                    <Box component="span" sx={{ color: "var(--glass-border-2)", userSelect: "none", display: { xs: "none", sm: "inline" } }}>|</Box>
-                                    <Typography sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.micro, letterSpacing: TRACKING.meta, color: "var(--text-3)" }}>
-                                      TYPE // <Box component="span" sx={{ color: "var(--text-1)", fontWeight: 700 }}>{position.type.toUpperCase()}</Box>
-                                    </Typography>
-                                  </Box>
-
-                                  {/* Summary Prose (45-75ch measure) */}
-                                  <Box sx={{ mb: 3.5 }}>
-                                    <Typography
-                                      sx={{
-                                        fontFamily: MONO,
-                                        fontSize: TYPE_SCALE.micro,
-                                        letterSpacing: TRACKING.meta,
-                                        color: "var(--text-3)",
-                                        mb: 0.8,
-                                        textTransform: "uppercase",
-                                      }}
-                                    >
-                                      ROLE SPECIFICATION SUMMARY
-                                    </Typography>
-                                    <Typography
-                                      variant="body1"
-                                      sx={{
-                                        color: "var(--text-2)",
-                                        lineHeight: LINE_HEIGHT.relaxed,
-                                        fontSize: TYPE_SCALE.body1,
-                                        maxWidth: "65ch",
-                                      }}
-                                    >
-                                      {position.summary}
-                                    </Typography>
-                                  </Box>
-
-                                  {/* Tech Stack Chips */}
-                                  <Box sx={{ mb: 4 }}>
-                                    <Typography
-                                      sx={{
-                                        fontFamily: MONO,
-                                        fontSize: TYPE_SCALE.micro,
-                                        letterSpacing: TRACKING.meta,
-                                        color: "var(--text-3)",
-                                        mb: 0.8,
-                                        textTransform: "uppercase",
-                                      }}
-                                    >
-                                      ENGINEERING STACK
-                                    </Typography>
-                                    <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                                      {position.stack.map((tag) => (
-                                        <Chip
-                                          key={tag}
-                                          label={tag}
-                                          size="small"
-                                          sx={{
-                                            fontFamily: MONO,
-                                            fontSize: TYPE_SCALE.micro,
-                                            fontWeight: 600,
-                                            bgcolor: "var(--glass-fill-2)",
-                                            color: "var(--text-1)",
-                                            border: "1px solid var(--glass-border-1)",
-                                            borderRadius: "var(--r-control)",
-                                            height: 26,
-                                            "& .MuiChip-label": { px: 1.2 },
-                                          }}
-                                        />
-                                      ))}
-                                    </Stack>
-                                  </Box>
-
-                                  {/* Sole Primary Action: Navigate to Canonical Detail Route */}
-                                  <RouterButton
-                                    to="/careers/$jobId"
-                                    params={{ jobId: position.id }}
-                                    variant="contained"
-                                    endIcon={<ArrowForwardIcon sx={{ fontSize: "1rem" }} />}
-                                    sx={{
-                                      py: 1.2,
-                                      px: 3.5,
-                                      fontFamily: MONO,
-                                      fontWeight: 800,
-                                      fontSize: TYPE_SCALE.caption,
-                                      letterSpacing: "0.08em",
-                                      bgcolor: NOIR.gold,
-                                      color: NOIR.navyInk,
-                                      borderRadius: "var(--r-control)",
-                                      boxShadow: "0 4px 14px rgba(var(--accent-rgb), 0.25)",
-                                      "&:hover": {
-                                        bgcolor: NOIR.goldLight,
-                                        boxShadow: "0 6px 20px rgba(var(--accent-rgb), 0.4)",
-                                        transform: "translateY(-1px)",
-                                      },
-                                      "&:focus-visible": {
-                                        outline: "2px solid var(--accent-fg)",
-                                        boxShadow: "0 0 0 4px var(--focus-halo)",
-                                      },
-                                      transition: "all var(--dur) var(--ease-out)",
-                                    }}
-                                  >
-                                    OPEN FULL ROLE
-                                  </RouterButton>
-                                </Box>
-                              </motion.div>
-                            )}
-                          </AnimatePresence>
-                                </Box>
-                              </Reveal>
-                            );
-                          })}
-                        </Stack>
-                      </Box>
+                          {/* Sole Primary Action: Navigate to Canonical Detail Route */}
+                          <RouterButton
+                            to="/careers/$jobId"
+                            params={{ jobId: position.slug }}
+                            variant="contained"
+                            endIcon={<ArrowForwardIcon sx={{ fontSize: "1rem" }} />}
+                            sx={{
+                              py: 1.2,
+                              px: 3.5,
+                              fontFamily: MONO,
+                              fontWeight: 800,
+                              fontSize: TYPE_SCALE.caption,
+                              letterSpacing: "0.08em",
+                              bgcolor: NOIR.gold,
+                              color: NOIR.navyInk,
+                              borderRadius: "var(--r-control)",
+                              boxShadow: "0 4px 14px rgba(var(--accent-rgb), 0.25)",
+                              "&:hover": {
+                                bgcolor: NOIR.goldLight,
+                                boxShadow: "0 6px 20px rgba(var(--accent-rgb), 0.4)",
+                                transform: "translateY(-1px)",
+                              },
+                              "&:focus-visible": {
+                                outline: "2px solid var(--accent-fg)",
+                                boxShadow: "0 0 0 4px var(--focus-halo)",
+                              },
+                              transition: "all var(--dur) var(--ease-out)",
+                            }}
+                          >
+                            OPEN FULL ROLE
+                          </RouterButton>
+                        </Box>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                        </Box>
+                      </Reveal>
                     );
                   })}
-              </Stack>
+                </Stack>
+
+                {pageCount > 1 ? (
+                  <Box sx={{ display: "flex", justifyContent: "center", pt: 5 }}>
+                    <Pagination
+                      count={pageCount}
+                      page={currentPage}
+                      onChange={(_event, value) => {
+                        onPageChange(value);
+                      }}
+                      size="large"
+                    />
+                  </Box>
+                ) : null}
+              </Box>
             )}
           </Box>
         </Stack>
       </Section>
+
+      {/* Both sit outside the register's <Section> but inside the page's
+          data-ground="light" Box, so neither needs an ABOUT_SECTIONS entry or a
+          ground stop — SectionBeat throws on an unknown id, and these are not
+          part of that system. */}
+      <FuntopolisSection />
+      <GraduateHallOfFameSection />
 
       {/* Program Brochure Modal Drawer */}
       <BrochureDrawer

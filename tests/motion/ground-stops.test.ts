@@ -152,8 +152,12 @@ test("home page stops are light except the sections declared dark", () => {
   // WS-02 added `global-markets` (ground "deep") right after the hero — the
   // lifted text blob's own full-viewport statement beat.
   const dark = GROUND_STOPS.filter((s) => GROUNDS[s.ground].dark);
+  // `hero-pillars` joined this list when the boxed photo cards were replaced by
+  // a full-bleed background that swaps per pillar — the whole pinned viewport is
+  // photography under a navy scrim now, so the ground moved `void` -> `deep`.
   expect(dark.map((s) => s.id), "the home page's declared dark grounds").toEqual([
     "global-markets",
+    "hero-pillars",
     "process",
     "closing",
   ]);
