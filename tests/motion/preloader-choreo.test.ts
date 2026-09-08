@@ -145,11 +145,29 @@ describe("preloader choreo — the timeline is ordered and held", () => {
     expect(SEQ_2_AT_S + SEQ_2_LEN_S + HOLD_S).toBeCloseTo(CHOREO_END_S, 6);
   });
 
-  test("the holds are long enough to read as deliberate stillness", () => {
-    // The whole point of the rework. Anything under a second reads as a stutter.
+  test("the holds that exist are long enough to read as deliberate stillness", () => {
+    // A hold under a second reads as a stutter rather than a beat, so any hold
+    // the composition keeps has to clear this floor.
     expect(SEQ_2_HOLD_S).toBeGreaterThanOrEqual(1.2);
     expect(HOLD_S).toBeGreaterThanOrEqual(1.2);
-    expect(POST_HOLD_S).toBeGreaterThanOrEqual(2);
+  });
+
+  test("no post-100 buffer: the intro does not hold after it has finished", () => {
+    // This assertion used to read `POST_HOLD_S >= 2`. That encoded the previous
+    // rework's "let it register" beat — two seconds of stillness on an already
+    // finished composition, with the hero sitting at opacity 0 behind it. The
+    // intro now ends when it ends.
+    expect(POST_HOLD_S).toBe(0);
+  });
+
+  test("the whole intro clears in under six seconds", () => {
+    // The real budget, and the reason the numbers above are what they are: the
+    // hero image is gated on the preloader's onDone, so this total IS the
+    // visitor's time-to-hero on a first load. It was 9.7s.
+    // Mirrors Preloader.tsx: EXIT_FADE_S 0.4, OUT_DURATION_S 0.5.
+    const total = CHOREO_END_S + POST_HOLD_S + 0.4 + 0.5;
+    expect(total).toBeLessThanOrEqual(6);
+    expect(total).toBeCloseTo(5.6, 6);
   });
 
   test("the ESC hint arms during SEQ 2's lead-in hold, not during a sequence's action", () => {
@@ -159,10 +177,10 @@ describe("preloader choreo — the timeline is ordered and held", () => {
 
   test("the whole intro clears Preloader.tsx's failsafe ceiling", () => {
     // Mirrors Preloader.tsx: SIGNAL_CAP_AFTER_CHOREO_MS 1500, EXIT_FADE_S
-    // 0.6, OUT_DURATION_S 2.0, BEAT_FAILSAFE_MS 13000. The failsafe must
+    // 0.4, OUT_DURATION_S 0.5, BEAT_FAILSAFE_MS 8500. The failsafe must
     // remain unreachable on every non-forced path, or it truncates the reveal.
-    const worstPathMs = CHOREO_END_S * 1000 + 1500 + POST_HOLD_S * 1000 + 600 + 2000;
-    expect(worstPathMs).toBeLessThan(13000);
+    const worstPathMs = CHOREO_END_S * 1000 + 1500 + POST_HOLD_S * 1000 + 400 + 500;
+    expect(worstPathMs).toBeLessThan(8500);
   });
 });
 

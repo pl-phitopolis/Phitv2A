@@ -25,6 +25,9 @@ import {
   gunshotProgress,
   hazeDensity,
   leftFlankY,
+  lockupCentered,
+  lockupOpacity,
+  lockupScale,
   panelOpacity,
   rightFlankY,
   skyPresence,
@@ -78,6 +81,11 @@ export interface HeroVars {
   haze: number;
   sky: number;
   drift: number;
+  /** P/Phitopolis lockup: disappear at bottom-left, reappear at centre. */
+  lockupOpacity: number;
+  lockupScale: number;
+  /** 0 = bottom-left anchor, 1 = centre anchor. A hard cut, not a ramp. */
+  lockupCentered: 0 | 1;
 }
 
 /** Derive every continuous value for a given pin progress. */
@@ -108,6 +116,13 @@ export function heroVars(progress: number, reduced: boolean): HeroVars {
       haze: 0.10,
       sky: 0,
       drift: 0,
+      // hp is pinned to 0 in this branch, so the lockup renders exactly as
+      // the disappear/reappear choreography does at p=0: fully visible,
+      // full scale, bottom-left anchored. Kept explicit rather than derived
+      // so this branch stays independent of heroPhases.ts's lockup math.
+      lockupOpacity: 1,
+      lockupScale: 1,
+      lockupCentered: 0,
     };
   }
 
@@ -132,6 +147,9 @@ export function heroVars(progress: number, reduced: boolean): HeroVars {
     haze: hazeDensity(progress),
     sky: skyPresence(progress),
     drift: cloudDrift(progress),
+    lockupOpacity: lockupOpacity(progress),
+    lockupScale: lockupScale(progress),
+    lockupCentered: lockupCentered(progress),
   };
 }
 
@@ -162,6 +180,9 @@ export function writeHeroVars(el: HTMLElement, v: HeroVars): void {
   s.setProperty("--hp-haze", n(v.haze));
   s.setProperty("--hp-sky", n(v.sky));
   s.setProperty("--hp-drift", n(v.drift));
+  s.setProperty("--hp-lockup-opacity", n(v.lockupOpacity));
+  s.setProperty("--hp-lockup-scale", n(v.lockupScale));
+  s.setProperty("--hp-lockup-centered", String(v.lockupCentered));
 }
 
 /**

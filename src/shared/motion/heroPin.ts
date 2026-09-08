@@ -6,7 +6,7 @@
  * Three unrelated files independently encoded the hero's height, and they
  * disagreed:
  *
- *   - `SuperHeroSequence.tsx`  `HERO_PIN_DISTANCE = "+=800%"`   (the real pin)
+ *   - `SuperHeroSequence.tsx`  `HERO_PIN_DISTANCE` (derived here)   (the real pin)
  *   - `EyeFlow.tsx`            `const heroHeight = 9 * winH`    (twice, by hand)
  *   - `AppShell.tsx`           `scrollY < innerHeight * 19`     (STALE)
  *
@@ -31,8 +31,15 @@
  * progress, so changing this number re-times how much wheel travel each phase
  * costs but moves no boundary — see the note on `HERO_PIN_DISTANCE`'s original
  * declaration.
+ *
+ * Was `8`. Shortened to `4` when the canvas "3D city" first stretch (progress
+ * 0..0.60) was replaced by an autoplaying background video loop — there is no
+ * longer a flatten/move/reveal choreography that needs viewports of travel to
+ * read, only a video that crossfades to the bottom-left P + wordmark before the
+ * gunshot at 0.60. The gunshot -> drift-wall -> smoking -> border sequence
+ * (0.60..1.0) is unchanged and still gets ~1.6 of the 4 screens.
  */
-export const HERO_PIN_SCREENS = 8;
+export const HERO_PIN_SCREENS = 4;
 
 /**
  * Total viewport-heights the hero occupies: the pinned range plus the hero's own

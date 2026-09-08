@@ -3,42 +3,24 @@ import { describe, expect, it } from "vitest";
 import { resolveRouteManifest } from "@/shared/components/AppShell";
 
 describe("resolveRouteManifest — route-aware warm-up manifest", () => {
-  it("home landing warms the hero logo (blocking) + the ServiceGlobe chunk", () => {
+  it("home only warms its first-paint architecture artwork", () => {
     const m = resolveRouteManifest("/");
-    expect(m.blocking).toContain("/phitopolis_logo_hero.svg");
-    expect(m.warmGlobe).toBe(true);
-    // The below-fold rasters on `/`: OperatingPillars' three backgrounds, the
-    // three UseCasesNarrative crossfade backgrounds, and the ProcessDiagram
-    // growth-collage photos — all warmed in the background tier so they
-    // never extend the intro.
-    expect(m.background).toEqual([
-      "/images/pillars/research.webp",
-      "/images/pillars/development.webp",
-      "/images/pillars/support.webp",
-      "/images/use-cases/uc-1.webp",
-      "/images/use-cases/uc-2.webp",
-      "/images/use-cases/uc-3.webp",
-      "/images/grads/FocusedProgramming.webp",
-      "/images/hero-wall/expanding-horizons-phitopolis-unveils-its-new-office-02.webp",
-      "/images/timeline/group-pic-final-2048x1687.webp",
-    ]);
-    // Every below-fold raster is background tier, never blocking.
-    for (const u of m.background) {
-      expect(m.blocking).not.toContain(u);
-    }
-    expect(m.blocking).not.toEqual(expect.arrayContaining(["/images/pillars/research.webp"]));
+    expect(m.blocking).toEqual(["/images/cinematic/architecture.webp"]);
+    expect(m.background).toEqual([]);
+    expect(m.warmGlobe).toBe(false);
   });
 
   it("home blocking tier stays tiny (preloaded in full, so it must be cheap)", () => {
     expect(resolveRouteManifest("/").blocking).toHaveLength(1);
   });
 
-  it("about landing warms its hero background + primary photo + first strip tiles", () => {
+  it("about landing warms its hero background loop poster + primary photo", () => {
     const m = resolveRouteManifest("/about");
-    expect(m.blocking).toContain("/images/about-hero-bg.webp");
+    expect(m.blocking).toContain("/videos/about-hero-loop-poster.jpg");
     expect(m.blocking).toContain("/images/AboutPage1.webp");
-    expect(m.blocking.length).toBeGreaterThanOrEqual(3);
-    expect(m.background.length).toBeGreaterThan(0);
+    expect(m.blocking).not.toContain("/images/about-hero-bg.webp");
+    expect(m.blocking.length).toBeGreaterThanOrEqual(2);
+    expect(m.background).toContain("/videos/about-hero-loop.webm");
     // The three.js globe is a home-only scene.
     expect(m.warmGlobe).toBe(false);
   });

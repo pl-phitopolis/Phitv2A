@@ -16,6 +16,7 @@ const BASE_POST: BlogPost = {
   author: null,
   published_on: "2026-07-17",
   featured: false,
+  status: "published",
 };
 
 test("image paragraphs render as images, not text", () => {

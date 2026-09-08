@@ -4,7 +4,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
-import { CAREER_POSITIONS } from "@/shared/careersData";
+import { jobPostingDetailFixtures } from "./msw/handlers";
 import { makeTestQueryClient, renderWithProviders } from "./test-utils";
 
 function renderCareersDetailRoute(jobId: string, queryClient = makeTestQueryClient()) {
@@ -19,7 +19,7 @@ function renderCareersDetailRoute(jobId: string, queryClient = makeTestQueryClie
 describe("Careers Detail Route (/careers/$jobId)", () => {
   it("renders role title, technical mono meta-rail, and 3 distinct section lists", async () => {
     const jobId = "software-engineer";
-    const job = CAREER_POSITIONS.find((p) => p.id === jobId)!;
+    const job = jobPostingDetailFixtures[jobId]!;
 
     renderCareersDetailRoute(jobId);
 
@@ -31,7 +31,7 @@ describe("Careers Detail Route (/careers/$jobId)", () => {
     expect(screen.getByText(job.badge)).toBeInTheDocument();
     expect(screen.getByText(job.location)).toBeInTheDocument();
     expect(screen.getByText(job.department)).toBeInTheDocument();
-    expect(screen.getByText(job.type.toUpperCase())).toBeInTheDocument();
+    expect(screen.getByText(job.employment_type.toUpperCase())).toBeInTheDocument();
 
     // Left column: 3 separately-headed lists & prose
     expect(screen.getByRole("heading", { name: "Role Overview" })).toBeInTheDocument();

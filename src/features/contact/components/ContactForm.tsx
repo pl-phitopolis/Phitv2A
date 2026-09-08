@@ -112,6 +112,7 @@ export function ContactForm() {
       subject: values.subject.trim(),
       message: values.message.trim(),
       company_website: values.company_website,
+      website_hp: "",
     });
   };
 
@@ -241,6 +242,17 @@ export function ContactForm() {
             disabled={mutation.isPending}
             startIcon={mutation.isPending ? <CircularProgress size={18} color="inherit" /> : null}
             fullWidth
+            // VT-5's incoming half — see `viewTransitionsHomeV3.css`'s
+            // `:root[data-hv3-shot="ask-pill"]` block. Home's finale CTA
+            // ("Start a conversation") morphs into this button rather than
+            // the page heading or any other element: it is the same
+            // affordance the reader just pressed, now offering the same
+            // press again to actually send the message — "the button you
+            // pressed became the thing you press next". The name is applied
+            // by CSS only while the attribute set in `ActAsk.tsx`'s onClick
+            // is present on `<html>`, so it carries no `view-transition-name`
+            // on any other visit to this page.
+            data-hv3-vt="ask-pill"
             sx={{
               borderRadius: "12px",
               py: 1.6,

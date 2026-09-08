@@ -182,7 +182,7 @@ export const HOME_SECTIONS: readonly SectionDef[] = [
     label: "Operating Pillars",
     chapter: 2,
     choreo: "grow-left",
-    ground: "void",
+    ground: "deep",
     ownsPin: true,
     noExitDim: true,
     establishScale: "major",
@@ -380,3 +380,13 @@ export function useActiveSection(): string {
     () => DEFAULT_SECTION_ID,
   );
 }
+
+/** Current home narrative. Legacy beat definitions above remain for shared components. */
+export const CINEMATIC_HOME_SECTIONS = [
+  { id: 'opening', label: 'Opening' },
+  { id: 'capabilities', label: 'Capabilities' },
+  { id: 'applications', label: 'Applications' },
+  { id: 'delivery', label: 'Delivery' },
+  { id: 'company', label: 'Company' },
+  { id: 'contact', label: 'Contact' },
+] as const;

@@ -24,7 +24,7 @@ const isEditableTarget = (t: EventTarget | null): boolean => {
   return t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable;
 };
 
-export function CommandPalette() {
+export function CommandPalette({ showShortcut = true }: { showShortcut?: boolean }) {
   const { navigateWithCurtain } = useTransitionCurtain();
   const { mode: heroBgMode } = useHeroBgModeState();
 
@@ -341,7 +341,7 @@ export function CommandPalette() {
       </Modal>
 
       {/* hotkey hint chip — precise pointers only */}
-      <Box
+      {showShortcut && <Box
         component="button"
         type="button"
         aria-label={`Open command palette (${isMac ? "Command" : "Control"} K)`}
@@ -370,7 +370,7 @@ export function CommandPalette() {
         }}
       >
         {isMac ? "⌘K" : "Ctrl K"}
-      </Box>
+      </Box>}
     </>
   );
 }

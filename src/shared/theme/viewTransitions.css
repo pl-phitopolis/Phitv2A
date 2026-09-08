@@ -30,6 +30,12 @@
  * moved to the ground-color system instead (see `ground/glGround.ts`), where
  * it's scroll-scrubbed rather than duration-based. Route transitions are back
  * to being nothing but this view-transition substrate.
+ *
+ * CROSS-REFERENCE: home V3's internal act transitions (opening → proof →
+ * method → ask) are a separate system living in `viewTransitionsHomeV3.css`.
+ * This file's scope is cross-document/route transitions only — it does not
+ * define or know about `data-hv3-shot`, and nothing in this file should be
+ * reused by that one or vice versa.
  */
 
 ::view-transition-group(root) {

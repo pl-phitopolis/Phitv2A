@@ -67,6 +67,13 @@ export function ClosingVideoSection() {
 
   const currentProgressRef = useRef(0);
   const pendingSeekRef = useRef<number | null>(null);
+  // When a real currentTime write starts, this holds the timestamp it started
+  // at; cleared once `seeked` fires. If it stays set past SEEK_STALL_MS, the
+  // browser has left `video.seeking` true without ever firing `seeked` (e.g.
+  // a stalled decode) — every later scroll tick would otherwise just
+  // overwrite pendingSeekRef and return, freezing the video on that frame
+  // for the rest of the page's lifetime. The watchdog below recovers it.
+  const seekStartedAtRef = useRef<number | null>(null);
 
   const applySeek = useCallback((video: HTMLVideoElement, targetTime: number) => {
     if (video.seeking) {
@@ -74,6 +81,7 @@ export function ClosingVideoSection() {
       return;
     }
     if (Math.abs(video.currentTime - targetTime) > 0.02) {
+      seekStartedAtRef.current = performance.now();
       video.currentTime = targetTime;
     }
   }, []);
@@ -99,12 +107,36 @@ export function ClosingVideoSection() {
   }, [updateVideoProgress]);
 
   const handleSeeked = useCallback(() => {
+    seekStartedAtRef.current = null;
     const video = videoRef.current;
     if (!video || pendingSeekRef.current === null) return;
     const next = pendingSeekRef.current;
     pendingSeekRef.current = null;
     applySeek(video, next);
   }, [applySeek]);
+
+  const SEEK_STALL_MS = 500;
+
+  // Watchdog: if a seek has been pending too long with no `seeked` event,
+  // force a resync so the next scroll tick isn't silently swallowed.
+  const recoverStalledSeek = useCallback(() => {
+    const video = videoRef.current;
+    const startedAt = seekStartedAtRef.current;
+    if (!video || startedAt === null) return;
+    if (performance.now() - startedAt < SEEK_STALL_MS) return;
+
+    const target = pendingSeekRef.current ?? video.currentTime;
+    pendingSeekRef.current = null;
+    if (video.seeking) {
+      // Still stuck — abandon this seek so future ticks aren't blocked, and
+      // retry once. If the browser recovers, `seeked` clears the ref itself.
+      seekStartedAtRef.current = performance.now();
+      video.currentTime = target;
+    } else {
+      // The event just never fired even though the seek actually completed.
+      seekStartedAtRef.current = null;
+    }
+  }, []);
 
   // Handle cached or already-loaded video on mount in pinned mode
   useEffect(() => {
@@ -142,6 +174,19 @@ export function ClosingVideoSection() {
     }
   }, [reduced]);
 
+  // The scroll-driven watchdog inside `syncScene` only runs from GSAP's
+  // `onUpdate`, which only fires while the scrub tween's value is actually
+  // changing. If a seek stalls (`video.seeking` never clears) right as the
+  // user stops scrolling, no further `onUpdate` ticks arrive to recover it —
+  // the video stays frozen on that frame until the user scrolls again, which
+  // reads as "the video isn't working." This interval recovers it regardless
+  // of scroll activity.
+  useEffect(() => {
+    if (reduced === true) return;
+    const id = window.setInterval(recoverStalledSeek, 200);
+    return () => window.clearInterval(id);
+  }, [reduced, recoverStalledSeek]);
+
   useGSAP(
     () => {
       if (reduced === true || !containerRef.current) return;
@@ -152,9 +197,21 @@ export function ClosingVideoSection() {
       const video = videoRef.current;
 
       if (video) {
-        video.pause();
         video.muted = true;
         video.playsInline = true;
+        // A bare pause() leaves some browsers (notably iOS Safari) treating
+        // `preload="auto"` as only advisory and never actually buffering the
+        // video until an explicit play attempt. Kick it into loading via a
+        // muted, autoplay-policy-safe play()->pause() before wiring the
+        // scroll-driven seeks, instead of only ever calling pause().
+        // `play()` returns undefined in some test/legacy environments
+        // (jsdom included), so guard before chaining .then/.catch.
+        const playResult = video.play();
+        if (playResult && typeof playResult.then === "function") {
+          playResult.then(() => video.pause()).catch(() => video.pause());
+        } else {
+          video.pause();
+        }
       }
 
       const applyStyles = (p: number) => {
@@ -167,6 +224,7 @@ export function ClosingVideoSection() {
       };
 
       const syncScene = (p: number) => {
+        recoverStalledSeek();
         updateVideoProgress(p);
         applyStyles(p);
       };
@@ -249,7 +307,7 @@ export function ClosingVideoSection() {
         tl.kill();
       };
     },
-    { scope: containerRef, dependencies: [reduced, updateVideoProgress] },
+    { scope: containerRef, dependencies: [reduced, updateVideoProgress, recoverStalledSeek] },
   );
 
   // ── Reduced Motion Fallback Mode ──────────────────────────────────────────
@@ -542,7 +600,16 @@ export function ClosingVideoSection() {
           tabIndex={-1}
           onLoadedMetadata={handleLoadedMetadata}
           onSeeked={handleSeeked}
-          onError={() => setIsVideoReady(false)}
+          onStalled={() => {
+            if (import.meta.env.DEV) console.warn("[ClosingVideoSection] video stalled");
+          }}
+          onWaiting={() => {
+            if (import.meta.env.DEV) console.warn("[ClosingVideoSection] video waiting");
+          }}
+          onError={() => {
+            if (import.meta.env.DEV) console.warn("[ClosingVideoSection] video error");
+            setIsVideoReady(false);
+          }}
           sx={{
             width: "100%",
             height: "100%",

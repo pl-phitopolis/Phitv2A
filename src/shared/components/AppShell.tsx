@@ -120,58 +120,30 @@ const WARM_ROUTES = [
  *  - `/images/topHalfHero.webp` / `botHalfHero.webp` — the old split-pane hero,
  *    replaced by `HeroImageWall`; nothing renders them any more.
  *  - The hero drift wall (`fetchPriority=low`, mounts ~60% into the hero pin).
- *  - `/videos/hero-night-to-dawn.*` + poster — gated behind `useVideoBg`, which
- *    is hard-coded `false` in `SuperHeroSequence.tsx`, so the video background
- *    is currently dead code; no video signal is warmed. If it is re-enabled,
- *    add a `blocking: false` range-fetch of the first ~256KB here.
+ *  - `/videos/hero-night-to-dawn.*` — a superseded, orphaned hero clip; nothing
+ *    renders it. The live home hero loop is `/videos/hero-loop.*` (below).
  *  - `/about`'s `daily-life.mp4` (62MB, IntersectionObserver-gated far down the
  *    page) and `JourneyTimeline`'s hotlinked WordPress images — left to their
  *    own components.
  */
 
-/** Home hero critical path: the legacy 2D `HeroCanvas` fetches exactly one
- *  network image on mount — `/phitopolis_logo_hero.svg`, the P-mark logo mask.
- *  Everything else the hero draws is `<canvas>` / inline SVG / CSS. */
-const HOME_BLOCKING: readonly string[] = ["/phitopolis_logo_hero.svg"];
+/** Cinematic home: one first-paint artwork; remaining artwork is visibility-loaded. */
+const HOME_BLOCKING: readonly string[] = ['/images/cinematic/architecture.webp'];
+const HOME_BACKGROUND_IMAGES: readonly string[] = [];
 
-/** Home below-fold raster, all warmed in the background so they are cache-hot by
- *  the time their section scrolls in, without holding the overlay:
- *   - `OperatingPillars` (`#hero-pillars`, ~6 screens down) — three `<img>`
- *     backgrounds from `content.ts`.
- *   - `UseCasesNarrative` (`#use-cases`) — one full-bleed 3D-isometric
- *     background per use case, crossfaded on scroll.
- *   - `ProcessDiagram` (`#process`) — the three-photo growth collage.
- *  Everything else on the `/` path is canvas / inline SVG / CSS. */
-const HOME_BACKGROUND_IMAGES: readonly string[] = [
-  "/images/pillars/research.webp",
-  "/images/pillars/development.webp",
-  "/images/pillars/support.webp",
-  "/images/use-cases/uc-1.webp",
-  "/images/use-cases/uc-2.webp",
-  "/images/use-cases/uc-3.webp",
-  "/images/grads/FocusedProgramming.webp",
-  "/images/hero-wall/expanding-horizons-phitopolis-unveils-its-new-office-02.webp",
-  "/images/timeline/group-pic-final-2048x1687.webp",
-];
-
-/** About hero, above the fold: the dusk-skyline background behind the headline
- *  (`BackgroundReveal` → `/images/about-hero-bg.webp`), the gold-framed primary
- *  photo (`HeroGallery` → `/images/AboutPage1.webp`) and the first three
- *  right-hand strip tiles (`HeroGallery`'s `STRIP_TILES`). */
+/** About hero, above the fold: the skyline background loop's poster
+ *  (`BackgroundReveal` → `/videos/about-hero-loop.*`) and the gold-framed primary
+ *  photo (`HeroGallery` → `/images/AboutPage1.webp`). The right-hand strip column
+ *  was replaced by a single framed clip off the same loop. */
 const ABOUT_BLOCKING: readonly string[] = [
-  "/images/about-hero-bg.webp",
+  "/videos/about-hero-loop-poster.jpg",
   "/images/AboutPage1.webp",
-  "/images/hero-wall/phitopolis-datathon-2k25-the-grads-all-star-showdown-02.webp",
-  "/images/hero-wall/inspiring-the-next-generation-of-quants-our-talks-at-the-google-developers-student-club-dlsu-01.webp",
-  "/images/hero-wall/phitopolis-external-talk-01.webp",
 ];
 
-/** About hero, the remaining three strip tiles — on screen in the first
- *  viewport but lower in the stack, so warmed without holding the reveal. */
+/** About hero loop — poster already blocks; the `webm` warms without holding the
+ *  reveal (backs both `BackgroundReveal` and `HeroGallery`'s framed tile). */
 const ABOUT_BACKGROUND_IMAGES: readonly string[] = [
-  "/images/hero-wall/expanding-horizons-phitopolis-unveils-its-new-office-02.webp",
-  "/images/hero-wall/data-ops-training-in-clark-pampanga-04.webp",
-  "/images/hero-wall/immersion-in-dataops-a-journey-behind-the-scenes-of-data-operations-01.webp",
+  "/videos/about-hero-loop.webm",
 ];
 
 /** Decorative hero-background loops (`VideoPageHero` on each route's hero).
@@ -211,7 +183,11 @@ export function resolveRouteManifest(rawPathname: string): RouteManifest {
   // Router config may or may not keep a trailing slash; match either form.
   const pathname = rawPathname.length > 1 ? rawPathname.replace(/\/+$/, "") : rawPathname;
   if (pathname === "/") {
-    return { blocking: HOME_BLOCKING, background: HOME_BACKGROUND_IMAGES, warmGlobe: true };
+    return {
+      blocking: HOME_BLOCKING,
+      background: HOME_BACKGROUND_IMAGES,
+      warmGlobe: false,
+    };
   }
   if (pathname === "/about") {
     return { blocking: ABOUT_BLOCKING, background: ABOUT_BACKGROUND_IMAGES, warmGlobe: false };
@@ -376,6 +352,66 @@ function useWarmupSignals(pathname: string): LoadSignal[] {
   }, [signals]);
 
   return signals;
+}
+
+/** Warmed neighbour assets, deduped across navigations for this page session. */
+const warmedNeighbourAssets = new Set<string>();
+
+/** Test seam: neighbour warming is a module-level cache, so it must be resettable. */
+export function resetNeighbourWarming(): void {
+  warmedNeighbourAssets.clear();
+}
+
+/**
+ * Warm the *other* routes' blocking assets once the current page has settled.
+ *
+ * `useWarmupSignals` resolves its manifest from the landing pathname, which is
+ * correct for a first load and useless for every navigation after it: arriving
+ * at `/about` by clicking a nav link meant its hero poster and gallery still had
+ * to be fetched from cold, while `defaultPreload: "intent"` had already taken
+ * care of the JS. Chunks were warm and pictures were not — which is exactly what
+ * "the about page loads so late" describes.
+ *
+ * Deliberately narrow:
+ *  - **blocking tier only.** Those are the above-fold, reveal-gating images (two
+ *    files for `/about`). Pulling neighbours' background tiers as well would put
+ *    megabytes of video on the wire for pages nobody asked for.
+ *  - **on idle**, so it never competes with the current route's own paint.
+ *  - **deduped per page session**, so bouncing between routes re-warms nothing.
+ */
+function useNeighbourRouteWarming(pathname: string): void {
+  useEffect(() => {
+    const current = pathname.length > 1 ? pathname.replace(/\/+$/, "") : pathname;
+
+    const urls = WARM_ROUTES.filter((route) => route.to !== current)
+      .flatMap((route) => resolveRouteManifest(route.to).blocking)
+      .filter((url) => !warmedNeighbourAssets.has(url));
+    if (urls.length === 0) return;
+
+    let cancelled = false;
+    const run = () => {
+      if (cancelled) return;
+      for (const url of urls) {
+        warmedNeighbourAssets.add(url);
+        void preloadAsset(url);
+      }
+    };
+
+    // requestIdleCallback is unavailable in Safari <16.4 and in jsdom.
+    const idle = window.requestIdleCallback;
+    if (typeof idle === "function") {
+      const handle = idle(run, { timeout: 3000 });
+      return () => {
+        cancelled = true;
+        window.cancelIdleCallback?.(handle);
+      };
+    }
+    const handle = window.setTimeout(run, 1200);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(handle);
+    };
+  }, [pathname]);
 }
 
 function AnimatedContactButton({
@@ -591,12 +627,14 @@ const HEADER_AT_MS = 300;
 const OPEN_AT_MS = 600;
 
 function AppShellInner({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
   const reduced = useReducedMotion();
-  const [showPreloader, setShowPreloader] = useState(() => shouldShowPreloader(reduced === true));
+  // Home exposes its content immediately; its motion progressively enhances the page.
+  const [showPreloader, setShowPreloader] = useState(() => pathname !== "/" && shouldShowPreloader(reduced === true));
   // Tiered entrance: hero → header → content, instead of one boolean
   // releasing every animation system on the same tick.
-  const [phase, setPhase] = useState<EntrancePhase>(() => (reduced === true ? "open" : "covered"));
-  const releasedRef = useRef(reduced === true);
+  const [phase, setPhase] = useState<EntrancePhase>(() => (pathname === "/" || reduced === true ? "open" : "covered"));
+  const releasedRef = useRef(pathname === "/" || reduced === true);
   const hadPreloaderRef = useRef(showPreloader);
   // The post-intro hero cascade — see `useHeroCascadeStep`'s docblock for why
   // this is independent of `phase`/`EntrancePhaseContext`. Starts fully
@@ -631,8 +669,8 @@ function AppShellInner({ children }: { children: ReactNode }) {
   const entranceTimersRef = useRef<number[]>([]);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [megaNavOpen, setMegaNavOpen] = useState(false);
-  const { pathname } = useLocation();
   const warmup = useWarmupSignals(pathname);
+  useNeighbourRouteWarming(pathname);
   const onContactPage = pathname === "/contact";
   const closeMobileNav = () => {
     setMobileNavOpen(false);
@@ -655,7 +693,11 @@ function AppShellInner({ children }: { children: ReactNode }) {
     // exit tween has resolved), so step 1 begins from a fully-revealed page,
     // not mid-reveal.
     if (hadPreloaderRef.current) {
-      const STEP_MS = 700; // ~0.6–1s pacing, matching the intro's own rhythm
+      // 250ms, not 700. At 700 the five hero steps took 2.8s AFTER the intro
+      // had already ended, so the CTA buttons landed at 12.5s while everything
+      // needed to draw them had been in cache for ten of those seconds. The
+      // cascade should read as the hero assembling itself, not as a queue.
+      const STEP_MS = 250;
       [1, 2, 3, 4, 5].forEach((step, i) => {
         heroCascadeTimersRef.current.push(
           window.setTimeout(() => setHeroCascadeStep(step), i * STEP_MS),
@@ -1320,7 +1362,7 @@ const NAV_ISLAND_V2 = {
           footerAnchorRef={footerAnchorRef}
           currentNarration={currentNarration}
         />
-        <CommandPalette />
+        <CommandPalette showShortcut />
         <FloatingIdOverlay />
         <CookieNotice />
         </Box>

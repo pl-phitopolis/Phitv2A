@@ -107,10 +107,11 @@ export const PRELOADER_SESSION_KEY = "phitopolis:preloaded";
 const BEAT_S = 0.26;
 
 /**
- * The reveal. A full 2 seconds so the aperture opening genuinely reads as its
- * own moment rather than a quick wipe.
+ * The reveal. Long enough to read as an aperture opening rather than a cut, and
+ * no longer: at the old 2.0s the hero was still hidden behind a hole that had
+ * effectively finished opening.
  */
-const OUT_DURATION_S = 2.0;
+const OUT_DURATION_S = 0.5;
 
 /**
  * The exit fade — every remaining piece (wordmark, laser, the three rows,
@@ -120,16 +121,15 @@ const OUT_DURATION_S = 2.0;
  * that was still dissolving. Now the reveal always opens onto a clean,
  * already-empty ground.
  */
-const EXIT_FADE_S = 0.6;
+const EXIT_FADE_S = 0.4;
 
 /**
- * The buffer held after the choreography lands AND after 100% — a full two
- * seconds of stillness before the reveal starts.
+ * The buffer held after the choreography lands AND after 100%.
  *
- * This is the "let it register" beat, and it is deliberately long. Only
- * applied on a natural completion; Escape skips it entirely.
+ * Now zero — see `POST_HOLD_S`. Kept as a named constant rather than inlined
+ * because the exit arithmetic below and the parity test both read it.
  */
-const POST_HOLD_MS = POST_HOLD_S * 1000; // 2000
+const POST_HOLD_MS = POST_HOLD_S * 1000; // 0
 
 /**
  * How long the exit will wait for the blocking signals AFTER the choreography
@@ -145,12 +145,14 @@ const SIGNAL_CAP_AFTER_CHOREO_MS = 1500;
 /**
  * Unconditional unmount ceiling. Nothing may leave the overlay mounted.
  *
- * The worst non-forced path is CHOREO_END (5100) + the signal cap (1500) +
- * POST_HOLD (2000) + the exit fade (600) + OUT (2000) ≈ 11200ms; 13000
- * clears that with margin while staying an absolute ceiling.
+ * The worst non-forced path is CHOREO_END (4700) + the signal cap (1500) +
+ * POST_HOLD (0) + the exit fade (400) + OUT (500) = 7100ms; 8500 clears that
+ * with margin while staying an absolute ceiling. Kept proportional to the
+ * retimed choreography — a 13000 ceiling against a 7000 worst case is not a
+ * safety net, it is a number nobody would ever hit.
  * `tests/motion/preloader-choreo.test.ts` pins the arithmetic.
  */
-const BEAT_FAILSAFE_MS = 13000;
+const BEAT_FAILSAFE_MS = 8500;
 
 // The leading "P" is dropped — the P logo icon beside this wordmark already
 // carries it, and repeating it in both the mark and the text read as

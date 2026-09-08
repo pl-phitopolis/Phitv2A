@@ -14,6 +14,7 @@ import { SCROLL_SPEED } from "@/shared/motion/scrollSpeed";
 import { refreshPriorityFor } from "@/shared/motion/beatThresholds";
 import { sectionOrder } from "@/shared/sections";
 
+import { DAILY_LIFE_FILM, useDailyLifeVideo } from "./useDailyLifeVideo";
 import {
   DAILY_LIFE_PIN_VH,
   EXPAND_END,
@@ -48,7 +49,12 @@ gsap.registerPlugin(ScrollTrigger);
 export function DailyLifeSection() {
   const containerRef = useRef<HTMLElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const videoRef = useRef<HTMLVideoElement>(null);
+
+  // Gates the film's bytes on the section actually being approached. Without
+  // this the 18.7MB master downloaded on mount for every visitor to `/` and
+  // `/about`, scrolled-to or not.
+  const { videoRef, shouldLoad, manualPlaybackOnly } =
+    useDailyLifeVideo(containerRef);
 
   const theme = useTheme();
   const reduced = useReducedMotion();
@@ -64,12 +70,10 @@ export function DailyLifeSection() {
       const card = cardRef.current;
       if (staticLayout || !container || !card) return;
 
-      // Muted autoplay loop — the reel plays itself as it expands; `controls`
-      // stays on the element so the viewer can unmute / scrub once it is
-      // fullscreen. Rejected play (autoplay policy) is a non-event: the poster
-      // shows until the user hits play.
-      const playing = videoRef.current?.play();
-      if (playing && typeof playing.catch === "function") playing.catch(() => {});
+      // Playback is started by `useDailyLifeVideo`'s IntersectionObserver, not
+      // here: this callback runs on mount, long before the section is reached,
+      // and calling play() then is what forced the download. `controls` stays
+      // on the element so the viewer can unmute / scrub once it is fullscreen.
 
       // `gsap.set` the inset-left start, then `.to` the full-bleed end — never
       // `.from()` on a scrubbed timeline (it renders not-yet-started tweens at
@@ -156,10 +160,9 @@ export function DailyLifeSection() {
         <Box
           component="video"
           ref={videoRef}
-          src="/videos/daily-life.mp4"
-          poster="/videos/daily-life-poster.jpg"
-          preload="metadata"
-          autoPlay
+          poster={DAILY_LIFE_FILM.poster}
+          preload="none"
+          autoPlay={!manualPlaybackOnly}
           muted
           loop
           controls
@@ -170,7 +173,12 @@ export function DailyLifeSection() {
             objectFit: "cover",
             display: "block",
           }}
-        />
+        >
+          {/* Children, not `src`: an absent <source> set means the element has
+              nothing to fetch, so `preload` and `autoPlay` cannot race the
+              observer. The poster still paints. */}
+          {shouldLoad ? <source src={DAILY_LIFE_FILM.mp4} type="video/mp4" /> : null}
+        </Box>
       </Box>
     </Box>
   );

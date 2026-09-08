@@ -2,6 +2,14 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+<!-- octavia:start -->
+## Octavia
+
+Before any work, read `octavia/SESSION.md`, then `octavia/PROTOCOL.md` "Start here", then
+`octavia/GUARDRAILS.md`. Those tell you where the project stands, what you may write, and what
+this project has already learned. Do not begin until you have.
+<!-- octavia:end -->
+
 ## What this is
 
 **Fresko** — the public-facing marketing site for Phitopolis (a fintech

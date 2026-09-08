@@ -5,7 +5,7 @@ import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 
 import { routeTree } from "@/routeTree.gen";
-import { CAREER_POSITIONS } from "@/shared/careersData";
+import { jobPostingDetailFixtures } from "./msw/handlers";
 import { server } from "./msw/server";
 import { makeTestQueryClient, renderWithProviders } from "./test-utils";
 
@@ -147,13 +147,15 @@ describe("Careers Detail (/careers/$jobId) — Empirical Adversarial Stress Suit
   });
 
   describe("2. Honeypot Bot Trap Mechanism", () => {
-    it("submits company_website honeypot value to backend without breaking payload structure", async () => {
+    it("submits company_website honeypot value plus job_slug/job_title to backend without breaking payload structure", async () => {
       interface CapturedPayload {
         name?: string;
         email?: string;
         subject?: string;
         company_website?: string;
         message?: string;
+        job_slug?: string;
+        job_title?: string;
       }
       let capturedPayload: CapturedPayload | null = null;
       server.use(
@@ -166,7 +168,7 @@ describe("Careers Detail (/careers/$jobId) — Empirical Adversarial Stress Suit
       const user = userEvent.setup();
       renderCareersDetailRoute("software-engineer");
 
-      const job = CAREER_POSITIONS.find((p) => p.id === "software-engineer")!;
+      const job = jobPostingDetailFixtures["software-engineer"]!;
 
       fireEvent.change(await screen.findByLabelText(/^full name/i), { target: { value: "Bot Applicant" } });
       fireEvent.change(screen.getByLabelText(/^email address/i), { target: { value: "bot@spammer.net" } });
@@ -189,6 +191,8 @@ describe("Careers Detail (/careers/$jobId) — Empirical Adversarial Stress Suit
       expect(capturedPayload!.company_website).toBe("https://spam-site.com");
       expect(capturedPayload!.message).toContain("Applicant: Bot Applicant");
       expect(capturedPayload!.message).toContain("Institution/Company: Bot University");
+      expect(capturedPayload!.job_slug).toBe(job.slug);
+      expect(capturedPayload!.job_title).toBe(job.title);
     });
   });
 
@@ -255,23 +259,28 @@ describe("Careers Detail (/careers/$jobId) — Empirical Adversarial Stress Suit
 
   describe("4. Category Semantic Accents & Position Fidelity", () => {
     const testCases: Array<{ id: string; expectedCategory: string }> = [
-      { id: "software-engineer", expectedCategory: "Graduate Program" },
-      { id: "data-intern", expectedCategory: "Internships" },
-      { id: "fpga-engineer", expectedCategory: "Engineering & Quant" },
-      { id: "cloud-architect", expectedCategory: "Cloud & Infrastructure" },
+      { id: "technical-graduate-program", expectedCategory: "Graduate Program" },
+      { id: "rd-internship-program", expectedCategory: "Internships" },
+      { id: "software-engineer", expectedCategory: "Engineering & Quant" },
+      { id: "devops-engineer", expectedCategory: "Cloud & Infrastructure" },
     ];
 
     for (const { id, expectedCategory } of testCases) {
       it(`renders accurate details and badge styling for position '${id}' (${expectedCategory})`, async () => {
-        const job = CAREER_POSITIONS.find((p) => p.id === id);
+        const job = jobPostingDetailFixtures[id];
         if (!job) return;
 
         renderCareersDetailRoute(id);
 
         expect(await screen.findByRole("heading", { level: 1, name: job.title })).toBeInTheDocument();
-        expect(screen.getByText(job.badge)).toBeInTheDocument();
+        // getAllByText, not getByText: for some fixtures `badge` and
+        // `employment_type.toUpperCase()` render identical text (e.g. "PAID
+        // INTERNSHIP" for both the badge chip and the type chip) — same
+        // coincidence the original static careersData.ts copy had.
+        expect(screen.getAllByText(job.badge).length).toBeGreaterThan(0);
         expect(screen.getByText(job.location)).toBeInTheDocument();
         expect(screen.getByText(job.department)).toBeInTheDocument();
+        expect(job.category).toBe(expectedCategory);
       });
     }
   });

@@ -33,6 +33,14 @@ import {
   hazeDensity,
   skyPresence,
   cloudDrift,
+  LOCKUP_EXIT_START,
+  LOCKUP_EXIT_END,
+  LOCKUP_ENTER_START,
+  LOCKUP_ENTER_END,
+  LOCKUP_CUT_POINT,
+  lockupOpacity,
+  lockupScale,
+  lockupCentered,
 } from "@/features/hero/heroPhases";
 
 test("phase boundaries are the values the design was built around", () => {
@@ -259,4 +267,54 @@ test("all four dawn curves stay within [0, 1] and never NaN across the whole scr
       expect(v).toBeLessThanOrEqual(1);
     }
   }
+});
+
+test("lockup boundaries are the values the disappear/reappear choreography was built around", () => {
+  expect(LOCKUP_EXIT_START).toBe(0.20);
+  expect(LOCKUP_EXIT_END).toBe(0.28);
+  expect(LOCKUP_ENTER_START).toBe(0.42);
+  expect(LOCKUP_ENTER_END).toBe(0.56);
+  // Lands where the old continuous slide used to land, so pin timing downstream is unaffected.
+  expect(LOCKUP_ENTER_END).toBe(WORD_REVEAL_END + 0.06);
+  // The hard anchor cut sits inside the dead zone, where opacity is already 0.
+  expect(LOCKUP_CUT_POINT).toBeGreaterThan(LOCKUP_EXIT_END);
+  expect(LOCKUP_CUT_POINT).toBeLessThan(LOCKUP_ENTER_START);
+});
+
+test("lockupOpacity: 1 at rest, ramps to 0 across exit, holds 0, ramps to 1 across enter", () => {
+  expect(lockupOpacity(0)).toBe(1);
+  expect(lockupOpacity(LOCKUP_EXIT_START)).toBe(1);
+  expect(lockupOpacity(LOCKUP_EXIT_END)).toBeCloseTo(0, 6);
+  expect(lockupOpacity((LOCKUP_EXIT_START + LOCKUP_EXIT_END) / 2)).toBeCloseTo(0.5, 6);
+  expect(lockupOpacity(LOCKUP_CUT_POINT)).toBe(0);
+  expect(lockupOpacity(LOCKUP_ENTER_START)).toBe(0);
+  expect(lockupOpacity((LOCKUP_ENTER_START + LOCKUP_ENTER_END) / 2)).toBeCloseTo(0.5, 6);
+  expect(lockupOpacity(LOCKUP_ENTER_END)).toBeCloseTo(1, 6);
+  expect(lockupOpacity(1)).toBe(1);
+});
+
+test("lockupScale: 1->0.85 across exit, 0.9->1 across enter, never NaN or out of [0, 1.01]", () => {
+  expect(lockupScale(0)).toBe(1);
+  expect(lockupScale(LOCKUP_EXIT_END)).toBeCloseTo(0.85, 6);
+  // Held at the exit's end value through the dead zone; the enter window's
+  // own start value (0.9) only applies once p moves past ENTER_START.
+  expect(lockupScale(LOCKUP_ENTER_START)).toBeCloseTo(0.85, 6);
+  expect(lockupScale(LOCKUP_ENTER_START + 0.0001)).toBeCloseTo(0.9, 3);
+  expect(lockupScale(LOCKUP_ENTER_END)).toBeCloseTo(1, 6);
+  for (let i = 0; i <= STEPS; i += 1) {
+    const v = lockupScale(at(i));
+    expect(Number.isNaN(v)).toBe(false);
+    expect(v).toBeGreaterThanOrEqual(0.8);
+    expect(v).toBeLessThanOrEqual(1.01);
+  }
+});
+
+test("lockupCentered is a hard 0/1 step that flips exactly at LOCKUP_CUT_POINT", () => {
+  expect(lockupCentered(0)).toBe(0);
+  expect(lockupCentered(LOCKUP_CUT_POINT - 0.001)).toBe(0);
+  expect(lockupCentered(LOCKUP_CUT_POINT)).toBe(1);
+  expect(lockupCentered(LOCKUP_CUT_POINT + 0.001)).toBe(1);
+  expect(lockupCentered(1)).toBe(1);
+  // The cut sits strictly inside the opacity-0 dead zone, so it is never visible.
+  expect(lockupOpacity(LOCKUP_CUT_POINT)).toBe(0);
 });

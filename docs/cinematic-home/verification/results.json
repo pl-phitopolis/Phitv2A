@@ -1,0 +1,391 @@
+{
+  "viewports": [
+    {
+      "width": 320,
+      "scrollWidth": 320,
+      "pins": 0,
+      "headings": [
+        "From models to infrastructure.",
+        "Where the work runs.",
+        "Define. Build. Operate.",
+        "Built in Manila. Working globally.",
+        "Bring us the hard problem."
+      ],
+      "broken": []
+    },
+    {
+      "width": 390,
+      "scrollWidth": 390,
+      "pins": 0,
+      "headings": [
+        "From models to infrastructure.",
+        "Where the work runs.",
+        "Define. Build. Operate.",
+        "Built in Manila. Working globally.",
+        "Bring us the hard problem."
+      ],
+      "broken": []
+    },
+    {
+      "width": 768,
+      "scrollWidth": 768,
+      "pins": 0,
+      "headings": [
+        "From models to infrastructure.",
+        "Where the work runs.",
+        "Define. Build. Operate.",
+        "Built in Manila. Working globally.",
+        "Bring us the hard problem."
+      ],
+      "broken": []
+    },
+    {
+      "width": 1440,
+      "scrollWidth": 1440,
+      "pins": 0,
+      "headings": [
+        "From models to infrastructure.",
+        "Where the work runs.",
+        "Define. Build. Operate.",
+        "Built in Manila. Working globally.",
+        "Bring us the hard problem."
+      ],
+      "broken": []
+    },
+    {
+      "width": 1920,
+      "scrollWidth": 1920,
+      "pins": 0,
+      "headings": [
+        "From models to infrastructure.",
+        "Where the work runs.",
+        "Define. Build. Operate.",
+        "Built in Manila. Working globally.",
+        "Bring us the hard problem."
+      ],
+      "broken": []
+    }
+  ],
+  "errors": [],
+  "failedRequests": [],
+  "scenes": [
+    {
+      "scroll": 3420,
+      "articles": [
+        {
+          "top": 0.296875,
+          "bottom": 1000.296875
+        },
+        {
+          "top": 1000.296875,
+          "bottom": 2000.296875
+        },
+        {
+          "top": 2000.296875,
+          "bottom": 3000.296875
+        }
+      ],
+      "pins": 3
+    },
+    {
+      "scroll": 4180,
+      "articles": [
+        {
+          "top": -999.703125,
+          "bottom": 0.296875
+        },
+        {
+          "top": 0.296875,
+          "bottom": 1000.296875
+        },
+        {
+          "top": 1000.296875,
+          "bottom": 2000.296875
+        }
+      ],
+      "pins": 3
+    },
+    {
+      "scroll": 4940,
+      "articles": [
+        {
+          "top": -1866.1788330078125,
+          "bottom": -866.1788330078125
+        },
+        {
+          "top": -866.1788330078125,
+          "bottom": 133.8211669921875
+        },
+        {
+          "top": 133.8211669921875,
+          "bottom": 1133.8211669921875
+        }
+      ],
+      "pins": 3
+    },
+    {
+      "scroll": 5700,
+      "articles": [
+        {
+          "top": -2193.703125,
+          "bottom": -1193.703125
+        },
+        {
+          "top": -1193.703125,
+          "bottom": -193.703125
+        },
+        {
+          "top": -193.703125,
+          "bottom": 806.296875
+        }
+      ],
+      "pins": 3
+    },
+    {
+      "scroll": 7030,
+      "articles": [
+        {
+          "top": -3523.703125,
+          "bottom": -2523.703125
+        },
+        {
+          "top": -2523.703125,
+          "bottom": -1523.703125
+        },
+        {
+          "top": -1523.703125,
+          "bottom": -523.703125
+        }
+      ],
+      "pins": 3
+    },
+    {
+      "scroll": 8360,
+      "articles": [
+        {
+          "top": -4853.703125,
+          "bottom": -3853.703125
+        },
+        {
+          "top": -3853.703125,
+          "bottom": -2853.703125
+        },
+        {
+          "top": -2853.703125,
+          "bottom": -1853.703125
+        }
+      ],
+      "pins": 3
+    }
+  ],
+  "checks": [
+    {
+      "pauseRemovesPins": true
+    },
+    {
+      "staticApplicationFlow": true,
+      "deliveryAfterApplications": true
+    },
+    {
+      "resumeRestoresThreePins": true
+    },
+    {
+      "aboutNavigation": true,
+      "homePinsAfterLeaving": 0,
+      "focus": "main-content"
+    },
+    {
+      "returnHomePinCount": 3
+    },
+    {
+      "resizeRemovesPins": true,
+      "resizeRestoresFlow": true
+    },
+    {
+      "resizeRestoresPins": true
+    },
+    {
+      "anchorTop": 80,
+      "anchorHash": "#capabilities"
+    },
+    {
+      "escapeReturnsFocus": true
+    },
+    {
+      "delayedFontPinCount": 3,
+      "delayedFontOverflow": false
+    },
+    {
+      "fallbackVisible": true,
+      "headingSurvives": true
+    }
+  ],
+  "metrics": {
+    "cls": 0,
+    "lcp": 184,
+    "mainCount": 1,
+    "height": 10085,
+    "resources": [
+      {
+        "url": "index-DPWTM1Gn.js",
+        "size": 46439
+      },
+      {
+        "url": "rolldown-runtime-CNC7AqOf.js",
+        "size": 1179
+      },
+      {
+        "url": "tanstack-B9u1Dx_8.js",
+        "size": 38156
+      },
+      {
+        "url": "react-BfEZsqbi.js",
+        "size": 59263
+      },
+      {
+        "url": "motion-DY0k7aCM.js",
+        "size": 46667
+      },
+      {
+        "url": "mui-l1D6jK6F.js",
+        "size": 80462
+      },
+      {
+        "url": "palette-ChoQsL0f.js",
+        "size": 962
+      },
+      {
+        "url": "useDeviceTier-CP-iUH5n.js",
+        "size": 1016
+      },
+      {
+        "url": "theme-Mv7SNTBY.js",
+        "size": 3138
+      },
+      {
+        "url": "motion-DeIQVKFn.js",
+        "size": 595
+      },
+      {
+        "url": "queryClient-CescYNWZ.js",
+        "size": 617
+      },
+      {
+        "url": "client-CT7AA6Ip.js",
+        "size": 3149
+      },
+      {
+        "url": "SpecularButton-BOoAJ8eM.js",
+        "size": 16656
+      },
+      {
+        "url": "navbarAnchors-CpLK6JFI.js",
+        "size": 1310
+      },
+      {
+        "url": "keys-DEPfgS9X.js",
+        "size": 419
+      },
+      {
+        "url": "preload-helper-spzIYQW1.js",
+        "size": 1072
+      },
+      {
+        "url": "OpenInNew-Dk_ckbaa.js",
+        "size": 940
+      },
+      {
+        "url": "seo-DvDc_ue7.js",
+        "size": 1230
+      },
+      {
+        "url": "Reveal-CPF-AjV6.js",
+        "size": 974
+      },
+      {
+        "url": "useBackgroundVideo-B84Eqxy-.js",
+        "size": 923
+      },
+      {
+        "url": "api-DXtpckw_.js",
+        "size": 880
+      },
+      {
+        "url": "routes-C7nEyk2t.js",
+        "size": 5848
+      },
+      {
+        "url": "SmoothScroll-DEpm_Twc.js",
+        "size": 7004
+      },
+      {
+        "url": "ScrollTrigger-DDi3XPDo.js",
+        "size": 44250
+      },
+      {
+        "url": "scrollSpeed-DnYv_i4u.js",
+        "size": 372
+      },
+      {
+        "url": "smoothScrollControls-Cei0ojez.js",
+        "size": 568
+      },
+      {
+        "url": "src-DIqRhqLS.js",
+        "size": 1153
+      },
+      {
+        "url": "about-AUmk4X-M.js",
+        "size": 27581
+      },
+      {
+        "url": "CheckCircleOutline-BIUelF49.js",
+        "size": 617
+      },
+      {
+        "url": "content-BizX4sN7.js",
+        "size": 10820
+      },
+      {
+        "url": "ArrowBack-BizGVnPY.js",
+        "size": 498
+      },
+      {
+        "url": "fallback-C54E5FE5.js",
+        "size": 971
+      },
+      {
+        "url": "HardDrives.es-C59M2gaB.js",
+        "size": 2803
+      },
+      {
+        "url": "services-te6Nu6wh.js",
+        "size": 23594
+      },
+      {
+        "url": "IconBase.es-DwnijX45.js",
+        "size": 943
+      },
+      {
+        "url": "blog.index-DAvvRBaF.js",
+        "size": 5419
+      },
+      {
+        "url": "bodyImages-gQFV6HNL.js",
+        "size": 685
+      },
+      {
+        "url": "api-Dmn6V2Gj.js",
+        "size": 1000
+      },
+      {
+        "url": "contact-DektVrSz.js",
+        "size": 6894
+      },
+      {
+        "url": "PageHeader-DWhRQTy_.js",
+        "size": 806
+      }
+    ]
+  }
+}

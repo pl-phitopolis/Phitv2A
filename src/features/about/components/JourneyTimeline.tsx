@@ -683,7 +683,20 @@ export function JourneyTimeline() {
         }
       });
     }, containerRef);
+
+    // This component is lazy-loaded (`about.tsx`'s `React.lazy`/`Suspense`) and
+    // is 480vh tall — by far the largest single contributor to document height
+    // on `/about`. If its chunk resolves after `SmoothScroll.tsx`'s two post-
+    // mount refreshes, every section below it (`DailyLifeSection`, etc.) keeps
+    // pin start/end offsets computed against the shorter pre-mount document,
+    // so a fast scroll through the transition can miss or mis-time their pin
+    // engagement entirely. One more refresh once this section's real height is
+    // in the DOM keeps every later trigger's geometry correct.
+    const raf = requestAnimationFrame(() => {
+      ScrollTrigger.refresh();
+    });
     return () => {
+      cancelAnimationFrame(raf);
       ctx.revert();
     };
   }, [reduced, N]);

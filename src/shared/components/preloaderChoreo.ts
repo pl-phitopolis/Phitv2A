@@ -132,10 +132,17 @@ export const PUSH_S = 0.6;
  * lengthen a tween here, either shorten a sibling or grow the slot.
  */
 
-/** Buffer held after SEQ 2, before the post-100 buffer. */
-export const HOLD_S = 1.6;
-/** Buffer held after the choreography AND after 100%, before the reveal starts. */
-export const POST_HOLD_S = 2.0;
+/** Buffer held after SEQ 2, before the exit. */
+export const HOLD_S = 1.2;
+/**
+ * Buffer held after the choreography AND after 100%, before the reveal starts.
+ *
+ * Zero. This was the "let it register" beat — two seconds of deliberate
+ * stillness on a composition that had already finished. It is the single
+ * largest thing standing between a visitor and the page, and nothing is being
+ * registered during it that the preceding 0.8s hold has not already delivered.
+ */
+export const POST_HOLD_S = 0;
 
 /** SEQ 1 — the mark rises and resolves. */
 export const SEQ_1_AT_S = 0;

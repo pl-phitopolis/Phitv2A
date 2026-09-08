@@ -8,4 +8,5 @@ export const keyRoots = {
   team: ["team"],
   blog: ["blog"],
   innovation: ["innovation"],
+  careers: ["careers"],
 } as const satisfies Record<string, readonly [string]>;

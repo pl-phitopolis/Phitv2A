@@ -53,6 +53,7 @@ export const FALLBACK_BLOG_PAGE: BlogPostPage = {
     author: "Phitopolis Editorial Team",
     published_on: FALLBACK_DATES[index] ?? "2026-01-01",
     featured: index === 0,
+    status: "published",
   })),
   total: CONTENT.blog.length,
   // Mirrors the route's PAGE_SIZE so the fallback's pagination math matches.

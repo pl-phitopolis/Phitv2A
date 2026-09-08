@@ -1,0 +1,1041 @@
+/**
+ * Home V3 layout. Scoped under `.hv3`, prefix `hv3-` throughout.
+ *
+ * TOKEN DISCIPLINE (see docs/design-bar.md "Token discipline" table): every
+ * colour below is one of `NOIR.gold` (#FFC72C), a `grounds.ts` ground hex, or
+ * one of the ground registry's own `muted`/`rule` rgba values. A CSS file
+ * cannot `import` `src/shared/theme/palette.ts`, so the custom properties
+ * below are a literal, commented restatement of those exports, not a new
+ * palette — `--hv3-*` names are a lookup convenience, never an invented value.
+ * None of the banned `cinematic.css` literals (`#ffcf62`, `#071323`,
+ * `#0b1a2c`, `#f1f2ee`, `#aab5c3`, `#304052`) appear anywhere in this file.
+ */
+.hv3 {
+  /* NOIR.gold */
+  --hv3-gold: #ffc72c;
+  /* NOIR.frost */
+  --hv3-frost: #f4f7fc;
+  /* the ground registry's own `muted` / `rule` on every dark ground */
+  --hv3-muted: rgba(255, 255, 255, 0.7);
+  --hv3-rule: rgba(255, 255, 255, 0.12);
+  /* grounds.ts: base / deep / field / floor */
+  --hv3-base: #061226;
+  --hv3-deep: #06183b;
+  --hv3-field: #0a2a66;
+  --hv3-floor: #04122e;
+  /* NOIR.navyInkRgb, for the imagery scrims (navy multiply over this) */
+  --hv3-navy-ink-rgb: 6, 18, 38;
+  --hv3-gutter: clamp(24px, 5.5vw, 112px);
+
+  background: var(--hv3-base);
+  color: var(--hv3-frost);
+  font-family: Inter, sans-serif;
+  position: relative;
+  overflow: clip;
+}
+.hv3 * {
+  box-sizing: border-box;
+}
+.hv3 a {
+  color: inherit;
+  text-decoration: none;
+}
+.hv3 button {
+  font: inherit;
+}
+.hv3 h1,
+.hv3 h2,
+.hv3 h3,
+.hv3 p {
+  margin: 0;
+}
+.hv3 h1,
+.hv3 h2,
+.hv3 h3 {
+  font-family: Outfit, sans-serif;
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+  text-wrap: balance;
+}
+/* Page headings reuse the theme's existing `h1` variant (theme.ts) rather
+   than inventing a bespoke size; TYPE_SCALE tops out at h2 (2.5rem), so
+   sub-headings below use that literal instead of a new step. */
+.hv3 h1 {
+  font-size: clamp(3rem, 8vw, 6rem);
+  line-height: 1.02;
+  max-width: 20ch;
+}
+.hv3 h2 {
+  font-size: clamp(2.5rem, 5.4vw, 4.5rem);
+}
+.hv3 p {
+  line-height: 1.65;
+}
+.hv3 :is(a, button):focus-visible {
+  outline: 2px solid var(--hv3-gold);
+  outline-offset: 2px;
+}
+.hv3 :is(a, button) {
+  transition:
+    color 0.2s,
+    background 0.2s,
+    transform 0.2s;
+}
+.hv3 :is(a, button):active {
+  transform: translateY(1px);
+}
+.hv3 button:disabled {
+  cursor: default;
+  color: var(--hv3-muted);
+}
+.hv3-kicker {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--hv3-gold);
+  display: block;
+  margin-bottom: 16px;
+}
+.hv3-eyebrow {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--hv3-muted);
+}
+.hv3-dot {
+  display: inline-block;
+  background: var(--hv3-gold);
+  height: 6px;
+  width: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.hv3-link {
+  display: inline-flex;
+  gap: 32px;
+  align-items: center;
+  min-height: 48px;
+  border-bottom: 1px solid var(--hv3-rule);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 12px 0;
+}
+.hv3-link span {
+  font-size: 20px;
+  transition: transform 0.2s;
+}
+.hv3-link:hover {
+  color: var(--hv3-gold);
+}
+.hv3-link:hover span {
+  transform: translate(3px, -3px);
+}
+.hv3-link-primary {
+  background: var(--hv3-gold);
+  color: var(--hv3-base) !important;
+  border: 0;
+  padding: 16px 24px;
+  gap: 40px;
+  min-height: 56px;
+}
+.hv3-link-primary:hover {
+  color: var(--hv3-base) !important;
+  filter: brightness(1.08);
+}
+
+/* ── Masthead ─────────────────────────────────────────────────────────── */
+/*
+ * Opaque, not translucent. The masthead is `position: fixed` over a
+ * continuously scrolling document, so a 0.92-alpha fill let copy scrolling
+ * underneath show through faintly and get clipped mid-sentence right at its
+ * lower edge — legible-then-suddenly-cut reads as broken, not as a glass
+ * surface. `glass.css` was checked for the house translucent-nav pattern
+ * (`--nav-fill`/`--nav-blur`/`--nav-filter`) before deciding against it: that
+ * pattern is keyed to the site's ground-scoped `--g-*`/`--text-*` tokens, not
+ * the `--hv3-*` set this file is scoped to keep self-contained, and pulling
+ * it in would mean either bridging two token systems or inventing new
+ * `--hv3-nav-*` ones — more surface than this bug needs. Full alpha on the
+ * existing token removes the bleed outright with no new colour, no new
+ * `backdrop-filter`, and no change to height or layout.
+ */
+.hv3-masthead {
+  position: fixed;
+  z-index: 20;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 40px;
+  height: 80px;
+  padding: 0 var(--hv3-gutter);
+  background: rgba(var(--hv3-navy-ink-rgb), 1);
+  border-bottom: 1px solid var(--hv3-rule);
+}
+.hv3-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: Outfit, sans-serif;
+  font-weight: 650;
+  font-size: 18px;
+}
+.hv3-brand img {
+  width: 26px;
+  height: 30px;
+  object-fit: contain;
+}
+.hv3-brand-dot {
+  color: var(--hv3-gold);
+}
+.hv3-desktop-nav {
+  display: flex;
+  gap: 28px;
+  margin-left: auto;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.82);
+}
+.hv3-desktop-nav a:hover,
+.hv3-nav-contact:hover {
+  color: var(--hv3-gold);
+}
+.hv3-nav-contact {
+  font-size: 12px;
+  display: flex;
+  gap: 8px;
+}
+.hv3-motion-button {
+  background: none;
+  border: 1px solid var(--hv3-rule);
+  color: var(--hv3-frost);
+  height: 32px;
+  width: 32px;
+  font-size: 12px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.hv3-motion-button:hover {
+  border-color: var(--hv3-gold);
+}
+.hv3-menu-button {
+  display: none;
+}
+.hv3-mobile-nav {
+  display: none;
+}
+
+/* ── Act boundary marker ──────────────────────────────────────────────── */
+/*
+ * Boundary markers only exist to give a ScrollTrigger a stable crossing point,
+ * and that trigger is only ever created under `[data-hv3-motion="on"]`. With
+ * motion off (below 900px, or `prefers-reduced-motion: reduce`) they would be
+ * four half-viewports of empty scrolling that nothing reacts to, which on a
+ * phone is most of a screen of nothing between every act. So they collapse to
+ * zero there rather than being styled and then ignored.
+ */
+.hv3-boundary {
+  height: 0;
+  background: transparent;
+}
+:root[data-hv3-motion="on"] .hv3-boundary {
+  height: 50vh;
+}
+
+/*
+ * Act IV holds its own boundary (the finale), and `.hv3-ask` is a centred flex
+ * row, so without this the marker would sit BESIDE the copy and never occupy
+ * scroll length. Under motion the ask becomes a column: copy, then the scroll
+ * room the push-in needs to fire while the reader is still settled on the
+ * closing line.
+ */
+:root[data-hv3-motion="on"] .hv3-ask {
+  flex-direction: column;
+  justify-content: center;
+  align-items: stretch;
+}
+:root[data-hv3-motion="on"] .hv3-ask .hv3-boundary {
+  height: 60vh;
+  flex: none;
+}
+
+/* ── Generic act panel ────────────────────────────────────────────────── */
+.hv3 [data-hv3-act-panel] {
+  padding: 128px var(--hv3-gutter);
+  scroll-margin-top: 80px;
+}
+.hv3-opening,
+.hv3-ask {
+  padding: 0 !important;
+}
+.hv3-section-heading {
+  max-width: 760px;
+  margin-bottom: 56px;
+}
+.hv3-section-intro {
+  font-size: 15px;
+  color: var(--hv3-muted);
+  margin-top: 16px;
+}
+
+/* ── Act I: Opening — full-bleed field + left copy ───────────────────── */
+.hv3-opening {
+  background: var(--hv3-base);
+  min-height: 900px;
+  height: 100svh;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+}
+.hv3-art {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.hv3-art picture,
+.hv3-art img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.hv3-fallback {
+  width: 100%;
+  height: 100%;
+  color: rgba(255, 255, 255, 0.35);
+  background: radial-gradient(ellipse at 65% 50%, var(--hv3-field), var(--hv3-base) 75%);
+}
+.hv3-opening-art {
+  z-index: -3;
+  filter: blur(2px);
+}
+.hv3-opening-art img {
+  /* center-right so the gold seam sits clear of the headline */
+  object-position: 68% center;
+}
+/*
+ * Opening scrim: navy multiply over NOIR.navyInkRgb, a single straight
+ * left-to-right falloff, 0.92 -> 0.35, with no interior stop.
+ *
+ * A previous 3-stop version (0.94 at 0%, 0.78 at 40%, 0.4 at 75%) had two
+ * segments of very different slope meeting at the 40% stop: -0.004/% for the
+ * first 40%, then -0.0109/% for the next 35%, a >2.5x change in steepness at
+ * one point. `linear-gradient` is only ever piecewise-linear between stops,
+ * so that discontinuity in the derivative painted as a visible kink under
+ * `multiply`, measured in Chrome at roughly 43% of the viewport width —
+ * close enough to the 40% stop to be the same bug, not a rendering quirk.
+ * Two stops with equal alpha delta per unit width front to back removes the
+ * interior point entirely, so there is nothing left to kink at.
+ */
+.hv3-opening-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--hv3-navy-ink-rgb), 0.92) 0%,
+    rgba(var(--hv3-navy-ink-rgb), 0.35) 100%
+  );
+  mix-blend-mode: multiply;
+}
+.hv3-hero-copy {
+  position: relative;
+  padding: clamp(160px, 22svh, 220px) var(--hv3-gutter) 140px;
+  max-width: 900px;
+}
+.hv3-hero-subhead {
+  font-size: 17px;
+  max-width: 52ch;
+  color: rgba(255, 255, 255, 0.85);
+  margin: 28px 0 40px !important;
+}
+.hv3-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  align-items: center;
+}
+.hv3-opening-micro {
+  position: absolute;
+  bottom: 32px;
+  left: var(--hv3-gutter);
+  right: var(--hv3-gutter);
+  font-size: 11px;
+  color: var(--hv3-muted);
+}
+
+/* ── Act II: Proof — capabilities (no field) then applications (3 fields) ── */
+.hv3-proof {
+  background: var(--hv3-deep);
+}
+.hv3-cap {
+  margin-bottom: 96px;
+}
+.hv3-cap-list {
+  margin: 48px 0 32px;
+}
+.hv3-cap-row {
+  display: grid;
+  grid-template-columns: 56px 1.2fr 1fr;
+  gap: 32px;
+  padding: 36px 0;
+  border-top: 1px solid var(--hv3-rule);
+  align-items: center;
+}
+.hv3-cap-row:last-child {
+  border-bottom: 1px solid var(--hv3-rule);
+}
+.hv3-index {
+  font-size: 12px;
+  color: var(--hv3-gold);
+  align-self: start;
+  padding-top: 10px;
+}
+.hv3-cap-row h3 {
+  font-size: 1.75rem;
+  margin-bottom: 12px;
+}
+.hv3-cap-row p {
+  font-size: 14px;
+  color: var(--hv3-muted);
+  max-width: 44ch;
+}
+.hv3-cap-row ul {
+  padding: 0;
+  margin: 20px 0 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.75);
+}
+.hv3-cap-row li::before {
+  content: "↗";
+  color: var(--hv3-gold);
+  padding-right: 8px;
+}
+.hv3-diagram {
+  width: 100%;
+  max-width: 380px;
+  height: auto;
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.4);
+  stroke-width: 1;
+}
+.hv3-diagram circle {
+  fill: var(--hv3-gold);
+  stroke: none;
+}
+.hv3-diagram-grid {
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 0.5;
+}
+.hv3-diagram-gold {
+  stroke: var(--hv3-gold);
+  stroke-width: 1.4;
+}
+
+.hv3-app-heading {
+  max-width: 760px;
+  margin-bottom: 40px;
+}
+.hv3-app-heading h2 {
+  margin: 16px 0;
+}
+.hv3-app-heading > p {
+  font-size: 15px;
+  color: var(--hv3-muted);
+}
+.hv3-app-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.hv3-application {
+  height: 100svh;
+  min-height: 700px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  padding: 96px var(--hv3-gutter);
+  margin: 0 calc(-1 * var(--hv3-gutter));
+}
+.hv3-app-art {
+  z-index: -3;
+  /* no blur here: these panels sit close to the eye, blur reads as mud */
+}
+.hv3-app-art img {
+  object-position: center;
+}
+/* Applications scrim: navy multiply over NOIR.navyInkRgb at 0.82. */
+.hv3-app-shade {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--hv3-navy-ink-rgb), 0.95) 0%,
+    rgba(var(--hv3-navy-ink-rgb), 0.82) 35%,
+    rgba(var(--hv3-navy-ink-rgb), 0.35) 78%
+  );
+  mix-blend-mode: multiply;
+}
+.hv3-app-copy {
+  max-width: 540px;
+}
+.hv3-app-copy h3 {
+  font-size: clamp(2.4rem, 4.6vw, 4rem);
+  margin: 24px 0;
+}
+.hv3-app-copy > p:not(.hv3-eyebrow) {
+  font-size: 14px;
+  max-width: 40ch;
+  color: var(--hv3-muted);
+}
+.hv3-app-problem {
+  font-size: 17px !important;
+  color: var(--hv3-frost) !important;
+  margin-bottom: 20px !important;
+  max-width: 34ch !important;
+}
+.hv3-app-detail {
+  display: block;
+  border-top: 1px solid var(--hv3-rule);
+  padding-top: 20px;
+  margin-top: 32px;
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--hv3-gold);
+}
+.hv3-app-number {
+  position: absolute;
+  bottom: 40px;
+  right: var(--hv3-gutter);
+  font: 400 32px Outfit, sans-serif;
+  color: var(--hv3-gold);
+}
+.hv3-app-number span {
+  font-size: 12px;
+  color: var(--hv3-muted);
+}
+
+/* ── Act III: Method — delivery (no field) then company (split) ─────── */
+.hv3-method {
+  background: var(--hv3-field);
+}
+.hv3-delivery {
+  max-width: 1040px;
+  margin: 0 auto 112px;
+  text-align: center;
+}
+.hv3-delivery-intro {
+  font-size: 15px;
+  color: var(--hv3-muted);
+  max-width: 60ch;
+  margin: 16px auto 0 !important;
+}
+.hv3-delivery-steps {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 48px;
+  margin-top: 64px;
+  text-align: left;
+}
+.hv3-delivery-line {
+  position: absolute;
+  top: 24px;
+  left: 24px;
+  right: calc((100% - 96px) / 3 - 24px);
+  height: 1px;
+  background: var(--hv3-gold);
+}
+.hv3-step-node {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--hv3-gold);
+  background: var(--hv3-field);
+  display: grid;
+  place-items: center;
+  color: var(--hv3-gold);
+  font-size: 11px;
+  margin-bottom: 24px;
+}
+.hv3-delivery-steps h3 {
+  font-size: 1.75rem;
+  margin-bottom: 12px;
+}
+.hv3-delivery-steps p {
+  font-size: 14px;
+  color: var(--hv3-muted);
+}
+.hv3-delivery-footnote {
+  display: block;
+  margin-top: 56px;
+  font-size: 11px;
+  color: var(--hv3-muted);
+}
+
+.hv3-company {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 72px;
+  align-items: center;
+}
+.hv3-company h2 {
+  font-size: clamp(2.4rem, 4.2vw, 3.6rem);
+  margin: 16px 0 24px;
+}
+.hv3-company-rule {
+  width: 64px;
+  height: 2px;
+  background: var(--hv3-gold);
+  margin-bottom: 24px;
+}
+.hv3-company p {
+  max-width: 46ch;
+  font-size: 14px;
+  color: var(--hv3-muted);
+  margin-bottom: 20px !important;
+}
+.hv3-company-film {
+  height: 560px;
+  position: relative;
+  background: var(--hv3-base);
+  overflow: hidden;
+}
+.hv3-company-film video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /*
+   * Scaled past the source's own letterboxing.
+   *
+   * `daily-life-loop.mp4` is a 1280x720 file whose footage is letterboxed
+   * INSIDE the frame, so roughly 5% of the top and bottom of every decoded
+   * frame is solid black. `object-fit: cover` cannot help with that: it crops
+   * the sides to fill, and the baked-in bars ride along, which is why the
+   * panel showed two black strips. A 1.12 scale pushes them outside the
+   * container's `overflow: hidden`. It costs a little sharpness on a 720p
+   * source, which is the cheaper trade against re-encoding the asset.
+   */
+  transform: scale(1.12);
+}
+.hv3-film-fallback {
+  padding: 48px;
+  font: 400 36px Outfit, sans-serif;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hv3-film-fallback span {
+  font: 14px Inter, sans-serif;
+  color: var(--hv3-muted);
+}
+.hv3-geography {
+  margin-top: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--hv3-muted);
+}
+
+/* ── Act IV: Ask — full-bleed field + centered-left copy, one action ─── */
+.hv3-ask {
+  background: var(--hv3-floor);
+  min-height: 700px;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid var(--hv3-rule);
+}
+.hv3-ask-field {
+  position: absolute;
+  inset: 0;
+  z-index: -3;
+}
+.hv3-ask-art {
+  position: absolute;
+  inset: 0;
+  filter: blur(3px);
+}
+.hv3-ask-art img {
+  /* center-right, same seam as Opening: this is the same place, further
+     into the dark, not an accidental repeat of the asset. */
+  object-position: 68% center;
+}
+/* Ask scrim: the heaviest treatment on the page (0.85), deliberately.
+   architecture.webp reused from Opening at both ends of the page should
+   read as the same place further into the dark, and the heavier wash here
+   is what sells that rather than the reuse reading as asset laziness. */
+.hv3-ask-scrim {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(var(--hv3-navy-ink-rgb), 0.72) 0%,
+    rgba(var(--hv3-navy-ink-rgb), 0.85) 55%,
+    rgba(var(--hv3-navy-ink-rgb), 0.94) 100%
+  );
+  mix-blend-mode: multiply;
+}
+.hv3-ask-copy {
+  position: relative;
+  max-width: 760px;
+  padding: 140px var(--hv3-gutter);
+}
+.hv3-ask-copy p {
+  font-size: 16px;
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 56ch;
+  margin-top: 24px !important;
+}
+.hv3-ask-micro {
+  display: block;
+  margin-top: 24px;
+  font-size: 11px;
+  color: var(--hv3-muted);
+}
+[data-hv3-ask-stage="cta"] {
+  margin-top: 48px;
+}
+/*
+ * The finale's shared visual beat: a gold rule under the CTA. Fully present
+ * by default (statically, under reduced motion, and below 900px there is no
+ * "before the flip" state to sweep in from) — the `[data-hv3-motion="on"]`
+ * block above is what collapses it to `scaleX(0)` and sweeps it back in on
+ * the `ask` shot. Layout-neutral either way: `scaleX` never changes the
+ * element's box, only its paint.
+ */
+.hv3-ask-rule {
+  width: 64px;
+  height: 2px;
+  margin-top: 32px;
+  background: var(--hv3-gold);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────── */
+.hv3-footer {
+  background: var(--hv3-floor);
+  padding: 64px var(--hv3-gutter) 32px;
+}
+.hv3-footer-wordmark {
+  font: 500 clamp(40px, 10vw, 150px) / 1 Outfit, sans-serif;
+  letter-spacing: -0.04em;
+}
+.hv3-footer-wordmark span {
+  color: var(--hv3-gold);
+}
+.hv3-footer-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--hv3-rule);
+  padding-top: 32px;
+  margin-top: 48px;
+  font-size: 10px;
+  color: var(--hv3-muted);
+}
+.hv3-footer-bottom nav {
+  display: flex;
+  gap: 24px;
+}
+.hv3-footer-bottom nav a:hover {
+  color: var(--hv3-gold);
+}
+.hv3-footer-bottom button {
+  border: 0;
+  background: none;
+  color: var(--hv3-frost);
+  padding: 12px 0;
+  cursor: pointer;
+  font-size: 10px;
+}
+.hv3-footer-bottom button span {
+  padding-left: 12px;
+}
+
+/* ── Screen-reader section nav ────────────────────────────────────────── */
+.hv3-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+.hv3-sr-only:focus-within {
+  position: fixed;
+  z-index: 50;
+  top: 12px;
+  left: 12px;
+  width: auto;
+  height: auto;
+  clip-path: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  padding: 24px;
+  background: var(--hv3-base);
+}
+
+/*
+ * ── Act visibility gate ─────────────────────────────────────────────────
+ * Fixed by the DOM contract: gated ONLY on `:root[data-hv3-motion="on"]`,
+ * which `useHomeV3Motion` sets exclusively when its own `matchMedia` (desktop
+ * width + no-preference) matches. Below that — including every
+ * `prefers-reduced-motion: reduce` visitor and everyone under 900px — this
+ * block never applies and every act stays in normal static flow, satisfying
+ * design-bar rule 3 with no JS at all.
+ *
+ * Acts are NOT `display:none`d even when enhanced: the boundary triggers sit
+ * in normal document flow (`~50vh` markers, not full-page pins — see
+ * useHomeV3Motion's own docs), so the reader is always scrolling a real,
+ * continuous document. What gates here is which act is *lit*: the act
+ * matching the scope root's `data-hv3-act` stays fully opaque and
+ * interactive, and the other three sit dimmed and inert until a boundary
+ * makes them current, matching the existing `SectionBeat` exit-dim idiom
+ * used everywhere else on the site rather than inventing a new one.
+ */
+/*
+ * ── Why the non-current acts are NOT dimmed ──────────────────────────────
+ * An earlier version of this file put every `[data-hv3-act-panel]` at
+ * `opacity: 0.35; pointer-events: none` and lit only the current act. That was
+ * wrong three times over, and all three are worth recording so it does not
+ * come back:
+ *
+ *  1. This is a continuous-scroll marketing page, not a slide deck. A reader
+ *     scrolling into an act reaches it BEFORE its boundary trigger fires, so
+ *     they would spend that time looking at readable copy rendered at 35%
+ *     with every link inside it inert. Content you can read but not click is
+ *     a usability failure, not a reveal.
+ *  2. The dim carried `transition: opacity 0.3s ease`, which means an
+ *     animation was frequently still running at the instant a boundary fired.
+ *     `startViewTransition()` snapshots the page, and the platform guidance is
+ *     explicit that elements with active animations must not be transitioned:
+ *     the snapshot freezes them and ghosts a stale frame over the scene. That
+ *     is exactly the failure the sibling AmssaiV2 codebase hit and backed out
+ *     of real View Transitions to avoid.
+ *  3. `opacity` is not `display: none`, so both the `-from` and `-to` halves
+ *     of every shared element stayed rendered, and a `view-transition-name`
+ *     may only be borne by ONE rendered element at a time. Two, and the
+ *     browser silently skips the whole transition with no error. All three act
+ *     morphs would simply not have happened.
+ *
+ * The visible change across a boundary comes from the shared-element morph
+ * plus the root-level recede/wipe in `viewTransitionsHomeV3.css`, and each act
+ * panel already paints its own ground (base -> deep -> field -> floor), so
+ * nothing was being carried by the dim in the first place. Acts stay fully
+ * legible and fully interactive at all times.
+ */
+
+/*
+ * ── Ask stage flip: a treatment change, never a visibility change ───────
+ * The closing headline, subhead and CTA are all rendered and visible AT ALL
+ * TIMES, in every motion mode. An earlier version hid the CTA stage until the
+ * finale's boundary trigger fired, which meant a reader who landed mid-page,
+ * scrolled past the trigger without it firing, or simply had motion off
+ * before the fix, saw the closing headline and subhead with no "Start a
+ * conversation" button anywhere — the page's one conversion action, gone,
+ * with nothing to indicate it existed. Hiding the single CTA on a marketing
+ * page behind a scroll trigger is unacceptable regardless of how reliably
+ * that trigger fires, so both stages now stay in normal document flow,
+ * unconditionally visible, stacked top to bottom (statement, then CTA) with
+ * no `display`/`visibility` branching left anywhere in this section.
+ *
+ * The `ask` shot still has something to morph between, because a trigger
+ * with nothing to show for it is pointless: on flip the subhead settles
+ * (dims and lifts slightly, never past legible), the CTA gains a small
+ * settle-into-place lift, and a gold rule sweeps in beneath it. All three are
+ * transform/opacity only. None of them changes any box's size, so the
+ * section's height never moves — the exact bug `useActTransition.ts`'s
+ * "already there" guard was written for (a height change moves the boundary
+ * marker the trigger is attached to, which re-fires it, forever) cannot come
+ * back through this path because nothing here changes layout, only paint.
+ */
+:root[data-hv3-motion="on"] .hv3-ask-rule {
+  transform-origin: left center;
+  transform: scaleX(0);
+  opacity: 0;
+  transition:
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+:root[data-hv3-motion="on"] .hv3[data-hv3-ask-stage="cta"] .hv3-ask-rule {
+  transform: scaleX(1);
+  opacity: 1;
+}
+:root[data-hv3-motion="on"] [data-hv3-ask-stage="statement"] {
+  transition: opacity 0.5s, transform 0.5s;
+}
+:root[data-hv3-motion="on"] .hv3[data-hv3-ask-stage="cta"] [data-hv3-ask-stage="statement"] {
+  /* Dimmed and lifted, never hidden: the statement settles as the CTA takes
+     over the emphasis, but it stays fully legible so nothing here relies on
+     a reader having noticed it before the flip. */
+  opacity: 0.78;
+  transform: translateY(-6px);
+}
+:root[data-hv3-motion="on"] [data-hv3-ask-stage="cta"] .hv3-link-primary {
+  transition: transform 0.5s;
+}
+:root[data-hv3-motion="on"] .hv3[data-hv3-ask-stage="cta"] [data-hv3-ask-stage="cta"] .hv3-link-primary {
+  transform: translateY(-3px);
+}
+/* The field gains presence on the flip: the scrim eases back a touch so more
+   of the image reads through behind the settled copy. Opacity only. */
+:root[data-hv3-motion="on"] .hv3-ask-scrim {
+  transition: opacity 0.6s;
+}
+:root[data-hv3-motion="on"] .hv3[data-hv3-ask-stage="cta"] .hv3-ask-scrim {
+  opacity: 0.85;
+}
+
+/*
+ * ── Focus-visible: 2px NOIR.gold, offset (a11y non-negotiable) ────────
+ * `[data-hv3-heading]` is excluded on purpose, not dropped by accident. Those
+ * headings carry `tabIndex={-1}` (see `useActTransition.ts`'s
+ * `focusIncomingHeading()`) so the act gate can move focus to them
+ * programmatically after a transition, announcing the new act to a screen
+ * reader. `tabindex="-1"` means they are never a real Tab stop, so nothing a
+ * keyboard user tabs through loses its ring here — this only silences the
+ * gold rectangle Chrome paints around "Define. Build. Operate." and every
+ * other act heading on every single scroll-triggered transition, which reads
+ * as a rendering bug, not a focus cue, because no key press ever produced it.
+ * Genuinely interactive elements (links, buttons, real tab stops) keep the
+ * ring below.
+ */
+.hv3 :is(a, button, [tabindex]):not([data-hv3-heading]):focus-visible {
+  outline: 2px solid var(--hv3-gold);
+  outline-offset: 2px;
+}
+
+/*
+ * The exclusion above is not, on its own, sufficient — worth recording since
+ * it looks like it should be. `src/shared/theme/components.ts`'s
+ * `MuiCssBaseline` styleOverrides installs a SITEWIDE `*:focus-visible` rule
+ * (outline + a box-shadow halo), which is a completely separate selector
+ * from anything in this file and matches `[data-hv3-heading]` regardless of
+ * what this file excludes. That file is shared, intentional (it is the only
+ * reason the rest of the site has a keyboard focus ring at all), and out of
+ * scope here, so the fix has to win in the cascade instead of removing that
+ * rule: `.hv3 [data-hv3-heading]:focus-visible` has specificity (0,3,0) —
+ * two attribute/class-level selectors plus the pseudo-class — against the
+ * baseline rule's (0,1,0), so it overrides on specificity alone regardless
+ * of which stylesheet loads second. Reset to nothing rather than to a
+ * different visible treatment: there is no keyboard-driven focus event this
+ * heading can ever receive (tabindex="-1"), so no ring reads as correct here,
+ * not merely as an accepted trade.
+ */
+.hv3 [data-hv3-heading]:focus-visible {
+  outline: none;
+  box-shadow: none;
+}
+
+/* ── Responsive: below 900px, and the desktop mobile-nav toggle ───────── */
+@media (max-width: 899px) {
+  .hv3 [data-hv3-act-panel] {
+    padding: 80px var(--hv3-gutter);
+  }
+  .hv3-masthead {
+    height: 72px;
+    gap: 16px;
+  }
+  .hv3-desktop-nav,
+  .hv3-nav-contact {
+    display: none;
+  }
+  .hv3-menu-button {
+    display: block;
+    margin-left: auto;
+    background: none;
+    border: 0;
+    color: var(--hv3-frost);
+    font-size: 12px;
+    padding: 12px 0;
+    min-height: 44px;
+  }
+  .hv3-mobile-nav {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    top: 72px;
+    left: 0;
+    right: 0;
+    padding: 24px var(--hv3-gutter);
+    background: var(--hv3-deep);
+    border-bottom: 1px solid var(--hv3-rule);
+  }
+  .hv3-mobile-nav a {
+    padding: 16px 0;
+    border-bottom: 1px solid var(--hv3-rule);
+    font-size: 18px;
+  }
+  .hv3-opening {
+    height: auto;
+    min-height: 760px;
+    padding-top: 72px;
+  }
+  .hv3-hero-copy {
+    padding: 96px var(--hv3-gutter) 96px;
+  }
+  .hv3-cap-row {
+    grid-template-columns: 32px 1fr;
+    gap: 16px;
+  }
+  .hv3-cap-row .hv3-diagram {
+    grid-column: 2;
+    margin-top: 16px;
+  }
+  .hv3-application {
+    height: auto;
+    min-height: 720px;
+    align-items: flex-start;
+    padding-top: 64px;
+  }
+  .hv3-company {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .hv3-company-film {
+    height: 400px;
+  }
+  .hv3-delivery-steps {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .hv3-delivery-line {
+    top: 24px;
+    bottom: 24px;
+    left: 24px;
+    width: 1px;
+    height: auto;
+    right: auto;
+  }
+  .hv3-ask-copy {
+    padding: 96px var(--hv3-gutter);
+  }
+}
+
+/* ── Reduced motion: final lit state, no exceptions ──────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .hv3 *,
+  .hv3 *::before,
+  .hv3 *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+  .hv3-application {
+    height: auto;
+    min-height: 700px;
+  }
+}

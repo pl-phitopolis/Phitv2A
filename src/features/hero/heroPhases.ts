@@ -262,3 +262,70 @@ export function skyPresence(p: number): number {
 export function cloudDrift(p: number): number {
   return Math.max(0, Math.min(1, p));
 }
+
+/* ── Lockup disappear/reappear ───────────────────────────────────────────
+   The P/Phitopolis lockup used to slide continuously from its bottom-left
+   rest position to dead-centre via inline `--upT`/`--rightT` calc() ramps.
+   Replaced with a disappear-at-rest / reappear-at-centre choreography: fade
+   + shrink out at bottom-left, hold hidden through a dead zone, fade + grow
+   in at centre. ENTER_END (0.56) matches where the old slide used to land,
+   so the pin's overall timing (dwell, gunshot) is unaffected. */
+
+/** Lockup fades+shrinks out at the bottom-left rest position across this window. */
+export const LOCKUP_EXIT_START = 0.20;
+export const LOCKUP_EXIT_END = 0.28;
+/** Lockup fades+grows in at dead-centre across this window. */
+export const LOCKUP_ENTER_START = 0.42;
+export const LOCKUP_ENTER_END = 0.56;
+/** Where the anchor hard-cuts from bottom-left to centre — inside the dead
+ *  zone (between EXIT_END and ENTER_START), where opacity is already 0, so
+ *  the cut itself is never visible. */
+export const LOCKUP_CUT_POINT = (LOCKUP_EXIT_END + LOCKUP_ENTER_START) / 2;
+
+const LOCKUP_EXIT_SCALE_END = 0.85;
+const LOCKUP_ENTER_SCALE_START = 0.9;
+
+/** 0..1 across the exit window, 1 after. 0 before it starts. */
+function lockupExitProgress(p: number): number {
+  if (p <= LOCKUP_EXIT_START) return 0;
+  if (p >= LOCKUP_EXIT_END) return 1;
+  return (p - LOCKUP_EXIT_START) / (LOCKUP_EXIT_END - LOCKUP_EXIT_START);
+}
+
+/** 0..1 across the enter window, 1 after. 0 before it starts. */
+function lockupEnterProgress(p: number): number {
+  if (p <= LOCKUP_ENTER_START) return 0;
+  if (p >= LOCKUP_ENTER_END) return 1;
+  return (p - LOCKUP_ENTER_START) / (LOCKUP_ENTER_END - LOCKUP_ENTER_START);
+}
+
+/** Lockup opacity: 1 at rest, ramps to 0 across the exit window, holds 0
+ *  through the dead zone, ramps back to 1 across the enter window. */
+export function lockupOpacity(p: number): number {
+  if (p <= LOCKUP_EXIT_START) return 1;
+  if (p <= LOCKUP_EXIT_END) return 1 - lockupExitProgress(p);
+  if (p <= LOCKUP_ENTER_START) return 0;
+  if (p <= LOCKUP_ENTER_END) return lockupEnterProgress(p);
+  return 1;
+}
+
+/** Lockup scale: 1 → 0.85 on exit, 0.9 → 1 on enter — deliberately
+ *  asymmetric so the reappear doesn't read as a mechanical reverse of the
+ *  exit. Only visible while lockupOpacity is non-zero. */
+export function lockupScale(p: number): number {
+  if (p <= LOCKUP_EXIT_START) return 1;
+  if (p <= LOCKUP_EXIT_END) {
+    return 1 - lockupExitProgress(p) * (1 - LOCKUP_EXIT_SCALE_END);
+  }
+  if (p <= LOCKUP_ENTER_START) return LOCKUP_EXIT_SCALE_END;
+  if (p <= LOCKUP_ENTER_END) {
+    return LOCKUP_ENTER_SCALE_START + lockupEnterProgress(p) * (1 - LOCKUP_ENTER_SCALE_START);
+  }
+  return 1;
+}
+
+/** Which anchor the lockup uses: 0 = bottom-left gutter, 1 = dead-centre.
+ *  A hard cut, not an interpolation — CSS reads it as a step, not a ramp. */
+export function lockupCentered(p: number): 0 | 1 {
+  return p >= LOCKUP_CUT_POINT ? 1 : 0;
+}
