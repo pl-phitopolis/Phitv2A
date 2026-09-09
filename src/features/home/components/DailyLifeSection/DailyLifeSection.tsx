@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Box from "@mui/material/Box";
 import { useTheme } from "@mui/material/styles";
 import useMediaQuery from "@mui/material/useMediaQuery";
@@ -13,6 +13,7 @@ import { useReducedMotion } from "@/shared/motion";
 import { SCROLL_SPEED } from "@/shared/motion/scrollSpeed";
 import { refreshPriorityFor } from "@/shared/motion/beatThresholds";
 import { sectionOrder } from "@/shared/sections";
+import { NOIR } from "@/shared/theme/palette";
 
 import { DAILY_LIFE_FILM, useDailyLifeVideo } from "./useDailyLifeVideo";
 import {
@@ -55,6 +56,36 @@ export function DailyLifeSection() {
   // `/about`, scrolled-to or not.
   const { videoRef, shouldLoad, manualPlaybackOnly } =
     useDailyLifeVideo(containerRef);
+
+  // Drives the custom play/pause affordance below — mirrors the video's own
+  // paused state rather than tracking clicks, so external pauses (tab
+  // backgrounded, scrolled out of view, `manualPlaybackOnly` never starting
+  // it) keep the button in sync.
+  const [isPaused, setIsPaused] = useState(true);
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+    setIsPaused(video.paused);
+    const onPlay = () => { setIsPaused(false); };
+    const onPause = () => { setIsPaused(true); };
+    video.addEventListener("play", onPlay);
+    video.addEventListener("pause", onPause);
+    return () => {
+      video.removeEventListener("play", onPlay);
+      video.removeEventListener("pause", onPause);
+    };
+  }, [videoRef, shouldLoad]);
+
+  const togglePlayback = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    if (video.paused) {
+      const playing = video.play() as Promise<void> | undefined;
+      if (playing && typeof playing.catch === "function") playing.catch(() => {});
+    } else {
+      video.pause();
+    }
+  };
 
   const theme = useTheme();
   const reduced = useReducedMotion();
@@ -165,19 +196,76 @@ export function DailyLifeSection() {
           autoPlay={!manualPlaybackOnly}
           muted
           loop
-          controls
           playsInline
+          onClick={togglePlayback}
           sx={{
             width: "100%",
             height: "100%",
             objectFit: "cover",
             display: "block",
+            cursor: "pointer",
           }}
         >
           {/* Children, not `src`: an absent <source> set means the element has
               nothing to fetch, so `preload` and `autoPlay` cannot race the
               observer. The poster still paints. */}
           {shouldLoad ? <source src={DAILY_LIFE_FILM.mp4} type="video/mp4" /> : null}
+        </Box>
+
+        {/* Minimal play/pause affordance, replacing the native browser
+            controls. This film is content (see useDailyLifeVideo.ts), so a
+            reduced-motion visitor still needs a way to start/stop it — this is
+            that access point, styled to match the site rather than the
+            browser's own chrome. Always mounted (not hover-only): the section
+            is full-bleed and pinned on desktop, so there is no reliable
+            "hover the card" affordance to gate visibility on. */}
+        <Box
+          component="button"
+          type="button"
+          onClick={togglePlayback}
+          aria-label={isPaused ? "Play video" : "Pause video"}
+          sx={{
+            position: "absolute",
+            left: 16,
+            bottom: 16,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            width: 40,
+            height: 40,
+            borderRadius: "50%",
+            border: `1px solid ${NOIR.white}55`,
+            bgcolor: `${NOIR.navyField}66`,
+            backdropFilter: "blur(6px)",
+            WebkitBackdropFilter: "blur(6px)",
+            color: NOIR.white,
+            cursor: "pointer",
+            transition: "background-color 0.2s ease, border-color 0.2s ease",
+            "&:hover": {
+              bgcolor: `${NOIR.navyField}99`,
+              borderColor: `${NOIR.white}99`,
+            },
+          }}
+        >
+          {isPaused ? (
+            // Play glyph: a simple right-pointing triangle, hand-drawn to
+            // match `ThreeBarMenuIcon`'s convention (CSS shapes, no icon lib).
+            <Box
+              sx={{
+                width: 0,
+                height: 0,
+                ml: "3px",
+                borderTop: "6px solid transparent",
+                borderBottom: "6px solid transparent",
+                borderLeft: `10px solid ${NOIR.white}`,
+              }}
+            />
+          ) : (
+            <Box sx={{ display: "flex", gap: "4px" }}>
+              <Box sx={{ width: "3px", height: "12px", bgcolor: NOIR.white }} />
+              <Box sx={{ width: "3px", height: "12px", bgcolor: NOIR.white }} />
+            </Box>
+          )}
         </Box>
       </Box>
     </Box>

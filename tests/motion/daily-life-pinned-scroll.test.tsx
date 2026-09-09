@@ -172,8 +172,13 @@ describe("film loading gate", () => {
     expect(fired).toBeGreaterThan(0);
 
     // Still loadable and playable by hand — WCAG 2.2.2 is about motion that
-    // starts on its own, not about withholding the media.
+    // starts on its own, not about withholding the media. Native `controls`
+    // was replaced by a custom play/pause button (see DailyLifeSection.tsx)
+    // to drop the browser's own video chrome; the access point is that
+    // button, not the element's own attribute.
     expect(videoOf(container).querySelectorAll("source")).toHaveLength(1);
-    expect(video.hasAttribute("controls")).toBe(true);
+    expect(video.hasAttribute("controls")).toBe(false);
+    const playButton = container.querySelector('button[aria-label="Play video"]');
+    expect(playButton).not.toBeNull();
   });
 });

@@ -6,7 +6,7 @@ import { SpecularIconButton as IconButton, SpecularFx } from "@/shared/component
 import Stack from "@mui/material/Stack";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
-import { SpecularButton as Button } from "@/shared/components/ui/specular";
+import Button from "@mui/material/Button";
 import CloseIcon from "@mui/icons-material/Close";
 import { useLocation, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
@@ -441,22 +441,22 @@ function AnimatedContactButton({
     navigateWithCurtain("/contact");
   };
 
-  const specularColor = (hovered || isActive) ? NOIR.gold : (onDark ? NOIR.white : NOIR.navyField);
-
   return (
     <Button
       variant="outlined"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); }}
       onClick={handleClick}
-      specular={{ lineColor: specularColor }}
       sx={{
-        borderRadius: "10px",
-        border: "none !important",
+        // Pill, not the plain chromeless text it used to be — a border-only
+        // (no fill) pill so it reads as a distinct control against the
+        // nav's own bgcolor/blur rather than adding a second layer of glass.
+        borderRadius: "999px",
+        ml: { md: 1.5 },
+        border: `1px solid ${onDark ? "rgba(255,255,255,0.28)" : "rgba(11,26,58,0.16)"} !important`,
         // Gold as a label colour only where it can be read. On the light
         // grounds it measures 1.49:1, so hover and active resolve to the navy
-        // ink instead; the specular rim still traces in gold, which is where the
-        // accent belongs on this control.
+        // ink instead.
         color: (hovered || isActive)
           ? `${onDark ? NOIR.gold : NOIR.navyField} !important`
           : (onDark ? "rgba(255,255,255,0.9)" : "text.secondary"),
@@ -468,13 +468,13 @@ function AnimatedContactButton({
         WebkitBackdropFilter: "none !important",
         // `MuiButton`'s "outlined" variant (components.ts) lifts 2px and adds a
         // glow box-shadow on hover/active - this button already overrides the
-        // fill/border/shadow above to stay chrome-less, but not `transform`, so
-        // it still floated on hover despite every other piece of that variant's
+        // fill/shadow above to stay chrome-less, but not `transform`, so it
+        // still floated on hover despite every other piece of that variant's
         // hover treatment being cancelled.
         transform: "none !important",
         transition: `all 0.3s ${EASE_OUT_EXPO_CSS}`,
         "&:hover": {
-          border: "none !important",
+          border: `1px solid ${onDark ? NOIR.gold : NOIR.navyField} !important`,
           bgcolor: "transparent !important",
           background: "none !important",
           backgroundImage: "none !important",
@@ -592,9 +592,6 @@ function AnimatedMenuButton({
         backdropFilter: "none !important",
         WebkitBackdropFilter: "none !important",
         cursor: "pointer",
-        // The specular rim is absolutely positioned against this box, same as it
-        // is inside SpecularButton.
-        position: "relative",
         // No `outline: none` here. This is a real <button> with an onClick, and it
         // renders in the app bar on every route. An `sx` rule is injected after
         // MuiCssBaseline's `*:focus-visible`, so suppressing the outline locally beat
@@ -614,7 +611,6 @@ function AnimatedMenuButton({
         },
       }}
     >
-      <SpecularFx lineColor={isPrimary ? NOIR.gold : (isImmersiveDark ? NOIR.white : NOIR.navyField)} baseOpacity={0} />
       <ThreeBarMenuIcon isHovered={isPrimary} color={iconColor} />
     </Box>
   );
@@ -1065,22 +1061,19 @@ const NAV_ISLAND_V2 = {
                 mx: "auto",
               }}
             >
-              {/* The island pill's own edge. Mounted here rather than a CSS
-                  `border` so it traces whatever `borderRadius` this box
-                  actually resolves to (SpecularFx reads `getComputedStyle`),
-                  the same rim treatment the Contact/menu buttons use just
-                  inside it — one border system for the whole cluster instead
-                  of two disagreeing at the seam. Static (no `autoAnimate`,
-                  no pointer-follow) - a full-width nav bar sweeping a
-                  highlight on every mouse move would be a bigger motion cue
-                  than this chrome should make. */}
-              {isAnyIsland && (
+              {/* The island pill's own edge, light mode only. Mounted here
+                  rather than a CSS `border` so it traces whatever
+                  `borderRadius` this box actually resolves to (SpecularFx
+                  reads `getComputedStyle`). Static (no pointer-follow) - a
+                  full-width nav bar sweeping a highlight on every mouse move
+                  would be a bigger motion cue than this chrome should make.
+                  Dropped entirely on the dark pill (`islandOnDark`) — its
+                  bgcolor/blur/shadow already read as a floating surface
+                  without an edge; the rim there just looked like an unwanted
+                  outline. */}
+              {isAnyIsland && !islandOnDark && (
                 <SpecularFx
                   baseColor={NOIR.white}
-                  // A full-strength white stroke reads as a crisp glass edge on
-                  // the light pill; on the dark pill it would glare, so it drops
-                  // to a soft rim-light instead.
-                  baseOpacity={islandOnDark ? 0.5 : 1}
                   intensity={0}
                   followMouse={false}
                   speed={0}
@@ -1260,17 +1253,22 @@ const NAV_ISLAND_V2 = {
                     fontFamily: (isStandardOrGlass || isAnyIsland || isMinimal) ? MONO : undefined,
                     letterSpacing: (isStandardOrGlass || isAnyIsland || isMinimal) ? "0.08em" : undefined,
                     textTransform: (isStandardOrGlass || isAnyIsland || isMinimal) ? "none" : undefined,
-                    // Was "2px 0px" - zero horizontal padding, so the specular
-                    // rim (traced against this button's own border box) sat
-                    // flush against the label glyphs with no breathing room.
-                    // A little horizontal room keeps the rim from reading as
-                    // "the border is touching the text".
-                    padding: (isStandardOrGlass || isAnyIsland || isMinimal) ? "2px 8px" : undefined,
+                    // Was "2px 0px" - zero horizontal padding, so the pill's
+                    // own border sat flush against the label glyphs with no
+                    // breathing room. A little horizontal room keeps the
+                    // border from reading as "the border is touching the
+                    // text".
+                    padding: (isStandardOrGlass || isAnyIsland || isMinimal) ? "2px 14px" : undefined,
                     minWidth: (isStandardOrGlass || isAnyIsland || isMinimal) ? "auto" : undefined,
                   }}
                 />
 
-                {/* Desktop 3-Bar Menu Button */}
+                {/* Desktop 3-Bar Menu Button — only when the nav links above
+                    are NOT already rendered inline (line ~1173's
+                    `isStandardOrGlass || isAnyIsland` gate). Showing this next
+                    to a fully visible Home/About/Services/Careers/Blog row was
+                    redundant chrome; modes without inline links still need it
+                    to reach the mega drawer. */}
                 <AnimatedMenuButton
                   active={megaNavOpen}
                   onClick={() => setMegaNavOpen(!megaNavOpen)}
@@ -1278,7 +1276,7 @@ const NAV_ISLAND_V2 = {
                   isImmersiveDark={onDark}
                   ariaLabel="Open navigation menu"
                   noBorder={isStandardOrGlass || isIsland || isMinimal}
-                  sx={{ display: { xs: "none", md: "inline-flex" }, height: (isStandardOrGlass || isAnyIsland || isMinimal) ? "24px" : "32px", width: (isStandardOrGlass || isAnyIsland || isMinimal) ? "32px" : "36px" }}
+                  sx={{ display: (isStandardOrGlass || isAnyIsland) ? "none" : { xs: "none", md: "inline-flex" }, height: (isStandardOrGlass || isAnyIsland || isMinimal) ? "24px" : "32px", width: (isStandardOrGlass || isAnyIsland || isMinimal) ? "32px" : "36px" }}
                 />
 
                 {/* Mobile 3-Bar Menu Button */}
