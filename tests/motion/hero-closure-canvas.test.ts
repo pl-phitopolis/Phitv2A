@@ -264,7 +264,7 @@ describe("Milestone M2: Closing Section Configuration & Pinned Scroll Choreograp
     expect(section.id).toBe("closing");
     expect(section.ownsPin).toBe(true);
     expect(section.noExitDim).toBe(true);
-    expect(section.ground).toBe("field");
+    expect(section.ground).toBe("base");
   });
 
   test("sectionOrder('closing') and refreshPriorityFor are valid and preserve top-to-bottom refresh hierarchy", () => {

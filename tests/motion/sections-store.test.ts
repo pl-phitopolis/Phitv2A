@@ -66,15 +66,9 @@ test("every section EyeFlow can land on resolves, including the rail-only one", 
   for (const section of HOME_SECTIONS) {
     expect(homeSection(section.id).id).toBe(section.id);
   }
-  // "closing" (ClosingShelf) DOES render as a section — it mounts its own
-  // SectionBeat (`id={section.id}`) and is home's final chapter (HORIZON)
-  // since `blog`, which it used to share a chapter with, relocated to /about
-  // (PRD-home-client-focus §US-2). It owns its own chapter's scroll target.
-  // The rail was rebalanced 8 chapters -> 6 (ORIGIN/THESIS/DISCIPLINES/PROOF/
-  // REACH/HORIZON): the four hero sub-phase chapters collapsed into ORIGIN (0)
-  // and mission+global-markets fold into THESIS (1), so HORIZON is now 5.
+  // `closing` is the final HomeFilmScene and owns the HORIZON target.
   expect(HOME_SECTIONS.map((s) => s.id)).toContain("closing");
-  expect(homeSection("closing").chapter).toBe(5);
+  expect(homeSection("closing").chapter).toBe(6);
   expect(chapterTarget(homeSection("closing").chapter)).toBe("closing");
 });
 
@@ -89,12 +83,9 @@ test("chapters are contiguous and non-decreasing down the page", () => {
   for (let i = 1; i < chapters.length; i += 1) {
     expect(chapters[i]!).toBeGreaterThanOrEqual(chapters[i - 1]!);
   }
-  // Six chapters now (0-5): ORIGIN (all hero sub-phases + hero), THESIS
-  // (hero-mission + global-markets), DISCIPLINES (hero-pillars), PROOF
-  // (services + use-cases + process), REACH (reach), HORIZON (closing). The
-  // rail was rebalanced down from eight so each label is a story beat a
-  // scrolling reader can actually navigate to, not a hero-animation sub-phase.
-  expect(new Set(chapters)).toEqual(new Set([0, 1, 2, 3, 4, 5]));
+  // Seven chapters: the proof film and applications each earn their own rail
+  // stop, while the hero sub-phases remain one ORIGIN stop.
+  expect(new Set(chapters)).toEqual(new Set([0, 1, 2, 3, 4, 5, 6]));
   // Every declared chapter is actually used by a section, so the rail never
   // renders a label you cannot scroll to.
   expect(new Set(CHAPTERS.map((c) => c.index))).toEqual(new Set(chapters));

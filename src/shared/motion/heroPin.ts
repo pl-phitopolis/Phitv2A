@@ -43,8 +43,8 @@ export const HERO_PIN_SCREENS = 4;
 
 /**
  * Total viewport-heights the hero occupies: the pinned range plus the hero's own
- * natural height, during which the overlay sheet slides up over the still-pinned
- * hero.
+ * natural height. The thesis follows after the pin spacer in ordinary document
+ * flow; there is no negative-margin overlap window.
  */
 export const HERO_TOTAL_SCREENS = HERO_PIN_SCREENS + 1;
 

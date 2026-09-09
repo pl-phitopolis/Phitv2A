@@ -19,14 +19,14 @@ export const ACT_LABELS: Record<Act, string> = {
   people: "PEOPLE",
 };
 
-/** Chapter index. Six chapters, all "services" now that the PEOPLE act
+/** Chapter index. Seven chapters, all "services" now that the PEOPLE act
  *  (daily-life, candidates, testimonials, blog) has relocated to /about —
  *  see PRD-home-client-focus §US-1/US-2. The `Act`/`ACT_LABELS` model is kept
  *  (it is shared with /about's own chapter registry below) but on home it
  *  now collapses to a single act, and EyeFlow.tsx renders a flat list of the
- *  six chapters with no act header — a one-act page needs no group label.
+ *  seven chapters with no act header — a one-act page needs no group label.
  *  ABOUT_CHAPTERS below only uses 0–2, so the narrowing is safe for it. */
-export type ChapterIndex = 0 | 1 | 2 | 3 | 4 | 5;
+export type ChapterIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface ChapterDef {
   index: ChapterIndex;
@@ -36,31 +36,36 @@ export interface ChapterDef {
 
 /** Chapters in scroll order.
  *
- *  Six chapters, rebalanced down from eight (explicit user decision): the four
- *  hero-phase positions (FLATTEN, ALIGN, REVEAL, DWELL) collapsed into a
- *  single ORIGIN chapter covering the whole logo choreography plus the signal
- *  core, because splitting one uninterrupted animation across four rail rows
- *  gave the reader nothing to navigate between. The phase constants in
+ *  Seven chapters, widened from six ("Making tomorrow" homepage redesign):
+ *  the new `proof-film` cinematic scene (`HomeFilmScene scene="proof"`) earns
+ *  its own PROOF chapter, and `use-cases` — no longer sharing a chapter with
+ *  `process` — becomes its own APPLICATIONS chapter. The four hero-phase
+ *  positions (FLATTEN, ALIGN, REVEAL, DWELL) remain collapsed into a single
+ *  ORIGIN chapter covering the whole logo choreography plus the signal core,
+ *  because splitting one uninterrupted animation across four rail rows gave
+ *  the reader nothing to navigate between. The phase constants in
  *  `heroScene.ts` (PHASE_FLATTEN_END, DWELL_END and friends) keep the
  *  engineering names; the rail just no longer mirrors them.
  *
  *  Every label names what is on screen at that position — the rail is
  *  visitor-facing navigation, not a map of the internal beat list:
- *    ORIGIN      hero (logo choreography → signal core)
- *    THESIS      MissionStatement + the global-markets wager
- *    DISCIPLINES the operating pillars
- *    PROOF       capabilities, use-cases, process — everything showing the work
- *    REACH       the global footprint
- *    HORIZON     the closing gateway
- *  MissionStatement ("who we are") runs right after the hero (partial WS-02
- *  reversal), which is why THESIS sits second. */
+ *    ORIGIN       hero (logo choreography → signal core)
+ *    THESIS       HomeThesis (mission + the global-markets wager)
+ *    DISCIPLINES  HomeDisciplines (the operating pillars, unpinned)
+ *    PROOF        the proof-film cinematic scene (pinned)
+ *    APPLICATIONS the architectural use-cases + growth timeline
+ *    REACH        the global footprint
+ *    HORIZON      the closing gateway
+ *  The thesis begins immediately after the hero, which is why THESIS sits
+ *  second. */
 export const CHAPTERS: readonly ChapterDef[] = [
   { index: 0, label: "ORIGIN", act: "services" },
   { index: 1, label: "THESIS", act: "services" },
   { index: 2, label: "DISCIPLINES", act: "services" },
   { index: 3, label: "PROOF", act: "services" },
-  { index: 4, label: "REACH", act: "services" },
-  { index: 5, label: "HORIZON", act: "services" },
+  { index: 4, label: "APPLICATIONS", act: "services" },
+  { index: 5, label: "REACH", act: "services" },
+  { index: 6, label: "HORIZON", act: "services" },
 ];
 
 /** One home-page section: single source of truth for snap points, the left
@@ -151,14 +156,10 @@ export const STAGE_ATTR = "data-stage-section";
  *  `daily-life`, `candidates`, `testimonials`, `blog` relocated to
  *  `ABOUT_SECTIONS` below (PRD-home-client-focus §US-2) — the talent/culture
  *  narrative now lives on /about instead of closing out the home page. */
-// Partial reversal of the WS-02 re-order (explicit user decision): mission
-// core belongs near the top again. Order now: hero -> MissionStatement (who
-// we are, right after the hero) -> global-markets (the claim) ->
-// OperatingPillars -> UseCases -> Process (what we build, and how) -> Reach
-// (scale as proof) -> Closing. The section that used to restate
-// MissionStatement's job is still deleted outright — that part of WS-02
-// stands. See "## Handoff to WS-17" in
-// docs/workstreams/ws-02-home-architecture.md for the prior reported order.
+// Home's bright editorial flow: hero -> thesis -> disciplines -> proof film
+// -> applications -> growth -> reach -> closing film. `HOME_SECTIONS` remains
+// the ordered source for the rail and refresh priorities even though the route
+// no longer mounts the dynamic ground layer.
 export const HOME_SECTIONS: readonly SectionDef[] = [
   // ── SERVICES ──────────────────────────────────────────────────────────────
   { id: "hero-flatten", label: "Logo Flatten", chapter: 0, ground: "void" },
@@ -166,26 +167,45 @@ export const HOME_SECTIONS: readonly SectionDef[] = [
   { id: "hero-reveal", label: "Wordmark Reveal", chapter: 0, ground: "void" },
   { id: "hero-dwell", label: "Logo Dwell", chapter: 0, ground: "void" },
   { id: "hero", label: "Signal Core", chapter: 0, ground: "void" },
-  // Mission core, back up front: runs immediately after the hero again,
-  // ahead of the global-markets claim. It still lazy-mounts `ServiceGlobe`
-  // behind its own `useInView` gate (900px prefetch margin) — that gate is
-  // load-bearing regardless of where in the order the section sits, and
-  // firing earlier on scroll now is expected, not a regression — see
-  // MissionStatement.tsx.
+  // The thesis component renders both the mission and global-markets copy as
+  // two consecutive bright editorial sections.
   { id: "hero-mission", label: "Core Mission", chapter: 1, ground: "panel" },
-  // The lifted global-markets text blob (WS-02): its own full-viewport beat,
-  // now right after MissionStatement — the wager the rest of the page pays
-  // off. No establishing shot, no graphic; the words carry it.
+  // The second half of HomeThesis: the wager the following disciplines prove.
   { id: "global-markets", label: "The Global-Markets Wager", chapter: 1, ground: "deep" },
   {
+    // HomeDisciplines (making-tomorrow/HomeEditorial.tsx): an unpinned,
+    // vertical alternating photo/text composition (media pattern 02). No
+    // longer a pinned horizontal rail, so it drops `ownsPin`/`choreo`/
+    // `noExitDim`/`establishScale` entirely — `HomeDisciplines` bypasses
+    // `SectionBeat` and doesn't consume any of those. `ground` flips from
+    // `deep` to `panel` to match `.editorial-disciplines`'s actual paint
+    // (`--editorial-paper: #f8f9fb`, matching GROUNDS.panel's `#F8FAFC`
+    // closer than any other GroundName) — `GroundLayer` still reads this
+    // value independently to paint the scroll-driven background, so a stale
+    // `deep` here would paint a dark background behind the new light section.
     id: "hero-pillars",
     label: "Operating Pillars",
     chapter: 2,
-    choreo: "grow-left",
-    ground: "deep",
+    ground: "panel",
+  },
+  {
+    // HomeFilmScene (making-tomorrow/HomeFilmScene.tsx, scene="proof"): a
+    // pinned cinematic passage over the SERVICES_LOOP footage — the new
+    // proof-film beat between the disciplines and the applications. Its own
+    // ScrollTrigger pin lives in HomeFilmScene, not SectionBeat, hence
+    // `ownsPin`/`noExitDim` (nothing after it to dim toward while it's
+    // pinned) and no `establishScale` (it has no establishing shot). `ground`
+    // matches `.home-film`'s `--film-navy: #061226`, an exact match for
+    // GROUNDS.base (`NOIR.navyInk`, also `#061226`). Ordered ahead of
+    // `services`/`use-cases` in this array (not just by `chapter`) so
+    // `sectionOrder`/`refreshPriorityFor` matches the real page order the
+    // component renders in — this section comes right after the disciplines.
+    id: "proof-film",
+    label: "Proof Film",
+    chapter: 3,
+    ground: "base",
     ownsPin: true,
     noExitDim: true,
-    establishScale: "major",
   },
   { id: "services", label: "Capabilities", chapter: 3, ground: "void", establishScale: "mini" },
   {
@@ -196,46 +216,44 @@ export const HOME_SECTIONS: readonly SectionDef[] = [
     // copy to 25% right as the reader reaches the third use case.
     id: "use-cases",
     label: "Architectural Use-Cases",
-    chapter: 3,
+    chapter: 4,
     ground: "panel",
     noExitDim: true,
     establishScale: "mini",
   },
   {
-    // Pinned, scroll-scrubbed year-by-year growth reveal (ProcessScrubStage):
-    // 2019 → 2020-2025 → 2026 with PixelSwap dissolves + a widening frame, then
-    // release. `ownsPin` routes it to `.beat-bare-content`; `noExitDim` skips the
-    // scrubbed exit dim that would fade the pinned stage under the reader.
+    // HomeGrowth (making-tomorrow/HomeEditorial.tsx): an unpinned ordered-list
+    // 3-stop growth timeline (media pattern replaced the old pinned
+    // ProcessScrubStage). Drops `ownsPin`/`noExitDim`/`establishScale` for the
+    // same reason as `hero-pillars` above — `HomeGrowth` bypasses
+    // `SectionBeat`. `ground` flips from `deep` to `panel` to match
+    // `.editorial-growth`'s actual paint (`--editorial-paper: #f8f9fb`).
+    // Sits in the APPLICATIONS chapter alongside `use-cases` — growth reads
+    // as "more of what we build and how," not a rail-worthy identity of its
+    // own, and `CHAPTERS` stays at exactly 7 stops.
     id: "process",
     label: "Growing Into A Development Powerhouse",
-    chapter: 3,
-    ground: "deep",
-    ownsPin: true,
-    noExitDim: true,
-    establishScale: "mini",
+    chapter: 4,
+    ground: "panel",
   },
   {
     id: "reach",
     label: "Global Footprint",
-    chapter: 4,
+    chapter: 5,
     choreo: "spotlight-clip",
     ground: "white",
     establishScale: "mini",
     ariaLabel: "Global Footprint",
     act: "services",
   },
-  // Rendered as ClosingShelf's own SectionBeat (the page's final beat, no exit
-  // dim — see ClosingShelf.tsx).
+  // HomeFilmScene's final, pinned CTA film.
   {
     id: "closing",
     label: "Horizon Gateway",
-    chapter: 5,
-    choreo: "zoom-center",
-    ground: "field",
+    chapter: 6,
+    ground: "base",
     ownsPin: true,
     noExitDim: true,
-    establishScale: "mini",
-    establishAlign: "left",
   },
 ];
 

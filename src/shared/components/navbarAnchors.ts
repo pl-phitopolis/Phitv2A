@@ -58,12 +58,19 @@ export const NAV_ANCHORS = {
    *  anchor, so the navbar held whatever the last real anchor above it said for
    *  the entire scroll through it. */
   HOME_SERVICES: 'home-services',
-  /** Home page: the operating-pillars pinned horizontal beat. Went from the
-   *  light `void` ground to `deep` when the boxed photo cards were replaced by
-   *  a full-bleed swapping background — without this anchor the navbar keeps
-   *  the light chrome it inherited from above and reads unusably over the
-   *  photography. */
+  /** Home page: the operating-pillars beat (`HomeDisciplines`). Light ground
+   *  (`panel`) throughout — no longer the full-bleed dark photography rail it
+   *  once was ("Making tomorrow" homepage redesign unpinned it and dropped
+   *  the scrim), so this anchor now just confirms the navbar stays in its
+   *  light chrome rather than switching it dark. */
   HOME_PILLARS: 'home-pillars',
+  /** Home page: the proof-film cinematic scene (`HomeFilmScene scene="proof"`,
+   *  `data-ground="dark"`). Dark ground, sits between the (light) disciplines
+   *  and applications beats, so the navbar must go dark-chrome over it. Anchor
+   *  id is deliberately distinct from the `proof-film` *section* id (the
+   *  scene's own DOM id, used by SectionBeat/EyeFlow) — the two registries
+   *  must stay disjoint (see anchor-namespaces.test.ts). */
+  PROOF_FILM: 'proof-film-anchor',
   /** Home page: the use-cases horizontal-scroll narrative. Light ground. */
   HOME_USE_CASES: 'home-use-cases',
   /** Home page: global footprint / reach section. Light ground — sits directly

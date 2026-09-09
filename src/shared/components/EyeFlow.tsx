@@ -63,8 +63,8 @@ export function EyeFlow() {
   /**
    * Chapter/progress tracking — cached offsets, not per-frame layout.
    *
-   * The section anchors (`hero-mission`, `hero-pillars`, `use-cases`,
-   * `reach`, `closing`) only need their
+   * The section anchors (`hero-mission`, `hero-pillars`, `proof-film`,
+   * `use-cases`, `reach`, `closing`) only need their
    * *document-relative* Y offset. `window.scrollY + rect.top` is
    * scroll-position-invariant — the two terms cancel — so that number only
    * changes when the layout above the anchor changes: a resize, a pin's
@@ -81,10 +81,11 @@ export function EyeFlow() {
    * `resize`. The per-frame `updateProgress` reads only `window.scrollY` (no
    * layout) and does arithmetic against the cached `offsets`.
    *
-   * Chapter 0 (ORIGIN) starts at y=0; the other five chapter starts are the
-   * document offsets of `hero-mission`, `hero-pillars`, `use-cases`, `reach`
-   * and `closing` — the first section declared in each chapter — with a
-   * viewport-height fallback chain if an anchor has not mounted yet.
+   * Chapter 0 (ORIGIN) starts at y=0; the other six chapter starts are the
+   * document offsets of `hero-mission`, `hero-pillars`, `proof-film`,
+   * `use-cases`, `reach` and `closing` — the first section declared in each
+   * chapter — with a viewport-height fallback chain if an anchor has not
+   * mounted yet.
    *
    * `daily-life`/`candidates`/`blog` anchors were removed here when those
    * sections relocated to /about (PRD-home-client-focus §US-2) — `closing`
@@ -92,7 +93,7 @@ export function EyeFlow() {
    */
   useEffect(() => {
     let limit = 0;
-    let offsets: number[] = new Array(7).fill(0);
+    let offsets: number[] = new Array(8).fill(0);
 
     const measure = () => {
       const winH = window.innerHeight;
@@ -101,6 +102,7 @@ export function EyeFlow() {
 
       const missionEl = document.getElementById("hero-mission");
       const pillarsEl = document.getElementById("hero-pillars");
+      const proofFilmEl = document.getElementById("proof-film");
       const useCasesEl = document.getElementById("use-cases");
       const reachEl = document.getElementById("reach");
       const closingEl = document.getElementById("closing");
@@ -108,7 +110,8 @@ export function EyeFlow() {
       const heroHeight = heroTotalHeight(winH);
       const y_mission = missionEl ? window.scrollY + missionEl.getBoundingClientRect().top : 0.60 * heroHeight;
       const y_pillars = pillarsEl ? window.scrollY + pillarsEl.getBoundingClientRect().top : y_mission + winH;
-      const y_useCases = useCasesEl ? window.scrollY + useCasesEl.getBoundingClientRect().top : y_pillars + winH;
+      const y_proofFilm = proofFilmEl ? window.scrollY + proofFilmEl.getBoundingClientRect().top : y_pillars + winH;
+      const y_useCases = useCasesEl ? window.scrollY + useCasesEl.getBoundingClientRect().top : y_proofFilm + winH;
       const y_reach = reachEl ? window.scrollY + reachEl.getBoundingClientRect().top : y_useCases + winH;
       const y_closing = closingEl ? window.scrollY + closingEl.getBoundingClientRect().top : y_reach + winH;
 
@@ -116,9 +119,10 @@ export function EyeFlow() {
         0,             // Ch 0: ORIGIN
         y_mission,     // Ch 1: THESIS
         y_pillars,     // Ch 2: DISCIPLINES
-        y_useCases,    // Ch 3: PROOF
-        y_reach,       // Ch 4: REACH
-        y_closing,     // Ch 5: HORIZON
+        y_proofFilm,   // Ch 3: PROOF
+        y_useCases,    // Ch 4: APPLICATIONS
+        y_reach,       // Ch 5: REACH
+        y_closing,     // Ch 6: HORIZON
         limit,         // End
       ];
     };
@@ -144,7 +148,7 @@ export function EyeFlow() {
         localP = (y - yStart) / range;
       }
 
-      const totalChapters = 6;
+      const totalChapters = 7;
       const segmentProgress = (intervalIdx + localP) / totalChapters;
       normalizedProgress.set(Math.max(0, Math.min(segmentProgress, 1)));
       setActiveChapter(intervalIdx as ChapterIndex);
@@ -153,13 +157,23 @@ export function EyeFlow() {
     measure();
     updateProgress();
 
-    // Reduced motion: one static readout at the current scroll position, then
-    // no loop and no listeners — mirrors `GroundLayer.tsx`'s degradation
-    // ladder ("rung 1: prefers-reduced-motion → static, no loop at all").
-    // The continuous per-frame tracking is treated as motion work to drop,
-    // not just the visual smoothing on top of it.
+    // Reduced motion keeps the navigation truthful without the GSAP ticker.
+    // A passive native scroll listener is enough to update the readout and
+    // avoids turning reduced motion into a frozen table of contents.
     if (reduced === true) {
-      return;
+      const handleReducedScroll = () => updateProgress();
+      const handleRefresh = () => {
+        measure();
+        updateProgress();
+      };
+      window.addEventListener("scroll", handleReducedScroll, { passive: true });
+      window.addEventListener("resize", handleRefresh);
+      ScrollTrigger.addEventListener("refresh", handleRefresh);
+      return () => {
+        window.removeEventListener("scroll", handleReducedScroll);
+        window.removeEventListener("resize", handleRefresh);
+        ScrollTrigger.removeEventListener("refresh", handleRefresh);
+      };
     }
 
     let resizeTimer = 0;
@@ -194,29 +208,29 @@ export function EyeFlow() {
 
   const scrollToChapter = (index: ChapterIndex) => {
     // Chapter 0 (ORIGIN) is the top of the page — the hero choreography has no
-    // anchor of its own. Chapters 1–5 each target the id of the first section
+    // anchor of its own. Chapters 1–6 each target the id of the first section
     // declared in them.
-    const targets = ["", "hero-mission", "hero-pillars", "use-cases", "reach", "closing"];
+    const targets = ["", "hero-mission", "hero-pillars", "proof-film", "use-cases", "reach", "closing"];
 
     const lenis = getLenis();
 
     if (index === 0) {
-      if (lenis) {
+      if (!reduced && lenis) {
         lenis.scrollTo(0, { duration: SCROLL_SPEED, easing: scrollEase });
         return;
       }
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: reduced ? "auto" : "smooth" });
       return;
     }
 
     const id = targets[index];
     if (!id) return;
 
-    if (lenis) {
+    if (!reduced && lenis) {
       lenis.scrollTo(`#${id}`, { duration: SCROLL_SPEED, easing: scrollEase });
       return;
     }
-    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+    document.getElementById(id)?.scrollIntoView({ behavior: reduced ? "auto" : "smooth" });
   };
 
   return (
@@ -236,6 +250,9 @@ export function EyeFlow() {
         opacity: heroStep >= 4 ? 1 : 0,
         transform: heroStep >= 4 ? "translateY(-50%)" : "translateY(calc(-50% - 24px))",
         transition: `opacity 0.6s ${EASE_OUT_EXPO_CSS}, transform 0.7s ${EASE_OUT_EXPO_CSS}`,
+        // At laptop widths the labels would sit over editorial copy. Keep the
+        // compact progress line there; reveal the text labels only once the
+        // page has enough right-side gutter for them.
         display: { xs: "none", lg: "flex" },
         alignItems: "center",
         gap: 2,
@@ -245,7 +262,7 @@ export function EyeFlow() {
     >
       <Box
         sx={{
-          display: "flex",
+          display: { xs: "none", xl: "flex" },
           flexDirection: "column",
           gap: 2,
           textAlign: "right",
@@ -255,10 +272,11 @@ export function EyeFlow() {
           pointerEvents: heroStep >= 4 ? "auto" : "none",
         }}
       >
-        {/* Flat list — six chapters, one act. The act header is gone: a
+        {/* Flat list — seven chapters, one act. The act header is gone: a
             one-act page's group label only restated "SERVICES" above the one
-            group it had. Six rows are few enough to show all at once, so the
-            old AnimatePresence collapse of the inactive group is gone too. */}
+            group it had. Seven rows are few enough to show all at once, so
+            the old AnimatePresence collapse of the inactive group is gone
+            too. */}
         {CHAPTERS.map(({ index, label }) => {
           const isActiveChapter = index === activeChapter;
           return (

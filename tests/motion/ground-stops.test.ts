@@ -147,18 +147,17 @@ test("home page stops are light except the sections declared dark", () => {
   }
 
   // `daily-life` and `blog` dropped out of this list when they relocated to
-  // /about (PRD-home-client-focus §US-2); `closing` (ground "field", same
-  // dark ground `blog` used to declare) is the one that stayed on home.
-  // WS-02 added `global-markets` (ground "deep") right after the hero — the
-  // lifted text blob's own full-viewport statement beat.
+  // /about (PRD-home-client-focus §US-2). WS-02 added `global-markets`
+  // (ground "deep") right after the hero — the lifted text blob's own
+  // full-viewport statement beat.
   const dark = GROUND_STOPS.filter((s) => GROUNDS[s.ground].dark);
-  // `hero-pillars` joined this list when the boxed photo cards were replaced by
-  // a full-bleed background that swaps per pillar — the whole pinned viewport is
-  // photography under a navy scrim now, so the ground moved `void` -> `deep`.
+  // The "Making tomorrow" redesign unpinned `hero-pillars`/`process` back to
+  // light grounds and added `proof-film` (ground "base") as the new dark
+  // pinned cinematic passage; `closing` (also ground "base" now, matching
+  // `proof-film`'s navy) is the only other dark stop that stayed on home.
   expect(dark.map((s) => s.id), "the home page's declared dark grounds").toEqual([
     "global-markets",
-    "hero-pillars",
-    "process",
+    "proof-film",
     "closing",
   ]);
 });

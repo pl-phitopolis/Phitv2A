@@ -1,0 +1,88 @@
+.home-film {
+  --film-navy: #061226;
+  position: relative;
+  isolation: isolate;
+  min-height: 100svh;
+  overflow: clip;
+  display: grid;
+  place-items: center;
+  color: #f4f7fc;
+  background: var(--film-navy);
+}
+
+.home-film__poster,
+.home-film__video,
+.home-film__scrim,
+.home-film__shutters,
+.home-film__aperture {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.home-film__poster,
+.home-film__video { object-fit: cover; }
+.home-film__poster { z-index: -3; }
+.home-film__video { z-index: -2; opacity: 0; transition: opacity 180ms linear; }
+.home-film__video[data-ready="true"] { opacity: 1; }
+.home-film__scrim {
+  z-index: -1;
+  background: linear-gradient(90deg, rgba(6, 18, 38, 0.88), rgba(6, 18, 38, 0.46) 56%, rgba(6, 18, 38, 0.74));
+}
+
+.home-film__copy {
+  position: relative;
+  z-index: 2;
+  width: min(100% - 3rem, 56rem);
+  margin: 0 auto;
+  text-align: center;
+}
+.home-film__eyebrow {
+  margin: 0 0 1.2rem;
+  color: #ffc72c;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+}
+.home-film h2 {
+  margin: 0;
+  font-family: Outfit, -apple-system, "Helvetica Neue", Arial, sans-serif;
+  font-size: clamp(3rem, 7.2vw, 7.4rem);
+  font-weight: 650;
+  line-height: 0.96;
+  letter-spacing: -0.045em;
+  text-wrap: balance;
+}
+.home-film__support { max-width: 32rem; margin: 1.6rem auto 0; font: 500 1rem/1.6 Inter, sans-serif; color: rgba(244, 247, 252, 0.88); }
+.home-film__cta { display: inline-flex; margin-top: 2rem; padding: 0.85rem 1.2rem; border: 1px solid #ffc72c; color: #061226; background: #ffc72c; font: 650 0.95rem/1 Outfit, sans-serif; text-decoration: none; }
+.home-film__cta:focus-visible { outline: 2px solid #f4f7fc; outline-offset: 4px; }
+
+.home-film__shutters,
+.home-film__aperture { z-index: 1; pointer-events: none; }
+.home-film__shutter-panel { position: absolute; top: 0; bottom: 0; width: 50.5%; background: #061226; transform: scaleX(0); }
+.home-film__shutter-panel--left { left: 0; transform-origin: left center; }
+.home-film__shutter-panel--right { right: 0; transform-origin: right center; }
+.home-film__aperture { visibility: hidden; opacity: 0; }
+.home-film__aperture-panel { position: absolute; width: 50%; height: 50%; background: #0a2a66; transform: scale(1); }
+.home-film__aperture-panel--tl { left: 0; top: 0; transform-origin: top left; }
+.home-film__aperture-panel--tr { right: 0; top: 0; transform-origin: top right; }
+.home-film__aperture-panel--bl { bottom: 0; left: 0; transform-origin: bottom left; }
+.home-film__aperture-panel--br { right: 0; bottom: 0; transform-origin: bottom right; }
+.home-film__status { position: absolute; right: 1rem; bottom: 1rem; z-index: 2; font: 0.68rem ui-monospace, monospace; color: rgba(244, 247, 252, 0.72); }
+
+@media (max-width: 899px) {
+  .home-film { min-height: auto; padding: 7rem 0; }
+  .home-film__copy { width: min(100% - 2.25rem, 42rem); }
+  .home-film h2 { font-size: clamp(2.6rem, 13vw, 4.5rem); }
+  .home-film__scrim { background: rgba(6, 18, 38, 0.76); }
+  /* The same concise cut plays here, but against normal document scroll:
+     mobile never pins the reader in place. */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-film { min-height: auto; padding: 6rem 0; }
+  .home-film__video, .home-film__shutters, .home-film__aperture { display: none; }
+  .home-film__copy { transform: none !important; }
+}

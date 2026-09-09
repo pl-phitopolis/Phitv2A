@@ -3,11 +3,10 @@ import { describe, expect, it } from "vitest";
 import { resolveRouteManifest } from "@/shared/components/AppShell";
 
 describe("resolveRouteManifest — route-aware warm-up manifest", () => {
-  it("home only warms its first-paint architecture artwork", () => {
+  it("home warms its actual hero poster, without eagerly loading later films", () => {
     const m = resolveRouteManifest("/");
-    expect(m.blocking).toEqual(["/images/cinematic/architecture.webp"]);
+    expect(m.blocking).toEqual(["/videos/hero-loop-poster.jpg"]);
     expect(m.background).toEqual([]);
-    expect(m.warmGlobe).toBe(false);
   });
 
   it("home blocking tier stays tiny (preloaded in full, so it must be cheap)", () => {
@@ -21,14 +20,11 @@ describe("resolveRouteManifest — route-aware warm-up manifest", () => {
     expect(m.blocking).not.toContain("/images/about-hero-bg.webp");
     expect(m.blocking.length).toBeGreaterThanOrEqual(2);
     expect(m.background).toContain("/videos/about-hero-loop.webm");
-    // The three.js globe is a home-only scene.
-    expect(m.warmGlobe).toBe(false);
   });
 
   it("does not warm home hero imagery when /blog is the landing route", () => {
     const m = resolveRouteManifest("/blog");
     expect(m.blocking).toEqual([]);
-    expect(m.warmGlobe).toBe(false);
     expect([...m.blocking, ...m.background]).not.toContain("/phitopolis_logo_hero.svg");
   });
 

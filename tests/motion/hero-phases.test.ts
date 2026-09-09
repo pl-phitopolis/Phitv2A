@@ -42,6 +42,15 @@ import {
   lockupScale,
   lockupCentered,
 } from "@/features/hero/heroPhases";
+import { HERO_PIN_DISTANCE, HERO_PIN_SCREENS, HERO_TOTAL_SCREENS } from "@/shared/motion/heroPin";
+
+test("hero reserves four desktop pin viewports and releases into normal flow", () => {
+  expect(HERO_PIN_SCREENS).toBe(4);
+  expect(HERO_PIN_DISTANCE).toBe("+=400%");
+  // The fifth screen is the hero's natural height, not a negative-margin
+  // overlap with the thesis that follows it.
+  expect(HERO_TOTAL_SCREENS).toBe(5);
+});
 
 test("phase boundaries are the values the design was built around", () => {
   expect(PHASE_FLATTEN_END).toBe(0.20);

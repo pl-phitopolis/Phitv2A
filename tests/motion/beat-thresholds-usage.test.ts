@@ -18,11 +18,7 @@ const SRC = path.resolve(__dirname, "../../src");
 // this list as more sections migrate to SectionBeat.
 const REVEAL_FILES = [
   "shared/components/stage/SectionBeat.tsx",
-  "features/hero/description/MissionStatement.tsx",
-  "features/hero/description/OperatingPillars.tsx",
   "features/services/components/CapabilityRack.tsx",
-  "features/home/components/ProcessSection.tsx",
-  "features/home/components/ReachSection.tsx",
   "features/home/components/CandidatesAndCareersSection.tsx",
   "features/home/components/TestimonialsSection.tsx",
   "features/home/components/BlogSection.tsx",

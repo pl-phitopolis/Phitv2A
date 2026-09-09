@@ -34,17 +34,13 @@ import { HERO_WALL_TILES } from "./heroWallTiles";
 import { CONTENT } from "@/shared/content";
 import { NOIR } from "@/shared/theme/palette";
 import { MONO, DISPLAY_FONT } from "@/shared/theme/theme";
-import { usePreloaderReady, useEntranceSettled, useHeroCascadeStep } from "@/shared/motion";
+import { usePreloaderReady, useEntranceSettled, useHeroCascadeStep, useReducedMotion } from "@/shared/motion";
 import { EASE_OUT_EXPO_CSS } from "@/shared/motion/easing";
 import { HERO_PIN_DISTANCE } from "@/shared/motion/heroPin";
 import { refreshPriorityFor } from "@/shared/motion/beatThresholds";
 
 gsap.registerPlugin(ScrollTrigger, CustomEase, SplitText, useGSAP);
 
-/** The hero holds for viewport height to give room for 3 logo phases,
- *  an empty dwell threshold, the gunshot transition, smoking drift, and AT PHITOPOLIS mini transformation. */
-/** Pin distance: 1800% for the hero animation + 100% extra overlap window
- *  where the overlay sheet slides up over the still-pinned hero. */
 /**
  * How tall the pin is — now imported from `shared/motion/heroPin.ts`.
  *
@@ -52,7 +48,8 @@ gsap.registerPlugin(ScrollTrigger, CustomEase, SplitText, useGSAP);
  * buffer. The phase boundaries in `heroPhases.ts` are all *fractions* of the pin's
  * 0..1 progress, so shortening the pin moves none of them and every assertion in
  * `tests/motion/hero-phases.test.ts` holds unchanged; only the amount of wheel
- * travel each fraction costs the reader changes. Eight is still generous.
+ * travel each fraction costs the reader changes. Four extra desktop viewports
+ * leaves enough time for the wall reveal without holding the reader in place.
  *
  * It lives in a shared module rather than here because `EyeFlow` and `AppShell`
  * both need the same number and both had drifted from it — see that file.
@@ -212,6 +209,7 @@ export function HeroSignalCore() {
   // seed effect below still paints the settled state, so a non-scrolling or
   // reduced-motion visitor is unaffected.
   const entranceSettled = useEntranceSettled();
+  const reduced = useReducedMotion();
 
   const [stage, setStage] = useState<HeroStage>(() => heroStage(0));
   const stageRef = useRef(stage);
@@ -234,9 +232,6 @@ export function HeroSignalCore() {
    * `gunshot` is false by construction.
    */
   const [wallMounted, setWallMounted] = useState(false);
-  // Guards the one-shot ScrollTrigger.refresh() below so it fires at most once
-  // per mount even though `onUpdate` runs on every scroll tick across the pin.
-  const wallMountRefreshedRef = useRef(false);
 
   /**
    * One-shot warm-up for the wall's chunk and its 25 images, fired at mount.
@@ -338,38 +333,28 @@ export function HeroSignalCore() {
   // Seed the custom properties before first paint so the hero renders its entrance
   // frame (progress 0) even if no scroll ever happens yet.
   //
-  // Always seeds the non-reduced branch now. The hero's entrance/drift choreography
-  // is a product decision to always play regardless of `prefers-reduced-motion` — a
-  // reduced-motion visitor used to be seeded straight into `heroVars`' hardcoded
-  // "settled, motionless" frame (and the pin below was never even built for them),
-  // which meant they never saw the entrance at all. Seeding `false` here matches
-  // what every visitor gets, reduced-motion or not.
+  // Reduced-motion visitors get the settled poster frame immediately. The full
+  // sequence remains progressive enhancement: the DOM is complete before any
+  // ScrollTrigger is created.
   useEffect(() => {
     const el = containerRef.current;
     if (!el) return;
-    writeHeroVars(el, heroVars(0, false));
+    writeHeroVars(el, heroVars(0, reduced === true));
     if (pinRef.current) {
-      writeHeroVars(pinRef.current, heroVars(0, false));
+      writeHeroVars(pinRef.current, heroVars(0, reduced === true));
     }
     const next = heroStage(0);
     stageRef.current = next;
     setStage(next);
-  }, []);
+  }, [reduced]);
 
   useGSAP(
     () => {
-      // Was also gated on `reduced` here — skipping the pin/timeline entirely
-      // for a reduced-motion visitor, who then never got the entrance/drift
-      // choreography at all (only the hardcoded "settled" frame from the seed
-      // effect above). The hero's entrance now always plays regardless of
-      // `prefers-reduced-motion`, so this builds the same scroll-driven pin for
-      // every visitor.
-      //
       // Do not build the pin/timeline until the intro has fully cleared. This
-      // effect re-runs when `entranceSettled` flips true (it is in the deps),
+      // effect re-runs when the intro or reduced-motion preference changes,
       // and `useGSAP` reverts the previous (empty) context first, so the pin is
-      // created exactly once, after "open".
-      if (!entranceSettled) return;
+      // created exactly once, after "open" on eligible desktop viewports.
+      if (!entranceSettled || reduced === true) return;
 
       const el = containerRef.current;
       if (!el) return;
@@ -377,7 +362,6 @@ export function HeroSignalCore() {
       CustomEase.create("gunshotSnap", "M0,0 C0.1,0.9 0.2,1 1,1");
       CustomEase.create("drift", "M0,0 C0.2,0 0.2,1 1,1");
 
-      const yQuick = gsap.quickTo(el, "y", { duration: 0.8, ease: "power3.out" });
       const proxy = { progress: 0 };
 
       let splitTop: SplitText | undefined;
@@ -410,16 +394,6 @@ export function HeroSignalCore() {
             setStage(next);
             if (next.gunshot) {
               setWallMounted(true);
-              // The wall's own layout (and the pin-spacer's measured height,
-              // via `invalidateOnRefresh`) settles only after this commits and
-              // paints. Belt-and-suspenders with the home page's ResizeObserver
-              // refresh (routes/index.tsx): fired once, post-paint, so triggers
-              // below the hero stop reading stale positions from before the
-              // wall existed.
-              if (!wallMountRefreshedRef.current) {
-                wallMountRefreshedRef.current = true;
-                requestAnimationFrame(() => ScrollTrigger.refresh());
-              }
             }
           }
         }
@@ -452,9 +426,8 @@ export function HeroSignalCore() {
        * discarded a whole Tween each time; `overwrite: "auto"` kept them from
        * stacking, but every tick still paid for construction. `quickTo`
        * builds the tween once and `resetTo`s its target on each call, which
-       * is exactly what it exists for (the same pattern `yQuick` above
-       * already uses for the drift's `y`). Same duration, same "drift" ease,
-       * same `onUpdate` bridge into `master` — the eased chase toward each
+       * is exactly what it exists for. Same duration, same "drift" ease, same
+       * `onUpdate` bridge into `master` — the eased chase toward each
        * new progress value looks identical, just without the per-tick
        * allocation.
        */
@@ -464,48 +437,48 @@ export function HeroSignalCore() {
         onUpdate: () => master.progress(proxy.progress / 1.1),
       });
 
-      ScrollTrigger.create({
-        trigger: pinRef.current,
-        start: "top top",
-        end: HERO_PIN_DISTANCE,
-        // SCRUB POLICY (beatThresholds.ts): legitimate here because this is a
-        // pin whose progress IS the timeline position, not an entrance/recede
-        // event. (Not `SCROLL_SPEED` — this pin's own tuned value predates
-        // that shared constant and has its own reasoning below.)
-        scrub: 0.6,
-        pin: true,
-        // Under Lenis smoothing, an 800%-tall pin with no `anticipatePin`
-        // produces a one-frame jump at pin-start — ScrollTrigger has to wait
-        // for the scroll position to actually reach the pin before it can
-        // measure and apply it, and Lenis's smoothing makes that arrival
-        // visible as a snap. `invalidateOnRefresh` recomputes start/end (and
-        // re-runs this tween's setup) on resize, since the drift math below
-        // reads `window.innerHeight` and a stale viewport height would drift
-        // out of sync with the actual one. Mirrors
-        // `DailyLifeSection.tsx`'s own pin config.
-        anticipatePin: 1,
-        invalidateOnRefresh: true,
-        // First thing on the page, so first to refresh. This pin's spacer sets
-        // the document offset every trigger below it measures against, and
-        // ScrollTrigger refreshes the HIGHEST `refreshPriority` first (see
-        // beatThresholds.ts) — `order: 0` is therefore the top of the scale,
-        // ahead of every downstream beat and every un-migrated trigger.
-        // Affects refresh ordering only — no phase constant, easing, ANIM_LIMIT
-        // or HERO_PIN_DISTANCE value is touched, and the ladder probe confirms
-        // the hero's resolved geometry is byte-identical at 375/768/1440.
-        refreshPriority: refreshPriorityFor(0),
-        onUpdate: (self) => {
-          const p = Math.min(1.1, self.progress / ANIM_LIMIT);
-          progressQuick(p);
+      const media = gsap.matchMedia();
+      // Small screens keep the gunshot and wall reveal, but let the reader move
+      // directly into the page. A short one-shot timeline is enough to retain the
+      // signature transition without turning a phone scroll into a pinned sequence.
+      media.add("(max-width: 899px)", () => {
+        const mobileTrigger = ScrollTrigger.create({
+          trigger: pinRef.current,
+          start: "top 70%",
+          once: true,
+          onEnter: () => master.play(),
+        });
+        return () => mobileTrigger.kill();
+      });
 
-          if (self.progress > ANIM_LIMIT) {
-            const overlapT = (self.progress - ANIM_LIMIT) / (1 - ANIM_LIMIT);
-            const driftVal = overlapT * -30 * (window.innerHeight / 100);
-            yQuick(driftVal);
-          } else {
-            yQuick(0);
-          }
-        },
+      media.add("(min-width: 900px)", () => {
+        const desktopPin = ScrollTrigger.create({
+          trigger: pinRef.current,
+          start: "top top",
+          end: HERO_PIN_DISTANCE,
+          // SCRUB POLICY (beatThresholds.ts): legitimate here because this is a
+          // pin whose progress IS the timeline position, not an entrance/recede
+          // event. (Not `SCROLL_SPEED` — this pin's own tuned value predates
+          // that shared constant and has its own reasoning below.)
+          scrub: 0.6,
+          pin: true,
+          // Under Lenis smoothing, an 800%-tall pin with no `anticipatePin`
+          // produces a one-frame jump at pin-start — ScrollTrigger has to wait
+          // for the scroll position to actually reach the pin before it can
+          // measure and apply it, and Lenis's smoothing makes that arrival
+          // visible as a snap. `invalidateOnRefresh` recomputes start/end on
+          // resize, since the pin distance is viewport-relative.
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
+          // First thing on the page, so first to refresh. This pin's spacer sets
+          // the document offset every trigger below it measures against.
+          refreshPriority: refreshPriorityFor(0),
+          onUpdate: (self) => {
+            const p = Math.min(1.1, self.progress / ANIM_LIMIT);
+            progressQuick(p);
+          },
+        });
+        return () => desktopPin.kill();
       });
 
       // The pin is created after the intro's rectangular reveal has already
@@ -514,8 +487,9 @@ export function HeroSignalCore() {
       // (and, via refreshPriority 0, everything downstream) against the real
       // settled layout.
       requestAnimationFrame(() => ScrollTrigger.refresh());
+      return () => media.revert();
     },
-    { scope: pinRef, dependencies: [entranceSettled] }
+    { scope: pinRef, dependencies: [entranceSettled, reduced], revertOnUpdate: true }
   );
 
   // Every continuous value now lives in a CSS custom property written by the driver
@@ -543,15 +517,9 @@ export function HeroSignalCore() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          // The centre stop was an opaque `#FFFFFF`, which made the hero its own
-          // ground and produced the hard cut into the mission section below it.
-          // GroundLayer owns the hero's ground (`base`) now, so this is only the
-          // vignette — transparent in the middle, darkening toward the edges — and
-          // the ground can interpolate into `deep` below instead of switching.
-          //
-          // The tint inverted with the palette: it used to be navy-at-low-alpha
-          // darkening a white page, and is now black darkening a dark one.
-          // Standard plain black radial vignette: transparent 60% -> rgba(0,0,0,0.40) at 100%
+          // The card provides its own bright surface and edge vignette. The
+          // following thesis is an ordinary bright section, so no scroll-driven
+          // page background is needed to blend the handoff.
           pt: 0,
           pb: 0,
           px: 0,
@@ -714,8 +682,8 @@ export function HeroSignalCore() {
             what shows if the video poster 404s or is still decoding, and what
             the card interior returns to as `--hp-sky` fades toward
             `skyPresence(CONTAINER_START) === 0` (pinned in
-            tests/motion/hero-phases.test.ts) — byte-identical to the
-            NOIR.void GroundLayer already paints behind the card by then.
+            tests/motion/hero-phases.test.ts): the card's own `NOIR.void`
+            surface.
           */}
           <Box
             aria-hidden
@@ -904,7 +872,53 @@ export function HeroSignalCore() {
           >
             {CONTENT.hero.tagline}
           </Typography>
+          <Typography
+            component="p"
+            className="hero-climax-line"
+            sx={{
+              mt: 1.5,
+              mb: 0,
+              maxWidth: "28ch",
+              fontFamily: MONO,
+              fontSize: { xs: "0.86rem", sm: "0.96rem", md: "1.05rem" },
+              fontWeight: 700,
+              lineHeight: 1.45,
+              letterSpacing: "0.08em",
+              color: NOIR.navyField,
+            }}
+          >
+            Tomorrow is already in the making.
+          </Typography>
         </Box>
+
+        {/* The same proposition returns with the gunshot wall. The ordinary
+            motto copy above remains the accessible statement, including on
+            mobile and reduced motion; this is the cinematic, visual echo. */}
+        {stage.gunshot ? (
+          <Typography
+            aria-hidden
+            sx={{
+              position: "absolute",
+              left: "50%",
+              bottom: { xs: 112, md: 84 },
+              zIndex: 6,
+              transform: "translateX(-50%)",
+              width: "min(calc(100% - 48px), 42rem)",
+              color: NOIR.frost,
+              fontFamily: DISPLAY_FONT,
+              fontSize: { xs: "1.15rem", sm: "1.5rem", md: "2rem" },
+              fontWeight: 750,
+              letterSpacing: "-0.02em",
+              lineHeight: 1.05,
+              textAlign: "center",
+              textShadow: "0 3px 18px rgba(6, 24, 59, 0.8)",
+              opacity: "var(--hp-g, 0)",
+              pointerEvents: "none",
+            }}
+          >
+            Tomorrow is already in the making.
+          </Typography>
+        ) : null}
 
         {/* Bottom Left Navigation Launcher: Clumped links. Hidden while the
             gallery is on — the mode badge takes the top-right corner instead. */}

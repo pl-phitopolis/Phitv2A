@@ -34,7 +34,6 @@ import PhitopolisLogo from "./PhitopolisLogo";
 
 import { NOIR } from "@/shared/theme/palette";
 import { EASE_OUT_EXPO_CSS, EASE_OUT_EXPO } from "@/shared/motion/easing";
-import { heroTotalHeight } from "@/shared/motion/heroPin";
 import { useNavAutohide } from "./useNavAutohide";
 
 // Held in an untyped variable (not inlined) so the extra `data-lenis-prevent`
@@ -112,8 +111,7 @@ const WARM_ROUTES = [
  *    Fonts (added in `Preloader`) + the landing route's above-fold-critical
  *    assets.
  *  - **background** (`blocking: false`): keeps warming without holding the
- *    overlay — `WARM_ROUTES` precompiles, the three.js/ServiceGlobe chunk, and
- *    lower/other-route imagery.
+ *    overlay — `WARM_ROUTES` precompiles and lower/other-route imagery.
  *
  * Every path below was checked against the filesystem (`public/…`) and against
  * what the component actually renders. Deliberately absent:
@@ -127,8 +125,8 @@ const WARM_ROUTES = [
  *    own components.
  */
 
-/** Cinematic home: one first-paint artwork; remaining artwork is visibility-loaded. */
-const HOME_BLOCKING: readonly string[] = ['/images/cinematic/architecture.webp'];
+/** Only the current hero poster gates first paint; later films load near their scenes. */
+const HOME_BLOCKING: readonly string[] = ["/videos/hero-loop-poster.jpg"];
 const HOME_BACKGROUND_IMAGES: readonly string[] = [];
 
 /** About hero, above the fold: the skyline background loop's poster
@@ -171,9 +169,6 @@ export interface RouteManifest {
   blocking: readonly string[];
   /** Assets warmed in the background; never hold the overlay. */
   background: readonly string[];
-  /** Warm the three.js / `ServiceGlobe` chunk into the module cache (home
-   *  only — the scene still renders lazily behind its own `useInView`). */
-  warmGlobe: boolean;
 }
 
 /** The per-landing-route asset split. Routes with no bespoke manifest
@@ -186,22 +181,21 @@ export function resolveRouteManifest(rawPathname: string): RouteManifest {
     return {
       blocking: HOME_BLOCKING,
       background: HOME_BACKGROUND_IMAGES,
-      warmGlobe: false,
     };
   }
   if (pathname === "/about") {
-    return { blocking: ABOUT_BLOCKING, background: ABOUT_BACKGROUND_IMAGES, warmGlobe: false };
+    return { blocking: ABOUT_BLOCKING, background: ABOUT_BACKGROUND_IMAGES };
   }
   if (pathname === "/blog") {
-    return { blocking: [], background: BLOG_VIDEO_LOOP, warmGlobe: false };
+    return { blocking: [], background: BLOG_VIDEO_LOOP };
   }
   if (pathname === "/careers") {
-    return { blocking: [], background: CAREERS_VIDEO_LOOP, warmGlobe: false };
+    return { blocking: [], background: CAREERS_VIDEO_LOOP };
   }
   if (pathname === "/services") {
-    return { blocking: [], background: SERVICES_VIDEO_LOOP, warmGlobe: false };
+    return { blocking: [], background: SERVICES_VIDEO_LOOP };
   }
-  return { blocking: [], background: [], warmGlobe: false };
+  return { blocking: [], background: [] };
 }
 
 function labelForAsset(url: string): string {
@@ -328,23 +322,7 @@ function useWarmupSignals(pathname: string): LoadSignal[] {
       promise: preloadAsset(url),
     }));
 
-    // Warm the three.js/ServiceGlobe chunk into the module cache on `/` only.
-    // Kept a dynamic import() expression so the bundler still code-splits it —
-    // no static import at module scope. The scene still renders lazily behind
-    // its own useInView gate in MissionStatement.
-    const chunkSignals: DeferredLoadSignal[] = manifest.warmGlobe
-      ? [
-          {
-            label: "GLOBE",
-            blocking: false,
-            promise: import("@/features/hero/description/ServiceGlobe")
-              .then(() => undefined)
-              .catch(() => undefined),
-          },
-        ]
-      : [];
-
-    return [...blockingAssetSignals, ...backgroundAssetSignals, ...chunkSignals, ...routeSignals];
+    return [...blockingAssetSignals, ...backgroundAssetSignals, ...routeSignals];
   });
 
   useEffect(() => {
@@ -813,23 +791,21 @@ const NAV_ISLAND_V2 = {
   useEffect(() => {
     const handleScroll = () => {
       if (pathname === '/') {
-        // The navbar stays `minimal` for exactly as long as the pinned hero owns
-        // the viewport, and not one screen longer.
-        //
-        // This read `window.innerHeight * 19`, which was correct only while the
-        // hero pin was `+=1900%`. The pin was later shortened to `+=800%` and
-        // this literal was not updated, so the navbar stayed minimal for
-        // nineteen viewport heights of a ~26-screen page — the scrolled glass
-        // treatment was effectively unreachable. Derived from the pin itself
-        // now, so it cannot drift again. See shared/motion/heroPin.ts.
-        setIsAtTop(window.scrollY < heroTotalHeight(window.innerHeight));
+        // Follow the actual scene boundary: desktop owns pin spacing, while
+        // mobile and reduced motion use an ordinary, shorter hero.
+        const hero = document.getElementById("hero-sequence");
+        setIsAtTop(hero ? hero.getBoundingClientRect().bottom > window.innerHeight : window.scrollY < NAV_SOLID_AFTER_PX);
       } else {
         setIsAtTop(window.scrollY < NAV_SOLID_AFTER_PX);
       }
     };
     window.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("resize", handleScroll);
     handleScroll();
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("resize", handleScroll);
+    };
   }, [pathname]);
 
   const effectiveMode = (pathname === '/' && isAtTop) ? "minimal" : overrideMode;
@@ -855,7 +831,7 @@ const NAV_ISLAND_V2 = {
   const onDark = isNotch || isOverDarkSection;
   const islandOnDark = isAnyIsland && isOverDarkSection;
   const isImmersive = effectiveMode === "immersive";
-  const footerAnchorRef = useNavbarAnchor(NAV_ANCHORS.SITE_FOOTER, { dark: true });
+  const footerAnchorRef = useNavbarAnchor(NAV_ANCHORS.SITE_FOOTER, { dark: pathname !== "/" });
 
   return (
     <EntrancePhaseContext.Provider value={phase}>
@@ -1357,6 +1333,7 @@ const NAV_ISLAND_V2 = {
 
 
         <SiteFooter
+          light={pathname === "/"}
           footerAnchorRef={footerAnchorRef}
           currentNarration={currentNarration}
         />
