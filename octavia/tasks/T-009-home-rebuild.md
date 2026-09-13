@@ -8,11 +8,12 @@ tests/ (motion + home-route coverage for the new flow)
 Merged: <blank — nothing built yet>
 
 ## Current
-Stage: plan done (2026-09-13) — full handover written for an Astra orchestrator to
-delegate and drive the build. No application code touched yet. Supersedes T-007's
-home-page scope and all of T-008 (see below).
-Blocking: none. Next: Astra's build session, delegating per the N.5/N.6 breakdown in
-the handover doc.
+Stage: plan done (2026-09-13), then independently reviewed the same day against an
+Astra-drafted revision of this plan and corrected two real defects in the handover doc
+(see Log). No application code touched yet. Supersedes T-007's home-page scope and all
+of T-008 (see below).
+Blocking: none. Next: Astra revises its plan against the corrected handover doc, then
+runs the build, delegating per the N.5/N.6 breakdown.
 
 ## Plan                         [claude → albert]
 
@@ -105,6 +106,33 @@ Not started.
   standardize on) — answers recorded in Approach above. Wrote
   `docs/home-rebuild-2026-09/handover.md` (full spec) and this task file. Nothing
   committed; no application code touched.
+- 2026-09-13 claude/review: Albert brought back an Astra-drafted revision of this plan
+  for a second opinion. Verified two of its claims directly rather than taking them as
+  reported: "Outfit" typography is not a new departure (`theme.ts:13` already exports it
+  as `DISPLAY_FONT`, used sitewide); the "2019 / 2020-2025 / 2026" R&D milestones are not
+  invented (`content.ts:395-406,536` already carries them, plus "Founded in Manila in
+  2019"). Found and fixed two real defects surfaced by comparing Astra's plan against
+  this doc:
+  1. **`heroPhases.ts` was wrongly listed for straight deletion.** `grep -rln
+     "heroPhases" src/ tests/` showed `HeroCanvas.tsx` (closing scene, a file this doc
+     tells you to *keep*) imports directly from `./heroPhases`, and `closing-scene/
+     closingPhases.ts` imports `PHASE_MOVE_END` from it. Deleting the file outright
+     would have broken the closing scene. Corrected in the handover doc: extract the
+     constants those two files use, move `tests/motion/hero-phases.test.ts`'s relevant
+     coverage with them, delete only what's left.
+  2. **The unified view-transition cut primitive (§6/§10) had no constraint against
+     firing `document.startViewTransition()` near a ScrollTrigger scrub/pin.** Read
+     `octavia/tasks/T-003-home-v3.md` in full: its `## Proposed for shared files` has an
+     earned-but-never-promoted guardrail — doing so ghosts/freezes the moving frame; T-003
+     only worked because its boundaries were discrete/unpinned with Lenis explicitly
+     suspended during the snapshot (`useActTransition.ts`). §6/§10 sit next to the pinned
+     §4/§7 horizontal scroll and the pinned §11 video-scrub, so this needed to be an
+     explicit constraint, not an assumption. Also surfaced T-003's Handoff left an
+     unresolved taste question (the ~500-750ms scroll-hold/escape-hatch trade) that
+     Albert never actually ruled on — V3 was reverted for a separate creative-direction
+     reason — so it's re-flagged for him rather than inherited as a default. Both fixes
+     applied to `docs/home-rebuild-2026-09/handover.md`; not yet re-verified against a
+     revised Astra plan.
 
 ## Handoff
 Status: plan complete, handed off — next runner is an Astra orchestrator session (or

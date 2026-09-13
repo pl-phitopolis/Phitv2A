@@ -96,13 +96,23 @@ duration — if something doesn't fit either, that's a signal to reconsider the 
 not add a constant.
 
 **Removal manifest.** Delete (after 0.5 re-confirms each is unused):
-- `src/features/hero/SuperHeroSequence.tsx`, `heroPhases.ts`, `heroVars.ts`
+- `src/features/hero/SuperHeroSequence.tsx`, `heroVars.ts`
 - `HeroImageWall.tsx`, `DriftWall.tsx`, `heroWallTiles.ts`, `heroEntranceChoreo.ts`
 - `heroApproachConstants.ts`, `HeroApproachSequence.tsx`
 - `HeroReel.tsx` and any file touched only for T-008 (check `octavia/tasks/
   T-008-hero-powerhouse-layout.md`'s File scope header for the exact list)
 - The 5 components T-007 flagged orphaned: `RawStage`, `ClosingShelf`,
   `process`/`processPhases`, `PillarsEstablishingShot`, `ProcessEstablishingShot`
+
+**`heroPhases.ts` is NOT a straight delete** — correcting an error in an earlier version
+of this doc. It is imported by two files this doc tells you to *keep*: `HeroCanvas.tsx`
+(closing scene) imports directly from `./heroPhases`, and `src/features/home/components/
+closing-scene/closingPhases.ts` imports `PHASE_MOVE_END` from it. 0.5 must first identify
+every constant `HeroCanvas.tsx`/`closingPhases.ts` actually use from `heroPhases.ts`,
+relocate those (e.g. into `closingPhases.ts` or a new small shared module) with
+`tests/motion/hero-phases.test.ts`'s coverage moved/adapted alongside, and only then
+delete what's left of the file. Verify with `grep -rln "heroPhases" src/ tests/` that
+nothing still imports the deleted remainder before calling this step done.
 
 **Keep, do not touch:**
 - `HeroCanvas.tsx` + its scene/plane-renderer stack — used independently by the closing
@@ -178,6 +188,23 @@ supersedes both `viewTransitionsHomeV3.css` (Home-V3-era, already reverted/parke
 is scoped to **in-page** cuts only — the cross-route `fresko-home-aperture` (which fires
 when navigating *to* `/` from another route, via the native View Transitions API) is a
 separate, orthogonal concern and must not be touched or merged with this new primitive.
+
+**Hard constraint, earned by T-003 and never promoted to `GUARDRAILS.md` (so it's easy
+to miss — read `octavia/tasks/T-003-home-v3.md`'s `## Proposed for shared files` before
+building this):** never fire `document.startViewTransition()` while a ScrollTrigger
+scrub or pin is active — the snapshot freezes the moving frame and ghosts it. T-003 only
+got the real View Transitions API working by making its boundaries **discrete and
+unpinned**, and by explicitly suspending Lenis for the duration of the snapshot capture
+(`useActTransition.ts`'s pattern is the reference implementation to read before writing
+a new one). §6 and §10 sit adjacent to pinned/scrubbed sections on both sides (the §4/§7
+horizontal-scroll pillars/timeline, and §11's pinned video-scrub CTA) — place each cut's
+actual trigger point in a genuinely static gap between pins, not overlapping one, and
+suspend Lenis around the capture the same way T-003 did. If a scroll-hold gate is used
+to make the boundary discrete, note that T-003's Handoff left an **unresolved taste
+question** for Albert on exactly this: how long a hold (T-003 used ~500-750ms with a
+3-event escape hatch) is acceptable before it reads as the page fighting the reader. That
+question was never answered — T-003 was reverted for an unrelated creative-direction
+reason — so it needs Albert's eyes again here, not an inherited default.
 
 ## 7 — R&D timeline / "powerhouse"
 Same pinned-scrub mechanism as §4 (`JourneyTimeline.tsx`'s pattern), but with **entirely
