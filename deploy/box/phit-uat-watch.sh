@@ -33,8 +33,8 @@ remote_digest() { # <image-name> <tag>
     "https://ghcr.io/v2/${OWNER}/$1/manifests/$2" | awk 'tolower($1)=="docker-content-digest:"{print $2}' | tr -d '\r'
 }
 
-deploy_app() { # <app> <repo> <lead-image>
-  local app=$1 repo=$2 img=$3 dir="$ROOT/$1" digest rev
+deploy_app() { # <app> <git-remote> <lead-image>
+  local app=$1 remote=$2 img=$3 dir="$ROOT/$1" digest rev
   [ -z "$ONLY" ] || [ "$ONLY" = "$app" ] || return 0
   digest=$(remote_digest "$img" uat) || { log "$app: :uat not readable on GHCR (package missing or private) — skipping"; return 0; }
   [ -n "$digest" ] || { log "$app: empty digest — skipping"; return 0; }
@@ -50,8 +50,10 @@ deploy_app() { # <app> <repo> <lead-image>
   [ -n "$rev" ] || { log "$app: image has no revision label"; return 1; }
 
   # Mirror of the repo, pinned to the image's commit so compose + deploy script
-  # always match the image. Read-only https clone — no key on the box needed.
-  [ -d "$dir/src/.git" ] || git clone -q "https://github.com/$OWNER/$repo.git" "$dir/src" || { log "$app: clone failed"; return 1; }
+  # always match the image. Fetched over the per-repo deploy key (~/.ssh/config
+  # aliases github-fresko / github-heimdall) — works whether the repo is public
+  # or private. Only ever fetch/checkout here; never commit from this path.
+  [ -d "$dir/src/.git" ] || git clone -q "$remote" "$dir/src" || { log "$app: clone failed"; return 1; }
   git -C "$dir/src" fetch -q origin && git -C "$dir/src" checkout -q --force "$rev" \
     || { log "$app: cannot check out $rev"; return 1; }
 
@@ -65,6 +67,6 @@ deploy_app() { # <app> <repo> <lead-image>
 }
 
 rc=0
-deploy_app heimdall Phitv2B-2 heimdall-api || rc=1
-deploy_app fresko   Phitv2A   fresko       || rc=1
+deploy_app heimdall git@github-heimdall:yakovins-miletus/Phitv2B-2.git heimdall-api || rc=1
+deploy_app fresko   git@github-fresko:yakovins-miletus/Phitv2A.git    fresko       || rc=1
 exit $rc
