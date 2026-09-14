@@ -229,3 +229,14 @@ vendored, so ponytail activates via its skill trigger or `/ponytail`, and the
 intensity level does not persist across sessions. Full provenance:
 `.claude/skills/VENDORED.md` (same set is mirrored at the Armstrong root and in
 Heimdall).
+
+## UAT deployment (read before touching `deploy/`)
+
+> **Push to `main` deploys UAT automatically.** Never build on the UAT box.
+> Never hand-edit `/srv/phit-uat/fresko/src`. Stateful files live in
+> `/srv/phit-uat/fresko/` (`.env`, `ssl/`), outside any checkout. Use
+> `deploy/compose.sh` for all compose invocations. See `deploy/README-CD.md`
+> for details: automated GitHub Actions arm64 builds → GHCR, box-side systemd
+> timer polls image digest every 60 s, pulls on change, runs that commit's
+> `deploy/deploy-uat.sh`. Rollback: retag `:uat` image in GitHub Actions
+> workflow (see `deploy/README-CD.md` §Rollback).

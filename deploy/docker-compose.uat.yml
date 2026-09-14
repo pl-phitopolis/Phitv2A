@@ -7,7 +7,16 @@
 #     cd deploy
 #     ./make-cert.sh uat.phitopolis.io      # once
 #     cp .env.sample .env
-#     docker compose -f docker-compose.uat.yml up -d --build
+#     ./compose.sh up -d                    # pulls ghcr image; add --build to build locally
+#
+# Box-only state (.env, ssl/) lives OUTSIDE the checkout on UAT, at
+# $PHIT_STATE_DIR (=/srv/phit-uat/fresko). Every path below defaults to `.` so
+# a plain local checkout still works. Always go through ./compose.sh — it passes
+# --env-file so the port-mode vars in $PHIT_STATE_DIR/.env are interpolated.
+#
+# `image:` is the GHCR tag CI publishes (.github/workflows/deploy-uat.yml); the
+# `build:` block is kept only so `./compose.sh up -d --build` still works off-box.
+# UAT never builds — it is a 3.4 GB host and the Fresko build has OOM-killed it.
 #
 # Explicit `name:` — Compose would otherwise derive the project name from the
 # directory, which is `deploy` here, in Phitv2B-2, and in phitopolis-revamp.
@@ -26,7 +35,7 @@ services:
         # the UAT host — .env.production carries https://phitopolis.com, which is
         # right for production and wrong here.
         VITE_SITE_URL: "${VITE_SITE_URL:-https://uat.phitopolis.io}"
-    image: phit-uat-fresko:latest
+    image: ghcr.io/yakovins-miletus/fresko:${IMAGE_TAG:-uat}
     container_name: phit-uat-fresko
     environment:
       # ":8443" side-by-side with revamp, "" when Fresko owns 443. Substituted
@@ -43,7 +52,7 @@ services:
       - "${FRESKO_HTTP_PORT:-8080}:8080"
       - "${FRESKO_HTTPS_PORT:-8443}:8443"
     volumes:
-      - ./ssl:/etc/nginx/ssl:ro
+      - ${PHIT_STATE_DIR:-.}/ssl:/etc/nginx/ssl:ro
       # Long syntax, because this one needs an explicit mode. A tmpfs mounts
       # root-owned by default and nginx-unprivileged runs as uid 101, so the
       # entrypoint's envsubst step fails with "conf.d is not writable" and the

@@ -2,9 +2,14 @@ name: CI
 
 on:
   push:
-    branches: [main, uat-staging]
+    branches: [main]
   pull_request:
     branches: [main]
+  # Lets deploy-uat.yml gate its build/deploy on this same verify job instead
+  # of duplicating it. When called that way, github.workflow below resolves to
+  # the CALLER's name ("Deploy UAT"), not "CI" — harmless, it only scopes the
+  # concurrency group.
+  workflow_call: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

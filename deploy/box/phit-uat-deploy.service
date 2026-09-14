@@ -1,0 +1,12 @@
+[Unit]
+Description=Phitopolis UAT pull-deploy (Heimdall + Fresko from GHCR :uat)
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=ec2-user
+Group=docker
+ExecStart=/srv/phit-uat/bin/phit-uat-watch.sh
+TimeoutStartSec=20min
+Nice=10

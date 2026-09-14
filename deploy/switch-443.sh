@@ -24,16 +24,19 @@ set -euo pipefail
 
 cd "$(dirname "${BASH_SOURCE[0]}")"
 
-COMPOSE="docker compose -f docker-compose.uat.yml"
+# State (.env with the port mode) lives at $PHIT_STATE_DIR — /srv/phit-uat/fresko
+# on the UAT box, `.` on a plain checkout. compose.sh resolves the same default.
+export PHIT_STATE_DIR="${PHIT_STATE_DIR:-.}"
+COMPOSE="./compose.sh"
 REVAMP_WEB="phitopolis-website"
 FRESKO="phit-uat-fresko"
-ENV_FILE=".env"
+ENV_FILE="$PHIT_STATE_DIR/.env"
 
 c_ok=$'\033[32m'; c_warn=$'\033[33m'; c_off=$'\033[0m'
 
 die() { echo "error: $*" >&2; exit 1; }
 
-# Persist the mode into deploy/.env so a later plain `docker compose up -d`
+# Persist the mode into $PHIT_STATE_DIR/.env so a later plain `docker compose up -d`
 # keeps the current mode instead of silently reverting to the 8443 defaults.
 set_env() {
   local key=$1 val=$2
@@ -94,7 +97,7 @@ to_fresko() {
   set_env FRESKO_HTTPS_PORT 443
   # Empty, so the HTTP->HTTPS redirect targets https://host with no port.
   set_env PUBLIC_HTTPS_PORT ""
-  $COMPOSE up -d >/dev/null
+  $COMPOSE up -d --no-build >/dev/null
 
   wait_healthy "$FRESKO" https://127.0.0.1:443/
   echo
@@ -111,7 +114,7 @@ to_revamp() {
   set_env FRESKO_HTTP_PORT 8080
   set_env FRESKO_HTTPS_PORT 8443
   set_env PUBLIC_HTTPS_PORT ":8443"
-  $COMPOSE up -d >/dev/null
+  $COMPOSE up -d --no-build >/dev/null
 
   echo "==> starting revamp web"
   docker start "$REVAMP_WEB" >/dev/null

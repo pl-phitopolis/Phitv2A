@@ -137,17 +137,24 @@ Heimdall up first** — see `Phitv2B-2/deploy/README.md`.
 
 ## Deploy
 
+On the box, create the shared network once (Heimdall must be deployed first):
+
 ```bash
 docker network create phit-uat-net
 ```
 
-```bash
-cd deploy && ./make-cert.sh uat.phitopolis.io && cp .env.sample .env
-```
+Then: **push to `main` on GitHub.** The box polls GHCR every 60 seconds and
+pulls the new image automatically. The commit's `deploy/deploy-uat.sh` runs
+as part of the deploy (guards on free RAM/disk, health gates).
+
+To pin a specific commit by hand (rare):
 
 ```bash
-docker compose -f docker-compose.uat.yml up -d --build
+PHIT_STATE_DIR=/srv/phit-uat/fresko IMAGE_TAG=uat-<sha> /srv/phit-uat/fresko/src/deploy/deploy-uat.sh
 ```
+
+See `deploy/README-CD.md` for full details on how push-to-deploy works,
+monitoring, and rollback.
 
 ## What changed from `fresko.conf`, and why
 
