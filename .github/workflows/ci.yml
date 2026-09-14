@@ -1,8 +1,9 @@
 name: CI
 
+# Not on push: every push to main already runs these jobs through
+# deploy-uat.yml's `verify` (workflow_call below) before building the UAT
+# image. A second standalone run would just double the Actions minutes.
 on:
-  push:
-    branches: [main]
   pull_request:
     branches: [main]
   # Lets deploy-uat.yml gate its build/deploy on this same verify job instead
