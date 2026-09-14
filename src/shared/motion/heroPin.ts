@@ -36,10 +36,21 @@
  * 0..0.60) was replaced by an autoplaying background video loop — there is no
  * longer a flatten/move/reveal choreography that needs viewports of travel to
  * read, only a video that crossfades to the bottom-left P + wordmark before the
- * gunshot at 0.60. The gunshot -> drift-wall -> smoking -> border sequence
- * (0.60..1.0) is unchanged and still gets ~1.6 of the 4 screens.
+ * gunshot at 0.60.
+ *
+ * Raised `4` -> `6` to give the 0.50-0.60 dwell (heroPhases.ts's Phase 4,
+ * previously an empty CSS progress hairline) real scroll-time for two new
+ * sub-movements — an office-window flythrough scrub (`approachProgress`),
+ * then a short message beat (`messageProgress`) — before the gunshot. At 4
+ * screens that 10%-wide window was only 0.4 viewport-heights of travel,
+ * too little for either sub-movement to read; at 6 it's 0.6. Went to 6
+ * rather than back to the original 8 to keep the increase proportional
+ * everywhere else in the pin (a 50% stretch, not a 100% one) so the
+ * gunshot -> drift-wall -> smoking -> border sequence (0.60..1.0) doesn't
+ * start to feel sluggish — it now gets ~2.4 of the 6 screens instead of
+ * ~1.6 of 4, the same 40% share of the timeline as before.
  */
-export const HERO_PIN_SCREENS = 4;
+export const HERO_PIN_SCREENS = 6;
 
 /**
  * Total viewport-heights the hero occupies: the pinned range plus the hero's own

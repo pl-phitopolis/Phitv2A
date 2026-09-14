@@ -1,0 +1,36 @@
+{
+  "_comment": "media-forge ASSET MANIFEST — office-window flythrough (home hero, scroll-scrub segment). Rung: ③ semantic placeholder for the frame sequence (no authenticated media-gen MCP/CLI reachable this session — detection: ToolSearch for higgsfield/fal/recraft/replicate returned no matching generation tool; a prior check in this repo also found the `higgsfield` CLI not installed — per instructions, no install/login was attempted). The poster is rung ② authored (hand-drawn SVG, see poster.svg) so the segment has a real, on-palette frame to anchor layout and scroll-scrub math before the video exists. Swap-in path: once Higgsfield (or another provider) is authenticated, regenerate using promptPack below, export sequential frames (or a single scrubbable video re-sliced into frames) into ./frames/ named frame_0000.webp..frame_00XX.webp at frameCount, replace poster.svg with an exported poster frame, and flip status to 'generated' — no code changes required downstream since the frameCount/paths are the contract consumers read.",
+
+  "asset": "hero-office-window-flythrough",
+  "placement": "Home hero, scroll-scrub segment — camera push toward a glass office tower",
+  "status": "placeholder (prompt embedded)",
+  "rung": 3,
+  "rungNote": "Poster image is rung 2 (authored SVG). Frame sequence is rung 3 (not yet generated).",
+
+  "framesDir": "public/images/hero-approach/frames/",
+  "frameNamingConvention": "frame_%04d.webp (e.g. frame_0000.webp .. frame_0089.webp)",
+  "frameCount": 90,
+  "frameCountBasis": "Placeholder target: ~3s scroll-scrub segment at 30fps, matching the cadence of the site's other scroll-scrub sequences. Adjust to the real export's frame rate/duration when generated — this number is a planning placeholder, not a measured value.",
+  "framesGeneratedSoFar": 0,
+
+  "posterPath": "public/images/hero-approach/poster.svg",
+  "posterStatus": "authored (original SVG, not a placeholder in the swap-later sense — safe to ship as-is or keep as poster/fallback even after real frames land)",
+
+  "promptPack": {
+    "id": "hero-office-window-flythrough",
+    "intent": "Camera pushes from a middle-distance approach toward a glass R&D/fintech office tower, gliding past its curtain wall as scroll progresses — establishes the brand as a serious, high-end financial-technology institution, not a startup.",
+    "composition": "Low-angle to eye-level dolly-in, dead-center single hero tower flanked by soft out-of-focus lower towers for depth; camera ends close enough to read individual curtain-wall mullions and a handful of lit interior floors, but never enters the glass. Negative space reserved at top third and lower third for hero copy/UI overlay — keep the tower's silhouette read-able against the sky behind it at every frame.",
+    "paletteLock": "NOIR.navyDeep #06183B, NOIR.navyInk #061226, NOIR.navyField #0A2A66, NOIR.navyPanel #0A1833, NOIR.navyFloor #04122E, NOIR.navyDark #081F4D, NOIR.duskNavy #182647, NOIR.gold #FFC72C (sparse, interior office lights only), NOIR.frost #F4F7FC (glass sheen highlights only, low opacity), NOIR.slate #94A3B8 (distant window linework only) — no hex outside src/shared/theme/palette.ts NOIR tokens. No teal, no purple, no warm oranges beyond the single gold accent.",
+    "styleRefs": "Restrained architectural photography mood — Foster+Partners / Zaha Hadid corporate-tower photography, blue-hour glass-and-steel, quant-fund headquarters brochure imagery. Not a sci-fi cityscape, not a neon cyberpunk skyline, not a stock-photo daytime office park.",
+    "negative": "No text, no logos, no watermarks, no visible people/faces, no lens flares, no warm sunset oranges, no teal/cyan, no cluttered mega-city skyline, no drone-shot daytime blue sky, no motion blur artifacts, no HDR over-sharpening.",
+    "output": "Video, 1920x1080 minimum (delivered as a frame sequence for scroll-scrub — see framesDir/frameCount), H.264 or AV1 source with a poster frame; each exported frame as WebP, target ≤ 60KB per frame so the full sequence stays within a reasonable prefetch budget for a scroll-scrub (frameCount * frame weight should land under ~4-5MB total, matching this repo's other hero video budgets under public/videos/)."
+  },
+
+  "provenanceNote": "poster.svg: authored (original), no external source, no license required. Frame sequence: not yet generated — no provenance until a real generation run replaces this placeholder; this manifest is the only content shipped for the sequence today.",
+
+  "optimization": {
+    "clsGuard": "Consumer must set explicit width/height (or aspect-ratio) matching 1920x1080 on every placement of poster.svg and, later, the frame sequence.",
+    "loading": "Poster/first frame is likely at-or-near the LCP hero region on this page — do not lazy-load it; treat subsequent scrub frames as prefetched-on-scroll-intent, not eager on page load.",
+    "budget": "Poster (SVG, vector): a few KB, effectively free. Frame sequence target once generated: ≤ ~60KB/frame WebP, ≤ ~5MB total sequence — resize/recompress before shipping if over budget."
+  }
+}

@@ -11,7 +11,7 @@ import { MONO } from "@/shared/theme/theme";
 import type { Service } from "../api";
 import { ServiceIcon } from "./ServiceIcon";
 
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 
 function ServiceCard({ service }: { service: Service }) {
   return (
@@ -21,6 +21,7 @@ function ServiceCard({ service }: { service: Service }) {
         height: 1,
         position: "relative",
         overflow: "hidden",
+        bgcolor: SOFT.frost,
         boxShadow: "none",
         transition: "border-color 0.25s ease",
         "&:hover": { borderColor: "primary.dark" },
@@ -78,6 +79,7 @@ function ServiceCard({ service }: { service: Service }) {
                   fontSize: "0.7rem",
                   letterSpacing: "0.08em",
                   color: "text.secondary",
+                  bgcolor: SOFT.sand,
                   borderColor: "divider",
                   borderRadius: 1,
                   height: "auto",

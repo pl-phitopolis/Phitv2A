@@ -6,19 +6,30 @@ import { CONTENT } from "@/shared/content";
 import { ReachMap } from "@/shared/components/ReachMap";
 import { NAV_ANCHORS } from "@/shared/components/navbarAnchors";
 import { useNavbarAnchor } from "@/shared/components/navbarHooks";
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 
 import "./HomeEditorial.css";
 
 const { salesPitch } = CONTENT.hero;
 
+// The editorial passages are the site's calm, light register between the navy
+// film scenes (proof/closing) that bracket them in `routes/index.tsx`. Grounds
+// are assigned by theme in two blocks, not per-section variety:
+//   Block A — thesis + markets + disciplines — all `frost` (analytical / clarity:
+//     the intellectual thesis and the practice).
+//   Block B — applications + growth + reach — all `linen` (warm / human / craft:
+//     what we've built, over time, for the world).
+// `--editorial-paper` = frost, `--editorial-white` = linen, `--editorial-panel`
+// = mist (a component-level inset on media frames, not a section ground).
+// Navy text + gold accent are unchanged.
 const editorialVars = {
   "--editorial-navy": NOIR.navyField,
   "--editorial-navy-rgb": NOIR.navyFieldRgb,
   "--editorial-gold": NOIR.gold,
   "--editorial-gold-rgb": NOIR.goldRgb,
-  "--editorial-paper": NOIR.panel,
-  "--editorial-white": NOIR.frost,
+  "--editorial-paper": SOFT.frost,
+  "--editorial-white": SOFT.linen,
+  "--editorial-panel": SOFT.mist,
   "--editorial-rule": `rgba(${NOIR.navyFieldRgb}, 0.17)`,
 } as CSSProperties;
 
@@ -129,8 +140,8 @@ export function HomeDisciplines() {
       <div className="editorial-container">
         <SectionMarker index="03" label="Disciplines" />
         <div className="editorial-intro editorial-intro--disciplines">
-          <p className="editorial-eyebrow">Three disciplines. One continuous practice.</p>
-          <h2 id="disciplines-title" className="editorial-display">Research, engineering, and delivery meet in one practice.</h2>
+          <p className="editorial-eyebrow">Three disciplines</p>
+          <h2 id="disciplines-title" className="editorial-display">Research, engineering, and delivery in one continuous practice.</h2>
         </div>
         <div className="editorial-discipline-list">
           {pillars.map((pillar, index) => (

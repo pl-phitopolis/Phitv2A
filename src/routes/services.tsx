@@ -22,15 +22,15 @@ const FALLBACK_SERVICES: Service[] = [
     name: "Software Development",
     tagline: "Cloud-native platforms built for reliability and scale",
     description:
-      "We architect secure web platforms using modern stacks, engineered for enterprise reliability and high availability - enabling teams to visualize complex data and manage operations in real time.",
+      "Secure, cloud-native platforms engineered for enterprise reliability and high availability — visualizing complex data and managing operations in real time.",
     icon: "hub",
     highlights: ["TypeScript", "React", "GraphQL", "Docker", "AWS", "CI/CD"],
     display_order: 1,
     sub_teams: [
-      { name: "Platform Team", description: "Architects the core microservices and APIs powering web platforms" },
-      { name: "Web Apps", description: "Builds responsive, high-performance user interfaces for real-time data management" },
-      { name: "Infra", description: "Designs and maintains containerized cloud environments for high availability" },
-      { name: "HPC", description: "Engineers high-performance computing clusters for fast data processing and execution" }
+      { name: "Platform Team", description: "Architects the core microservices and APIs powering the platform" },
+      { name: "Web Apps", description: "Builds responsive interfaces for real-time data management" },
+      { name: "Infra", description: "Designs and maintains containerized environments for high availability" },
+      { name: "HPC", description: "Engineers HPC clusters for fast data processing and execution" }
     ]
   },
   {
@@ -39,7 +39,7 @@ const FALLBACK_SERVICES: Service[] = [
     name: "Quantitative Research",
     tagline: "Data science and statistical modeling",
     description:
-      "Our team turns raw, complex data into clear insights. We build data pipelines and machine learning models that analyze historical trends and real-time inputs with statistical precision.",
+      "We turn complex data into clear insights: pipelines and machine learning models analyzing historical trends and real-time inputs with statistical precision.",
     icon: "query_stats",
     highlights: ["Python", "Machine Learning", "Deep Learning", "Statistics"],
     display_order: 2,
@@ -56,7 +56,7 @@ const FALLBACK_SERVICES: Service[] = [
     name: "Data Science",
     tagline: "Pipelines and data storage engineered for analytics",
     description:
-      "We design automated ETL pipelines and data storage solutions with validation at every step, ensuring all downstream applications receive clean, reliable data.",
+      "We design automated ETL pipelines and storage systems, validated at every step, so downstream applications always get clean, reliable data.",
     icon: "model_training",
     highlights: ["Python", "AWS", "ETL", "Postgres", "NoSQL", "Docker"],
     display_order: 3,
@@ -73,7 +73,7 @@ const FALLBACK_SERVICES: Service[] = [
     name: "Ops Support",
     tagline: "24/7 global operational continuity and site reliability",
     description:
-      "Our global engineering teams monitor and support cloud platforms, data pipelines, and core infrastructure around the clock, proactively resolving issues to ensure continuous uptime.",
+      "Global engineering teams monitor cloud platforms, data pipelines, and core infrastructure around the clock — resolving issues before they threaten uptime.",
     icon: "science",
     highlights: ["Linux", "Prometheus", "Grafana", "AWS / GCP / Azure"],
     display_order: 4,
@@ -90,7 +90,7 @@ export const Route = createFileRoute("/services")({
   head: () =>
     pageHead(
       "Services · Phitopolis",
-      "Full-stack development, quantitative research, data science, and 24/7 global operational continuity - engineering built for financial technology at petabyte scale.",
+      "Full-stack development, quantitative research, data science, and 24/7 operations — engineering for financial technology at petabyte scale.",
     ),
   loader: ({ context }) => {
     void context.queryClient.ensureQueryData(servicesQuery()).catch(() => undefined);

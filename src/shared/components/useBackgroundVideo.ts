@@ -121,23 +121,7 @@ export const SERVICES_LOOP = {
   poster: "/videos/daily-life-services-loop-poster.jpg",
 } as const;
 
-/**
- * The home and About hero loops — cut from the Phitopolis year-end brand film
- * (caption-free b-roll only: skyline, office floor, a gesture at the glass
- * wall, the P mug, keyboards). 1280x720, ~12s / ~16s, silent.
- *
- * `HERO_LOOP` rides inside `.hero-card` on `/` in place of the retired canvas
- * "3D city"; its poster is the above-fold LCP paint and is warmed by
- * `AppShell.tsx`'s `HOME_BLOCKING`. `ABOUT_HERO_LOOP` backs the `/about` hero
- * (`BackgroundReveal`) and its framed gallery tile (`HeroGallery`).
- * Same shape as {@link BLOG_LOOP}.
- */
-export const HERO_LOOP = {
-  webm: "/videos/hero-loop.webm",
-  mp4: "/videos/hero-loop.mp4",
-  poster: "/videos/hero-loop-poster.jpg",
-} as const;
-
+/** About hero footage is independent from the rebuilt home page. */
 export const ABOUT_HERO_LOOP = {
   webm: "/videos/about-hero-loop.webm",
   mp4: "/videos/about-hero-loop.mp4",

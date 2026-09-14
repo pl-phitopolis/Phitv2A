@@ -22,7 +22,7 @@ const HALLS = [
     label: "Graduate Program",
     tag: "FULL-TIME",
     description:
-      "A structured 12-month R&D fellowship for new CS and engineering graduates. Work on live financial systems, quant pipelines, and distributed infrastructure alongside senior engineers.",
+      "A structured 12-month R&D fellowship for new CS and engineering graduates: live financial systems, quant pipelines, and distributed infrastructure, alongside senior engineers.",
     image: "/images/grads/FocusedProgramming.webp",
     stat: "5 cohorts",
     statLabel: "since 2023",
@@ -32,7 +32,7 @@ const HALLS = [
     label: "Internship Program",
     tag: "PART-TIME / OJT",
     description:
-      "Paid, immersive internships for top undergraduate talent. Build real features, receive daily code reviews, and earn a fast-track path to the Graduate Program.",
+      "Paid, immersive internships for top undergraduates. Ship real features, get daily code reviews, and earn a fast-track path to the Graduate Program.",
     image: "/images/grads/Coordination.webp",
     stat: "30+ interns",
     statLabel: "placed to date",
@@ -129,7 +129,7 @@ export function AcademySection() {
                   maxWidth: 520,
                 }}
               >
-                Two structured halls — for graduates and undergraduates — to grow inside a
+                Two structured halls — for graduates and undergraduates — inside a
                 production-grade R&D firm from day one.
               </Typography>
             </Stack>

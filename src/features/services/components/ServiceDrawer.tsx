@@ -10,7 +10,7 @@ import Grid from "@mui/material/Grid";
 import CloseIcon from "@mui/icons-material/Close";
 import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import { Link } from "@tanstack/react-router";
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 import { MONO, DISPLAY_FONT } from "@/shared/theme/theme";
 import type { Service } from "../api";
 import { ServiceIcon } from "./ServiceIcon";
@@ -321,7 +321,7 @@ export function ServiceDrawer({ open, onClose, service }: ServiceDrawerProps) {
     >
       <Box sx={{ p: { xs: 3, sm: 4 }, borderBottom: "1px solid rgba(10, 42, 102, 0.1)", display: "flex", alignItems: "center", justifyContent: "space-between" }}>
         <Box sx={{ display: "flex", alignItems: "center", gap: 1.8 }}>
-          <Box sx={{ p: 1.2, borderRadius: "10px", bgcolor: "rgba(10, 42, 102, 0.06)", color: NOIR.navyField, display: "flex" }}>
+          <Box sx={{ p: 1.2, borderRadius: "var(--r-control)", bgcolor: "rgba(10, 42, 102, 0.06)", border: "1px solid rgba(10, 42, 102, 0.1)", color: NOIR.navyField, display: "flex" }}>
             <ServiceIcon icon={service.icon} />
           </Box>
           <Box>
@@ -359,7 +359,7 @@ export function ServiceDrawer({ open, onClose, service }: ServiceDrawerProps) {
             </Typography>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
               {service.highlights.map((h) => (
-                <Chip key={h} label={h} size="small" sx={{ fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", bgcolor: "rgba(10, 42, 102, 0.06)", color: NOIR.navyField }} />
+                <Chip key={h} label={h} size="small" sx={{ fontFamily: MONO, fontWeight: 700, fontSize: "0.72rem", bgcolor: "rgba(10, 42, 102, 0.08)", color: NOIR.navyField, border: "1px solid rgba(10, 42, 102, 0.16)" }} />
               ))}
             </Stack>
           </Box>
@@ -373,7 +373,7 @@ export function ServiceDrawer({ open, onClose, service }: ServiceDrawerProps) {
               <Grid container spacing={1.5}>
                 {service.sub_teams.map((team, idx) => (
                   <Grid size={{ xs: 12, sm: 6 }} key={idx}>
-                    <Box sx={{ p: 2, borderRadius: "8px", bgcolor: "rgba(10, 42, 102, 0.04)", border: "1px solid rgba(10, 42, 102, 0.1)" }}>
+                    <Box sx={{ p: 2, borderRadius: "var(--r-card)", bgcolor: SOFT.mist, border: "1px solid rgba(10, 42, 102, 0.08)" }}>
                       <Typography sx={{ fontFamily: MONO, fontSize: "0.82rem", fontWeight: 700, color: NOIR.navyField, mb: 0.5 }}>
                         {team.name}
                       </Typography>
@@ -402,7 +402,7 @@ export function ServiceDrawer({ open, onClose, service }: ServiceDrawerProps) {
                 bgcolor: NOIR.navyField,
                 color: NOIR.white,
                 py: 1.4,
-                borderRadius: "8px",
+                borderRadius: "var(--r-control)",
                 boxShadow: "none",
                 textTransform: "none",
                 "&:hover": { bgcolor: NOIR.navyDark },

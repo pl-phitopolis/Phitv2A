@@ -44,8 +44,17 @@ stubMatchMedia(true);
 vi.stubGlobal("IntersectionObserver", ObserverStub);
 vi.stubGlobal("ResizeObserver", ObserverStub);
 
-const fallbackRaf = (cb: FrameRequestCallback): number => setTimeout(cb, 16) as unknown as number;
-const fallbackCaf = (id: number): void => clearTimeout(id);
+const pendingFrames = new Set<ReturnType<typeof setTimeout>>();
+const fallbackRaf = (cb: FrameRequestCallback): number => {
+  const handle = setTimeout(() => { pendingFrames.delete(handle); cb(performance.now()); }, 16);
+  pendingFrames.add(handle);
+  return handle as unknown as number;
+};
+const fallbackCaf = (id: number): void => {
+  const handle = id as unknown as ReturnType<typeof setTimeout>;
+  clearTimeout(handle);
+  pendingFrames.delete(handle);
+};
 
 // Ensure requestAnimationFrame and cancelAnimationFrame are always defined across all scopes (Node global and globalThis)
 const ensureRaf = () => {
@@ -135,4 +144,7 @@ afterAll(async () => {
     void err;
   }
   ScrollTrigger.killAll();
+  // React cleanup has run; no frame may retain the departing jsdom document.
+  for (const handle of pendingFrames) clearTimeout(handle);
+  pendingFrames.clear();
 });

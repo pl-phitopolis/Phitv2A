@@ -1,13 +1,11 @@
 import AppBar from "@mui/material/AppBar";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
-import Drawer from "@mui/material/Drawer";
-import { SpecularIconButton as IconButton, SpecularFx } from "@/shared/components/ui/specular";
+import { SpecularFx } from "@/shared/components/ui/specular";
 import Stack from "@mui/material/Stack";
 import Toolbar from "@mui/material/Toolbar";
 import Typography from "@mui/material/Typography";
 import Button from "@mui/material/Button";
-import CloseIcon from "@mui/icons-material/Close";
 import { useLocation, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
@@ -28,33 +26,21 @@ import { TransitionCurtainProvider } from "./TransitionCurtain";
 import { useTransitionCurtain } from "./transitionCurtainContext";
 import type { LoadSignal } from "./Preloader";
 import { TopNavMegaDrawer } from "./TopNavMegaDrawer";
+import { MEGA_NAV_ITEMS } from "./megaNavItems";
 import { SiteFooter } from "./SiteFooter";
-import { RouterButton, RouterLink } from "./RouterLink";
+import { RouterLink } from "./RouterLink";
 import PhitopolisLogo from "./PhitopolisLogo";
 
 import { NOIR } from "@/shared/theme/palette";
+import { alpha } from "@mui/material/styles";
 import { EASE_OUT_EXPO_CSS, EASE_OUT_EXPO } from "@/shared/motion/easing";
 import { useNavAutohide } from "./useNavAutohide";
 
-// Held in an untyped variable (not inlined) so the extra `data-lenis-prevent`
-// attribute doesn't trip MUI's strict slotProps excess-property check — MUI's
-// DrawerPaperSlotPropsOverrides doesn't know about it, but Paper forwards any
-// unrecognized prop straight to the DOM element. MUI's Drawer paper is
-// overflowY: auto by default (this panel can exceed viewport height), so it
-// needs the same lenis exemption as ServiceDrawer/CommandPalette/
-// TopNavMegaDrawer for when Lenis is eventually hoisted off the home route.
-const MOBILE_NAV_PAPER_SLOT_PROPS = {
-  "data-lenis-prevent": true,
-  sx: { width: "min(320px, 82vw)", bgcolor: "background.default", p: 3 },
-};
-
-const NAV_ITEMS = [
-  { to: "/", label: "Home" },
-  { to: "/about", label: "About" },
-  { to: "/services", label: "Services" },
-  { to: "/careers", label: "Careers" },
-  { to: "/blog", label: "Blog" },
-] as const;
+// The inline desktop nav-links row (standard/island modes only — see
+// `isStandard || isAnyIsland` below) omits Contact, which renders as its
+// own always-visible button beside it. Sourced from MEGA_NAV_ITEMS —
+// TopNavMegaDrawer's nav card — so there is one list of pages, not two.
+const NAV_ITEMS = MEGA_NAV_ITEMS.filter((item) => item.to !== "/contact");
 
 const NARRATION_FLOW: Record<string, { next: string; label: string }> = {
   "/": { next: "/about", label: "ABOUT PHITOPOLIS" },
@@ -118,15 +104,10 @@ const WARM_ROUTES = [
  *  - `/images/topHalfHero.webp` / `botHalfHero.webp` — the old split-pane hero,
  *    replaced by `HeroImageWall`; nothing renders them any more.
  *  - The hero drift wall (`fetchPriority=low`, mounts ~60% into the hero pin).
- *  - `/videos/hero-night-to-dawn.*` — a superseded, orphaned hero clip; nothing
- *    renders it. The live home hero loop is `/videos/hero-loop.*` (below).
- *  - `/about`'s `daily-life.mp4` (62MB, IntersectionObserver-gated far down the
- *    page) and `JourneyTimeline`'s hotlinked WordPress images — left to their
- *    own components.
+ *  - Home now opens with text and an inline diagram; neither needs media warming.
  */
-
-/** Only the current hero poster gates first paint; later films load near their scenes. */
-const HOME_BLOCKING: readonly string[] = ["/videos/hero-loop-poster.jpg"];
+// The new hero LCP is text, with no image/video fetch dependency.
+const HOME_BLOCKING: readonly string[] = [];
 const HOME_BACKGROUND_IMAGES: readonly string[] = [];
 
 /** About hero, above the fold: the skyline background loop's poster
@@ -419,47 +400,52 @@ function AnimatedContactButton({
     navigateWithCurtain("/contact");
   };
 
+  // Filled pill, not a border-only chip — a solid surface so it reads as a
+  // real control against the page rather than an outline that has to borrow
+  // its contrast from whatever's behind it. Border carries the same color as
+  // the text, same as AnimatedMenuButton's, so the two read as one coherent
+  // pairing. Gold takes over as the fill on hover/active regardless of
+  // ground. Idle fill differs by ground: light stays an opaque frost chip;
+  // dark drops to a translucent frosted grey (30% alpha + blur) instead of a
+  // solid navy block, since a fully opaque fill read as too heavy over the
+  // hero imagery it usually sits on there.
+  const idleBg = onDark ? alpha(NOIR.slate, 0.3) : NOIR.frost;
+  const idleColor = onDark ? NOIR.white : NOIR.navyField;
+  const activeBg = NOIR.gold;
+  const activeColor = NOIR.navyInk;
+  const isPrimary = hovered || isActive;
+  const idleBlur = onDark && !isPrimary;
+
   return (
     <Button
-      variant="outlined"
+      variant="contained"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => { setHovered(false); }}
       onClick={handleClick}
       sx={{
-        // Pill, not the plain chromeless text it used to be — a border-only
-        // (no fill) pill so it reads as a distinct control against the
-        // nav's own bgcolor/blur rather than adding a second layer of glass.
         borderRadius: "999px",
         ml: { md: 1.5 },
-        border: `1px solid ${onDark ? "rgba(255,255,255,0.28)" : "rgba(11,26,58,0.16)"} !important`,
-        // Gold as a label colour only where it can be read. On the light
-        // grounds it measures 1.49:1, so hover and active resolve to the navy
-        // ink instead.
-        color: (hovered || isActive)
-          ? `${onDark ? NOIR.gold : NOIR.navyField} !important`
-          : (onDark ? "rgba(255,255,255,0.9)" : "text.secondary"),
-        bgcolor: "transparent !important",
-        background: "none !important",
+        opacity: 0.8,
+        border: `1px solid ${isPrimary ? activeColor : idleColor} !important`,
+        color: `${isPrimary ? activeColor : idleColor} !important`,
+        bgcolor: `${isPrimary ? activeBg : idleBg} !important`,
         backgroundImage: "none !important",
         boxShadow: "none !important",
-        backdropFilter: "none !important",
-        WebkitBackdropFilter: "none !important",
-        // `MuiButton`'s "outlined" variant (components.ts) lifts 2px and adds a
-        // glow box-shadow on hover/active - this button already overrides the
-        // fill/shadow above to stay chrome-less, but not `transform`, so it
-        // still floated on hover despite every other piece of that variant's
-        // hover treatment being cancelled.
+        backdropFilter: `${idleBlur ? "blur(10px) saturate(140%)" : "none"} !important`,
+        WebkitBackdropFilter: `${idleBlur ? "blur(10px) saturate(140%)" : "none"} !important`,
+        // `MuiButton`'s "contained" variant (components.ts) lifts 2px and adds a
+        // glow box-shadow on hover/active - overridden above, but not `transform`,
+        // so it still floated on hover despite the fill/shadow being pinned.
         transform: "none !important",
         transition: `all 0.3s ${EASE_OUT_EXPO_CSS}`,
         "&:hover": {
-          border: `1px solid ${onDark ? NOIR.gold : NOIR.navyField} !important`,
-          bgcolor: "transparent !important",
-          background: "none !important",
+          border: `1px solid ${activeColor} !important`,
+          bgcolor: `${activeBg} !important`,
           backgroundImage: "none !important",
           boxShadow: "none !important",
           backdropFilter: "none !important",
           WebkitBackdropFilter: "none !important",
-          color: `${onDark ? NOIR.gold : NOIR.navyField} !important`,
+          color: `${activeColor} !important`,
           transform: "none !important",
         },
         "&:active": {
@@ -476,8 +462,18 @@ function AnimatedContactButton({
   );
 }
 
-/** Custom 3-Bar Icon with spreading animation on hover. */
-function ThreeBarMenuIcon({ isHovered, color }: { isHovered: boolean; color: string }) {
+/** Static 3-bar icon — no shape/position animation of its own; only its
+ *  color transitions, driven by the parent button's own hover/active state
+ *  (same behavior as the Contact button's label: a color change, nothing
+ *  moving). */
+function ThreeBarMenuIcon({ color }: { color: string }) {
+  const barSx = {
+    width: 18,
+    height: 2,
+    bgcolor: color,
+    borderRadius: "1px",
+    transition: "background-color 0.3s ease",
+  } as const;
   return (
     <Box
       sx={{
@@ -488,37 +484,14 @@ function ThreeBarMenuIcon({ isHovered, color }: { isHovered: boolean; color: str
         justifyContent: "space-between",
         alignItems: "center",
         pointerEvents: "none",
+        // The chip's own bg/border stay fully opaque — only the glyph itself
+        // is dialed down, same treatment as Contact's 80% button opacity.
+        opacity: 0.8,
       }}
     >
-      <Box
-        sx={{
-          width: 18,
-          height: 2,
-          bgcolor: color,
-          borderRadius: "1px",
-          transform: isHovered ? "translateY(-2px)" : "translateY(0)",
-          transition: `all 0.3s ${EASE_OUT_EXPO_CSS}`,
-        }}
-      />
-      <Box
-        sx={{
-          width: 18,
-          height: 2,
-          bgcolor: color,
-          borderRadius: "1px",
-          transition: `all 0.3s ${EASE_OUT_EXPO_CSS}`,
-        }}
-      />
-      <Box
-        sx={{
-          width: 18,
-          height: 2,
-          bgcolor: color,
-          borderRadius: "1px",
-          transform: isHovered ? "translateY(2px)" : "translateY(0)",
-          transition: `all 0.3s ${EASE_OUT_EXPO_CSS}`,
-        }}
-      />
+      <Box sx={barSx} />
+      <Box sx={barSx} />
+      <Box sx={barSx} />
     </Box>
   );
 }
@@ -528,12 +501,19 @@ function ThreeBarMenuIcon({ isHovered, color }: { isHovered: boolean; color: str
 function AnimatedMenuButton({
   active,
   onClick,
+  onHoverEnter,
+  onHoverLeave,
   isImmersiveDark,
   ariaLabel,
   sx,
 }: {
   active: boolean;
   onClick: () => void;
+  /** Optional hover-intent hooks (glassmorphism mode only) — layered on top
+   *  of the button's own internal hover state below, which still drives the
+   *  gold color-shift regardless. */
+  onHoverEnter?: (() => void) | undefined;
+  onHoverLeave?: (() => void) | undefined;
   isNotch?: boolean;
   isImmersiveDark: boolean;
   ariaLabel: string;
@@ -543,17 +523,27 @@ function AnimatedMenuButton({
   const [hovered, setHovered] = useState(false);
   const isPrimary = hovered || active;
 
-  const iconColor = isPrimary
-    ? NOIR.gold
-    : (isImmersiveDark ? "rgba(255, 255, 255, 0.9)" : NOIR.navyField);
+  // Filled, bordered chip — the border carries the same color as the
+  // icon/text so it reads as one coherent outline instead of a separate
+  // accent. Gold takes over as the fill on hover/active regardless of
+  // ground. Idle fill differs by ground: light stays an opaque frost chip;
+  // dark drops to a translucent frosted grey (30% alpha + blur), same
+  // treatment as Contact, instead of a solid navy block.
+  const idleBg = isImmersiveDark ? alpha(NOIR.slate, 0.3) : NOIR.frost;
+  const idleColor = isImmersiveDark ? NOIR.white : NOIR.navyField;
+  const activeBg = NOIR.gold;
+  const activeColor = NOIR.navyInk;
+  const iconColor = isPrimary ? activeColor : idleColor;
+  const idleBlur = isImmersiveDark && !isPrimary;
 
   return (
     <Box
       component="button"
       onClick={onClick}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
+      onMouseEnter={() => { setHovered(true); onHoverEnter?.(); }}
+      onMouseLeave={() => { setHovered(false); onHoverLeave?.(); }}
       aria-label={ariaLabel}
+      aria-expanded={active}
       sx={{
         display: "inline-flex",
         alignItems: "center",
@@ -561,14 +551,13 @@ function AnimatedMenuButton({
         width: 42,
         height: 42,
         borderRadius: "10px",
-        border: "none !important",
-        bgcolor: "transparent !important",
-        background: "none !important",
+        border: `1px solid ${iconColor} !important`,
+        bgcolor: `${isPrimary ? activeBg : idleBg} !important`,
         backgroundImage: "none !important",
         color: `${iconColor} !important`,
         boxShadow: "none !important",
-        backdropFilter: "none !important",
-        WebkitBackdropFilter: "none !important",
+        backdropFilter: `${idleBlur ? "blur(10px) saturate(140%)" : "none"} !important`,
+        WebkitBackdropFilter: `${idleBlur ? "blur(10px) saturate(140%)" : "none"} !important`,
         cursor: "pointer",
         // No `outline: none` here. This is a real <button> with an onClick, and it
         // renders in the app bar on every route. An `sx` rule is injected after
@@ -578,18 +567,17 @@ function AnimatedMenuButton({
         transition: `all 0.3s ${EASE_OUT_EXPO_CSS}`,
         ...sx,
         "&:hover": {
-          border: "none !important",
-          bgcolor: "transparent !important",
-          background: "none !important",
+          border: `1px solid ${activeColor} !important`,
+          bgcolor: `${activeBg} !important`,
           backgroundImage: "none !important",
-          color: `${NOIR.gold} !important`,
+          color: `${activeColor} !important`,
           boxShadow: "none !important",
           backdropFilter: "none !important",
           WebkitBackdropFilter: "none !important",
         },
       }}
     >
-      <ThreeBarMenuIcon isHovered={isPrimary} color={iconColor} />
+      <ThreeBarMenuIcon color={iconColor} />
     </Box>
   );
 }
@@ -641,14 +629,33 @@ function AppShellInner({ children }: { children: ReactNode }) {
     setHeroCascadeStep(5);
   }, [reduced]);
   const entranceTimersRef = useRef<number[]>([]);
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  // Both the desktop and mobile hamburger triggers share this one boolean —
+  // one nav card (TopNavMegaDrawer), not two separate nav UIs.
   const [megaNavOpen, setMegaNavOpen] = useState(false);
+  // Glassmorphism-only hover-intent: opens/closes the mega drawer on hover of
+  // the menu button (or the drawer itself), with a short delay so the drawer
+  // doesn't flicker open/closed as the cursor merely passes over the icon or
+  // crosses the gap between button and drawer edge. Click still works
+  // independently (see the button's onClick below) in every mode.
+  const megaNavHoverTimeoutRef = useRef<number | null>(null);
+  const clearMegaNavHoverTimeout = useCallback(() => {
+    if (megaNavHoverTimeoutRef.current !== null) {
+      window.clearTimeout(megaNavHoverTimeoutRef.current);
+      megaNavHoverTimeoutRef.current = null;
+    }
+  }, []);
+  const openMegaNavOnHover = useCallback(() => {
+    clearMegaNavHoverTimeout();
+    megaNavHoverTimeoutRef.current = window.setTimeout(() => setMegaNavOpen(true), 180);
+  }, [clearMegaNavHoverTimeout]);
+  const closeMegaNavOnHover = useCallback(() => {
+    clearMegaNavHoverTimeout();
+    megaNavHoverTimeoutRef.current = window.setTimeout(() => setMegaNavOpen(false), 180);
+  }, [clearMegaNavHoverTimeout]);
+  useEffect(() => clearMegaNavHoverTimeout, [clearMegaNavHoverTimeout]);
   const warmup = useWarmupSignals(pathname);
   useNeighbourRouteWarming(pathname);
   const onContactPage = pathname === "/contact";
-  const closeMobileNav = () => {
-    setMobileNavOpen(false);
-  };
 
   const releaseEntrance = useCallback(() => {
     if (releasedRef.current) return;
@@ -786,6 +793,14 @@ const NAV_ISLAND_V2 = {
   surface: `rgba(${NOIR.duskNavyRgb}, 0.82)`,
 } as const;
 
+/** Glassmorphism's own dark-section surface — deliberately separate from
+ *  `NAV_DARK` (shared by `standard` and other modes) so pushing glass to a
+ *  true frosted 80% opacity doesn't also change standard mode's chrome. */
+const NAV_GLASS_DARK = {
+  surface: `rgba(${NOIR.navyDeepRgb}, 0.8)`,
+  blur: "blur(20px) saturate(160%)",
+} as const;
+
   const [isAtTop, setIsAtTop] = useState(true);
 
   useEffect(() => {
@@ -844,11 +859,21 @@ const NAV_ISLAND_V2 = {
             onDone={handlePreloaderDone}
           />
         ) : null}
+        {/* Rendered outside the `inert` wrapper below — its own open state
+            (`megaNavOpen`) is one of that wrapper's inert conditions, and a
+            modal can't be inert while it's the thing keyboard focus is
+            supposed to be inside. */}
+        <TopNavMegaDrawer
+          open={megaNavOpen}
+          onClose={() => setMegaNavOpen(false)}
+          onPaperMouseEnter={isGlass ? clearMegaNavHoverTimeout : undefined}
+          onPaperMouseLeave={isGlass ? closeMegaNavOnHover : undefined}
+        />
         {/* `inert` while the preloader is up locks focus, pointer interaction, and
-            AT visibility for everything it visually covers — skip link, header, both
-            nav drawers, page content, footer — for exactly as long as `showPreloader`
-            is true. It goes on this wrapper, not on <Preloader> itself: Preloader owns
-            no focusable elements, so marking *it* inert would do nothing about the gap
+            AT visibility for everything it visually covers — skip link, header,
+            page content, footer — for exactly as long as `showPreloader` is true.
+            It goes on this wrapper, not on <Preloader> itself: Preloader owns no
+            focusable elements, so marking *it* inert would do nothing about the gap
             a runtime audit found — z-index blocks the mouse, but not Tab order, so a
             keyboard user could tab past the opaque overlay and Enter-activate a header
             link hidden behind it, something a mouse user physically cannot do. Scoping
@@ -859,7 +884,12 @@ const NAV_ISLAND_V2 = {
             `display: "contents"` keeps this Box out of the flex layout box model, so
             AppBar/main/footer still participate in the parent flex column exactly as if
             this wrapper weren't here; only the `inert` attribute (which propagates
-            through the DOM regardless of the rendering box) does anything. */}
+            through the DOM regardless of the rendering box) does anything.
+
+            A separate, narrower `inert` (main + footer only, not the header) handles
+            `megaNavOpen` below — the header itself stays interactive so the hamburger
+            button that was just clicked doesn't self-blur out from under the focus
+            handoff in TopNavMegaDrawer's own effect. */}
         <Box sx={{ display: "contents" }} inert={showPreloader || undefined}>
         {/* First tab stop on every page. There was no skip link, so a keyboard user
             had to tab through the whole header — logo, six nav items, contact button,
@@ -869,7 +899,6 @@ const NAV_ISLAND_V2 = {
         <Box component="a" href="#main-content" className="skip-to-content">
           Skip to content
         </Box>
-        <TopNavMegaDrawer open={megaNavOpen} onClose={() => setMegaNavOpen(false)} />
         <AppBar
           position="fixed"
           elevation={0}
@@ -909,10 +938,26 @@ const NAV_ISLAND_V2 = {
             transition: `transform 0.5s ${EASE_OUT_EXPO_CSS}, opacity 0.5s ease, background-color 0.6s ${EASE_OUT_EXPO_CSS}, border-color 0.6s ${EASE_OUT_EXPO_CSS}, box-shadow 0.6s ${EASE_OUT_EXPO_CSS}`,
           }}
         >
-          {/* Glassmorphism Background layer (fades out at bottom). Over a dark
-              section it takes the shared `NAV_DARK` treatment — deep navy pane,
-              stronger blur, a light hairline seam — so glass mode gets the same
-              deliberate dark-mode chrome as the other modes. */}
+          {/* Glassmorphism Background layer — lenis.dev's actual technique:
+              ONE layer carries both the blur and the tint, and `mask-image`
+              fades that whole layer (blur included) toward the bottom, so
+              the blur visually tapers off along with the tint instead of
+              switching off in one row of pixels (a separate always-100%-blur
+              layer was tried first and made it worse — backdrop-filter has a
+              hard geometric edge wherever its own box ends, so an unmasked
+              blur layer just relocates the hard cut to the box's edge). The
+              mask reaches literal transparent by the very bottom — a
+              non-zero floor was tried and that residual band was itself the
+              hard cut the box edge revealed. Multiple stops ease the curve
+              (holds solid, then rounds off) rather than a stark linear ramp,
+              and the box overhangs 28px past the toolbar so the last bit of
+              fade has room to dissolve into the page instead of being
+              cropped at the bar's own edge; `pointerEvents: "none"` keeps
+              that overhang from swallowing clicks on whatever's underneath.
+              Over a dark section the tint takes the shared `NAV_DARK`
+              treatment — deep navy pane, a light hairline seam — so glass
+              mode gets the same deliberate dark-mode chrome as the other
+              modes. */}
           {isGlass && (
             <Box
               sx={{
@@ -920,13 +965,18 @@ const NAV_ISLAND_V2 = {
                 top: 0,
                 left: 0,
                 right: 0,
-                bottom: 0,
+                height: "calc(100% + 28px)",
                 zIndex: -1,
-                backdropFilter: isOverDarkSection ? NAV_DARK.blur : "blur(12px) saturate(120%)",
-                WebkitBackdropFilter: isOverDarkSection ? NAV_DARK.blur : "blur(12px) saturate(120%)",
-                bgcolor: isOverDarkSection ? NAV_DARK.surface : "rgba(255, 255, 255, 0.4)",
+                pointerEvents: "none",
+                backdropFilter: isOverDarkSection ? NAV_GLASS_DARK.blur : "blur(20px) saturate(160%)",
+                WebkitBackdropFilter: isOverDarkSection ? NAV_GLASS_DARK.blur : "blur(20px) saturate(160%)",
+                bgcolor: isOverDarkSection ? NAV_GLASS_DARK.surface : "rgba(255, 255, 255, 0.8)",
                 borderBottom: isOverDarkSection ? NAV_DARK.hairline : "1px solid transparent",
                 boxShadow: isOverDarkSection ? NAV_DARK.shadow : "none",
+                maskImage:
+                  "linear-gradient(to bottom, #000 0%, #000 40%, rgba(0,0,0,0.75) 58%, rgba(0,0,0,0.4) 74%, rgba(0,0,0,0.12) 90%, transparent 100%)",
+                WebkitMaskImage:
+                  "linear-gradient(to bottom, #000 0%, #000 40%, rgba(0,0,0,0.75) 58%, rgba(0,0,0,0.4) 74%, rgba(0,0,0,0.12) 90%, transparent 100%)",
                 transition: `background-color 0.6s ${EASE_OUT_EXPO_CSS}, border-color 0.6s ${EASE_OUT_EXPO_CSS}, box-shadow 0.6s ${EASE_OUT_EXPO_CSS}`,
               }}
             />
@@ -971,7 +1021,10 @@ const NAV_ISLAND_V2 = {
                     : isAnyIsland
                     ? (islandOnDark
                       ? (isIslandV2 ? NAV_ISLAND_V2.surface : NAV_DARK.surface)
-                      : (isIslandV2 ? "rgba(255, 255, 255, 0.72)" : "rgba(255, 255, 255, 0.5)"))
+                      // island-v2 light surface raised toward opaque white —
+                      // the home rebuild's lighter/editorial direction reads
+                      // this pill as a crisp chip, not a translucent dark bar.
+                      : (isIslandV2 ? "rgba(255, 255, 255, 0.86)" : "rgba(255, 255, 255, 0.5)"))
                     : isOverDarkSection
                       ? NAV_DARK.surface
                       : (derivedIsCompact ? NOIR.white : "transparent")),
@@ -1028,7 +1081,11 @@ const NAV_ISLAND_V2 = {
                 boxShadow: isAnyIsland
                   ? (islandOnDark
                     ? NAV_DARK.shadow
-                    : (isIslandV2 ? "0 2px 8px rgba(0,0,0,0.05)" : "0 4px 12px rgba(0,0,0,0.06)"))
+                    // island-v2 shadow softened further to match the raised
+                    // surface opacity above — a nearly-opaque white pill
+                    // reads as floating chrome without also needing a
+                    // noticeable drop shadow to separate it from the page.
+                    : (isIslandV2 ? "0 1px 4px rgba(0,0,0,0.035)" : "0 4px 12px rgba(0,0,0,0.06)"))
                   : (isOverDarkSection && !isStandardOrGlass && !isMinimal ? NAV_DARK.shadow : "none"),
                 display: "flex",
                 justifyContent: isNotch ? "center" : "center",
@@ -1097,9 +1154,36 @@ const NAV_ISLAND_V2 = {
                   borderRadius: "8px",
                 }}
               >
+                {/* Frosted backdrop spanning the logo + wordmark — a rectangle,
+                    not a soft circular glow, so it reads as a panel behind the
+                    lockup rather than a spotlight. `farthest-side` sizes the
+                    mask ellipse to reach every edge of this box independently
+                    in each dimension, so a wide-but-short cluster still gets a
+                    fade that touches all four sides instead of a centered
+                    circle floating inside a wider rect; the mask fades both
+                    the tint AND the backdrop-filter blur together (masking a
+                    backdrop-filter layer affects its whole composited output),
+                    so the ends of the panel land at 0 opacity and 0 blur, not
+                    just 0 tint. */}
+                <Box
+                  aria-hidden
+                  sx={{
+                    position: "absolute",
+                    inset: 0,
+                    zIndex: -1,
+                    pointerEvents: "none",
+                    borderRadius: "10px",
+                    backdropFilter: "blur(10px)",
+                    WebkitBackdropFilter: "blur(10px)",
+                    bgcolor: onDark ? "rgba(6, 24, 59, 0.34)" : "rgba(255, 255, 255, 0.55)",
+                    maskImage: "radial-gradient(ellipse farthest-side at center, #000 0%, #000 55%, transparent 100%)",
+                    WebkitMaskImage: "radial-gradient(ellipse farthest-side at center, #000 0%, #000 55%, transparent 100%)",
+                    transition: "background-color 0.4s ease",
+                  }}
+                />
                 <Box sx={{ color: onDark ? NOIR.white : (derivedIsCompact ? "text.primary" : "primary.main"), display: 'flex' }}>
                   <PhitopolisLogo
-                    style={{ height: isIslandV2 ? 15 : ((isStandardOrGlass || isIsland) ? 18 : 24), width: 'auto', transition: "height 0.4s ease" }}
+                    style={{ height: isGlass ? 24 : (isIslandV2 ? 15 : ((isStandard || isIsland) ? 18 : 24)), width: 'auto', transition: "height 0.4s ease" }}
                     color="currentColor"
                     accentColor={NOIR.gold}
                   />
@@ -1113,7 +1197,7 @@ const NAV_ISLAND_V2 = {
                     <Typography
                       component="span"
                       variant="h4"
-                      sx={{ color: onDark ? NOIR.white : "primary.main", fontWeight: 800, fontSize: isIslandV2 ? "0.8rem" : ((isStandardOrGlass || isIsland) ? "0.95rem" : "1.15rem"), letterSpacing: isIslandV2 ? "0.06em" : "0.08em", lineHeight: 1.1, transition: "color 0.4s ease, font-size 0.4s ease" }}
+                      sx={{ color: onDark ? NOIR.white : "primary.main", fontWeight: 800, fontSize: isGlass ? "1.15rem" : (isIslandV2 ? "0.8rem" : ((isStandard || isIsland) ? "0.95rem" : "1.15rem")), letterSpacing: isIslandV2 ? "0.06em" : "0.08em", lineHeight: 1.1, transition: "color 0.4s ease, font-size 0.4s ease" }}
                     >
                       PH<Box component="span" sx={{ color: NOIR.gold }}>IT</Box>OPOLIS
                     </Typography>
@@ -1137,9 +1221,10 @@ const NAV_ISLAND_V2 = {
                 </motion.div>
               </RouterLink>
 
-              {/* Central Navigation Items for Standard / Island / Island-v2 /
-                  Glassmorphism. */}
-              {(isStandardOrGlass || isAnyIsland) && (
+              {/* Central Navigation Items for Standard / Island / Island-v2.
+                  Glassmorphism deliberately excludes these — the hamburger
+                  (below) is its sole nav trigger, opening the mega drawer. */}
+              {(isStandard || isAnyIsland) && (
                 <Box
                   component="nav"
                   sx={{
@@ -1222,20 +1307,19 @@ const NAV_ISLAND_V2 = {
                   variant={onDark ? "onDark" : "default"}
                   sx={{
                     display: { xs: "none", md: "inline-flex" },
-                    opacity: 1,
-                    height: (isStandardOrGlass || isAnyIsland || isMinimal) ? "24px" : "32px",
-                    fontSize: (isStandardOrGlass || isAnyIsland || isMinimal) ? "0.72rem" : undefined,
-                    fontWeight: (isStandardOrGlass || isAnyIsland || isMinimal) ? 700 : undefined,
-                    fontFamily: (isStandardOrGlass || isAnyIsland || isMinimal) ? MONO : undefined,
-                    letterSpacing: (isStandardOrGlass || isAnyIsland || isMinimal) ? "0.08em" : undefined,
-                    textTransform: (isStandardOrGlass || isAnyIsland || isMinimal) ? "none" : undefined,
+                    height: isGlass ? "32px" : ((isStandard || isAnyIsland || isMinimal) ? "40px" : "32px"),
+                    fontSize: isGlass ? undefined : ((isStandard || isAnyIsland || isMinimal) ? "0.72rem" : undefined),
+                    fontWeight: isGlass ? undefined : ((isStandard || isAnyIsland || isMinimal) ? 700 : undefined),
+                    fontFamily: isGlass ? undefined : ((isStandard || isAnyIsland || isMinimal) ? MONO : undefined),
+                    letterSpacing: isGlass ? undefined : ((isStandard || isAnyIsland || isMinimal) ? "0.08em" : undefined),
+                    textTransform: isGlass ? undefined : ((isStandard || isAnyIsland || isMinimal) ? "none" : undefined),
                     // Was "2px 0px" - zero horizontal padding, so the pill's
                     // own border sat flush against the label glyphs with no
                     // breathing room. A little horizontal room keeps the
                     // border from reading as "the border is touching the
                     // text".
-                    padding: (isStandardOrGlass || isAnyIsland || isMinimal) ? "2px 14px" : undefined,
-                    minWidth: (isStandardOrGlass || isAnyIsland || isMinimal) ? "auto" : undefined,
+                    padding: isGlass ? undefined : ((isStandard || isAnyIsland || isMinimal) ? "8px 18px" : undefined),
+                    minWidth: isGlass ? undefined : ((isStandard || isAnyIsland || isMinimal) ? "auto" : undefined),
                   }}
                 />
 
@@ -1248,22 +1332,25 @@ const NAV_ISLAND_V2 = {
                 <AnimatedMenuButton
                   active={megaNavOpen}
                   onClick={() => setMegaNavOpen(!megaNavOpen)}
+                  onHoverEnter={isGlass ? openMegaNavOnHover : undefined}
+                  onHoverLeave={isGlass ? closeMegaNavOnHover : undefined}
                   isNotch={false}
                   isImmersiveDark={onDark}
                   ariaLabel="Open navigation menu"
                   noBorder={isStandardOrGlass || isIsland || isMinimal}
-                  sx={{ display: (isStandardOrGlass || isAnyIsland) ? "none" : { xs: "none", md: "inline-flex" }, height: (isStandardOrGlass || isAnyIsland || isMinimal) ? "24px" : "32px", width: (isStandardOrGlass || isAnyIsland || isMinimal) ? "32px" : "36px" }}
+                  sx={{ display: (isStandard || isAnyIsland) ? "none" : { xs: "none", md: "inline-flex" }, height: (isStandard || isAnyIsland || isMinimal) ? "40px" : "32px", width: (isStandard || isAnyIsland || isMinimal) ? "40px" : "36px" }}
                 />
 
-                {/* Mobile 3-Bar Menu Button */}
+                {/* Mobile 3-Bar Menu Button — opens the same nav card as the
+                    desktop trigger above (shared `megaNavOpen` state). */}
                 <AnimatedMenuButton
-                  active={mobileNavOpen}
-                  onClick={() => setMobileNavOpen(true)}
+                  active={megaNavOpen}
+                  onClick={() => setMegaNavOpen(!megaNavOpen)}
                   isNotch={false}
                   isImmersiveDark={onDark}
                   ariaLabel="Open mobile navigation menu"
                   noBorder={isStandardOrGlass || isIsland || isMinimal}
-                  sx={{ display: { xs: "inline-flex", md: "none" }, height: (isStandardOrGlass || isAnyIsland || isMinimal) ? "24px" : "32px", width: (isStandardOrGlass || isAnyIsland || isMinimal) ? "32px" : "36px" }}
+                  sx={{ display: { xs: "inline-flex", md: "none" }, height: (isStandardOrGlass || isAnyIsland || isMinimal) ? "40px" : "32px", width: (isStandardOrGlass || isAnyIsland || isMinimal) ? "40px" : "36px" }}
                 />
               </Box>
               </Box>
@@ -1271,61 +1358,10 @@ const NAV_ISLAND_V2 = {
           </Container>
         </AppBar>
 
-        {/* Mobile navigation drawer — the header nav is desktop-only, so this is
-            how phones reach every page. */}
-        <Drawer
-          anchor="right"
-          open={mobileNavOpen}
-          onClose={closeMobileNav}
-          slotProps={{ paper: MOBILE_NAV_PAPER_SLOT_PROPS }}
-        >
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-            <Typography sx={{ fontFamily: MONO, fontSize: "0.72rem", letterSpacing: "0.18em", textTransform: "uppercase", color: "text.secondary" }}>
-              Menu
-            </Typography>
-            <IconButton aria-label="Close navigation menu" onClick={closeMobileNav} sx={{ color: "text.primary" }}>
-              <CloseIcon />
-            </IconButton>
-          </Stack>
-          <Stack component="nav">
-            {NAV_ITEMS.map((item) => (
-              <RouterLink
-                key={item.to}
-                to={item.to}
-                onClick={closeMobileNav}
-                sx={{
-                  py: 1.75,
-                  px: 1,
-                  fontSize: "1.25rem",
-                  fontWeight: 600,
-                  color: "text.primary",
-                  textDecoration: "none",
-                  borderBottom: 1,
-                  borderColor: "divider",
-                  transition: "all 0.2s ease",
-                  "&:hover": { color: "primary.main", bgcolor: "action.hover", paddingLeft: 2 }
-                }}
-                activeProps={{ sx: { color: "var(--accent-ink)" } }}
-              >
-                {item.label}
-              </RouterLink>
-            ))}
-          </Stack>
-          <RouterButton
-            to="/contact"
-            onClick={closeMobileNav}
-            variant="contained"
-            color="primary"
-            size="large"
-            fullWidth
-            sx={{ 
-              mt: 3,
-            }}
-          >
-            Contact
-          </RouterButton>
-        </Drawer>
-
+        {/* Inert while the nav card is open — the header is deliberately left out
+            of this one (see the comment above) so the trigger button keeps focus
+            through the handoff into the card. */}
+        <Box sx={{ display: "contents" }} inert={megaNavOpen || undefined}>
         <Box component="main" id="main-content" tabIndex={-1} sx={{ flexGrow: 1, outline: "none" }}>
           {children}
         </Box>
@@ -1337,6 +1373,7 @@ const NAV_ISLAND_V2 = {
           footerAnchorRef={footerAnchorRef}
           currentNarration={currentNarration}
         />
+        </Box>
         <CommandPalette showShortcut />
         <FloatingIdOverlay />
         <CookieNotice />

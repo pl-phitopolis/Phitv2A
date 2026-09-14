@@ -4,7 +4,7 @@ import Stack from "@mui/material/Stack";
 import { SpecularButton as Button } from "@/shared/components/ui/specular";
 import PlaceIcon from "@mui/icons-material/Place";
 import NavigationIcon from "@mui/icons-material/Navigation";
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 import { MONO } from "@/shared/theme/theme";
 import { alpha } from "@mui/material/styles";
 
@@ -17,9 +17,9 @@ export function EcotowerMap() {
       sx={{
         borderRadius: "16px",
         overflow: "hidden",
-        border: "1px solid rgba(10, 42, 102, 0.12)",
-        bgcolor: NOIR.white,
-        boxShadow: "0 12px 32px rgba(10, 42, 102, 0.06)",
+        border: `1px solid ${alpha(NOIR.navyField, 0.12)}`,
+        bgcolor: SOFT.frost,
+        boxShadow: `0 12px 32px ${alpha(NOIR.navyField, 0.06)}`,
         position: "relative",
       }}
     >
@@ -28,8 +28,8 @@ export function EcotowerMap() {
         sx={{
           px: 3,
           py: 2,
-          bgcolor: NOIR.white,
-          borderBottom: "1px solid rgba(10, 42, 102, 0.08)",
+          bgcolor: SOFT.mist,
+          borderBottom: `1px solid ${alpha(NOIR.navyField, 0.08)}`,
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -62,7 +62,7 @@ export function EcotowerMap() {
             fontWeight: 600,
             borderRadius: "6px",
             color: NOIR.navyField,
-            borderColor: "rgba(10, 42, 102, 0.2)",
+            borderColor: alpha(NOIR.navyField, 0.2),
             "&:hover": { bgcolor: alpha(NOIR.navyField, 0.06) },
           }}
         >

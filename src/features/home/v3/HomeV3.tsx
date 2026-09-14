@@ -11,7 +11,6 @@ import { ActBoundary } from "./boundaries/ActBoundary";
 import { HV3_ASK_PILL_CLEAR_MS, HV3_ASK_PILL_SHOT } from "./homeV3Motion";
 import { useHomeV3Motion } from "./useHomeV3Motion";
 import { SignalField } from "./visuals/SignalField";
-import "@/shared/theme/viewTransitionsHomeV3.css";
 import "./homeV3.css";
 import "./visuals/signalField.css";
 import "./visuals/parallax.css";

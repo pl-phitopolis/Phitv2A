@@ -14,6 +14,7 @@ import type { SectionDef } from "@/shared/sections";
 import { SCROLL_SPEED } from "@/shared/motion/scrollSpeed";
 import {
   BEAT_ENTER_START,
+  HOME_REVEAL_END,
   BEAT_EXIT_START,
   BEAT_EXIT_END,
   refreshPriorityFor,
@@ -262,6 +263,48 @@ export function SectionBeat({
       if (!inner) return;
 
       const priority = refreshPriorityFor(resolvedOrder);
+
+      if (section.motion === "scroll") {
+        // Pin owners drive their own children, outside the transformed beat wrapper.
+        if (bare) return;
+        const media = gsap.matchMedia();
+        media.add("(prefers-reduced-motion: no-preference)", () => {
+          const marked = root.querySelectorAll<HTMLElement>("[data-home-reveal]");
+          const targets = marked.length ? Array.from(marked) : [inner];
+          const entrance = gsap.timeline({
+            scrollTrigger: {
+              id: `${section.id}:reveal`, trigger: root,
+              start: BEAT_ENTER_START, end: HOME_REVEAL_END, scrub: SCROLL_SPEED,
+              refreshPriority: priority, invalidateOnRefresh: true,
+            },
+          });
+          const span = 1 + (targets.length - 1) / targets.length;
+          targets.forEach((target, index) => {
+            // All tweens own the full normalized timeline. Delayed fromTo
+            // children otherwise restore their final-lit DOM state before
+            // their slot, then snap hidden when that slot begins.
+            const start = index / targets.length / span;
+            const range = 1 / span;
+            entrance.fromTo(target, { autoAlpha: 0, y: 32 }, {
+              autoAlpha: 1, y: 0, duration: 1,
+              ease: (progress: number) => Math.max(0, Math.min(1, (progress - start) / range)),
+              immediateRender: false,
+            }, 0);
+          });
+          entrance.progress(1).progress(entrance.scrollTrigger?.progress ?? 0);
+          if (!noExitDim) {
+            gsap.fromTo(inner, { autoAlpha: 1 }, {
+              ...STAGE_EXIT, ease: "none", immediateRender: false,
+              scrollTrigger: {
+                id: `${section.id}:exit`, trigger: root,
+                start: BEAT_EXIT_START, end: BEAT_EXIT_END,
+                scrub: SCROLL_SPEED, refreshPriority: priority, invalidateOnRefresh: true,
+              },
+            });
+          }
+        });
+        return () => media.revert();
+      }
       const hasShot = Boolean(establishing) && root.querySelector(".est-mask") !== null;
 
       const variant = section.choreo ?? "rise";
@@ -471,7 +514,8 @@ export function SectionBeat({
     },
     {
       scope: ref,
-      dependencies: [section.choreo, resolvedOrder, establishScale, establishAlign, noExitDim, bare],
+      revertOnUpdate: true,
+      dependencies: [section.motion, section.id, section.choreo, resolvedOrder, establishScale, establishAlign, noExitDim, bare],
     },
   );
 

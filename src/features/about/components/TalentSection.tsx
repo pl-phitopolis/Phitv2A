@@ -5,7 +5,7 @@ import Typography from "@mui/material/Typography";
 import { CONTENT } from "@/shared/content";
 import { Section } from "@/shared/components/Section";
 import { Reveal, StaggerGroup, StaggerItem } from "@/shared/components/Reveal";
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 import { MONO } from "@/shared/theme/theme";
 
 import { MetaLabel } from "./MetaLabel";
@@ -38,6 +38,7 @@ export function TalentSection() {
     .reduce((sum, d) => sum + d.pct, 0);
 
   return (
+    <Box sx={{ bgcolor: SOFT.frost }}>
     <Section>
       <Stack spacing={{ xs: 6, md: 8 }}>
         <Reveal>
@@ -82,8 +83,9 @@ export function TalentSection() {
                           px: 2.25,
                           py: 1.75,
                           borderRadius: 2,
+                          bgcolor: SOFT.frost,
                           transition: "background-color 0.2s ease-in-out",
-                          "&:hover": { bgcolor: "action.hover" },
+                          "&:hover": { bgcolor: SOFT.frost },
                         }}
                       >
                         {school.logo ? (
@@ -163,7 +165,7 @@ export function TalentSection() {
 
           {/* Supporting detail moves into the right column and remains readable at a glance. */}
           <Reveal delay={0.2}>
-            <Stack spacing={2} sx={{ maxWidth: 640 }}>
+            <Stack spacing={2} sx={{ maxWidth: 640, bgcolor: SOFT.frost, p: { xs: 3, md: 4 }, borderRadius: 3 }}>
             <MetaLabel>Disciplines</MetaLabel>
             <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 560, fontSize: "1rem", lineHeight: 1.65 }}>
               The named disciplines below account for {namedDisciplinesPct}% of the team; the
@@ -189,5 +191,6 @@ export function TalentSection() {
         </Box>
       </Stack>
     </Section>
+    </Box>
   );
 }

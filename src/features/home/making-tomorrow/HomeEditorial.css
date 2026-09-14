@@ -76,7 +76,7 @@
   align-items: center;
   min-height: min(900px, 100svh);
   box-sizing: border-box;
-  background: var(--editorial-white);
+  background: var(--editorial-paper);
 }
 
 .editorial-thesis-grid,
@@ -272,7 +272,7 @@
   width: min(100%, 29rem);
   aspect-ratio: 4 / 5;
   overflow: hidden;
-  background: var(--editorial-paper);
+  background: var(--editorial-panel);
 }
 
 .editorial-discipline-image {
@@ -345,7 +345,7 @@
   max-height: 30rem;
   aspect-ratio: 16 / 10;
   object-fit: cover;
-  background: var(--editorial-paper);
+  background: var(--editorial-panel);
 }
 
 .editorial-case figcaption {
@@ -380,7 +380,7 @@
 }
 
 .editorial-growth {
-  background: var(--editorial-paper);
+  background: var(--editorial-white);
   border-top: 1px solid var(--editorial-rule);
 }
 
@@ -424,7 +424,7 @@
   left: 0;
   width: 0.7rem;
   height: 0.7rem;
-  border: 2px solid var(--editorial-paper);
+  border: 2px solid var(--editorial-white);
   border-radius: 50%;
   background: var(--editorial-gold);
   box-shadow: 0 0 0 1px var(--editorial-gold);

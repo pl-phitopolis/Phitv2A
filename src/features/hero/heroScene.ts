@@ -19,7 +19,7 @@
  * phase boundary; it only reads them.
  */
 
-import { flattenProgress, moveLeftProgress, sideFaceOpacity } from "./heroPhases";
+import { flattenProgress, moveLeftProgress, sideFaceOpacity } from "./canvasPhases";
 import { RGB_GOLD, RGB_STEEL, type Rgb } from "./heroPalette";
 
 /** Grid cell base dimension in pixels. */

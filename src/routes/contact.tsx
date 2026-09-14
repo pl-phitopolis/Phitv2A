@@ -10,7 +10,6 @@ import { CONTENT } from "@/shared/content";
 import { PageHeader } from "@/shared/components/PageHeader";
 import { Section } from "@/shared/components/Section";
 import { pageHead } from "@/shared/seo";
-import { alpha } from "@mui/material/styles";
 
 import { NOIR } from "@/shared/theme/palette";
 import { MONO, TYPE_SCALE } from "@/shared/theme/theme";
@@ -49,16 +48,16 @@ function NextStepsTimeline() {
                   width: 14,
                   height: 14,
                   borderRadius: "50%",
-                  bgcolor: NOIR.ink,
+                  bgcolor: "var(--text-1)",
                   border: "2px solid var(--accent)",
                   mt: 0.5,
                   transition: "all 0.25s ease",
                 }}
               />
-              {isLast ? null : <Box sx={{ width: "2px", flexGrow: 1, bgcolor: `${alpha(NOIR.ink, 0.12)}`, my: 0.8 }} />}
+              {isLast ? null : <Box sx={{ width: "2px", flexGrow: 1, bgcolor: "var(--divider)", my: 0.8 }} />}
             </Stack>
             <Box sx={{ pb: isLast ? 0 : 3.5, pt: 0.2 }}>
-              <Typography variant="body2" sx={{ fontWeight: 500, color: "text.primary", lineHeight: 1.5 }}>
+              <Typography variant="body2" sx={{ fontWeight: 500, color: "var(--text-1)", lineHeight: 1.5 }}>
                 {step.line}
               </Typography>
             </Box>
@@ -86,7 +85,7 @@ function ContactPage() {
       <PageHeader
         overline="Contact & Partnerships"
         title="Direct Inquiries"
-        lead="Whether for partnership inquiries, data questions, or research paper discussions, our engineering leadership team in Bonifacio Global City reads every message."
+        lead="Partnership inquiries, data questions, research discussions — our engineering leadership in Bonifacio Global City reads every message."
       />
 
       <Grid container spacing={6} alignItems="stretch" sx={{ mb: 10 }}>
@@ -95,14 +94,28 @@ function ContactPage() {
           <ContactForm />
         </Grid>
 
-        {/* Inspector Column */}
+        {/* Inspector Column — a dark navy card, deliberately alternating
+            register against the light SOFT-toned form beside it and the
+            SOFT FAQ band below. data-ground="dark" flips the shared
+            text/link-fg/divider custom properties (glass.css) so every
+            child below keeps using the ordinary theme-relative tokens
+            instead of hardcoding a second set of colors. */}
         <Grid size={{ xs: 12, md: 5 }} sx={{ display: "flex", flexDirection: "column" }}>
+          <Box
+            data-ground="dark"
+            sx={{
+              flex: 1,
+              bgcolor: NOIR.navyDeep,
+              borderRadius: "20px",
+              p: { xs: 3, md: 4.5 },
+            }}
+          >
           <Stack spacing={5} sx={{ height: "100%" }}>
             {/* No eyebrow. It read "INQUIRY PROTOCOL", which is jargon for a
                 contact page, and its replacement would have restated the
                 heading directly below it word for word. */}
             <Box>
-              <Typography variant="h3" component="h2" sx={{ fontWeight: 800, color: "text.primary" }}>
+              <Typography variant="h3" component="h2" sx={{ fontWeight: 800, color: "var(--text-1)" }}>
                 What happens next
               </Typography>
             </Box>
@@ -113,25 +126,25 @@ function ContactPage() {
                 no nested surfaces. */}
             <Stack spacing={2.5}>
               <Typography
-                sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.caption, letterSpacing: "0.18em", textTransform: "uppercase", color: "text.secondary", fontWeight: 700 }}
+                sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.caption, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--text-2)", fontWeight: 700 }}
               >
                 Direct Channels
               </Typography>
 
               <Stack spacing={0.5}>
-                <Typography sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.caption, color: "text.secondary", fontWeight: 700 }}>
+                <Typography sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.caption, color: "var(--text-2)", fontWeight: 700 }}>
                   GENERAL &amp; PARTNERSHIPS
                 </Typography>
-                <Link href={`mailto:${CONTENT.contact.generalInquiries}`} underline="hover" color="primary" sx={{ fontWeight: 800, fontSize: TYPE_SCALE.subtitle1 }}>
+                <Link href={`mailto:${CONTENT.contact.generalInquiries}`} underline="hover" sx={{ color: "var(--link-fg)", fontWeight: 800, fontSize: TYPE_SCALE.subtitle1 }}>
                   {CONTENT.contact.generalInquiries}
                 </Link>
               </Stack>
 
               <Stack spacing={0.5}>
-                <Typography sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.caption, color: "text.secondary", fontWeight: 700 }}>
+                <Typography sx={{ fontFamily: MONO, fontSize: TYPE_SCALE.caption, color: "var(--text-2)", fontWeight: 700 }}>
                   CAREERS &amp; GRADUATE FELLOWSHIPS
                 </Typography>
-                <Link href={`mailto:${CONTENT.contact.careersEmail}`} underline="hover" color="primary" sx={{ fontWeight: 800, fontSize: TYPE_SCALE.subtitle1 }}>
+                <Link href={`mailto:${CONTENT.contact.careersEmail}`} underline="hover" sx={{ color: "var(--link-fg)", fontWeight: 800, fontSize: TYPE_SCALE.subtitle1 }}>
                   {CONTENT.contact.careersEmail}
                 </Link>
               </Stack>
@@ -139,12 +152,13 @@ function ContactPage() {
 
             {/* HQ Address Info */}
             <Stack spacing={1}>
-              <Typography variant="body2" color="text.secondary" sx={{ lineHeight: 1.6, fontSize: TYPE_SCALE.body2 }}>
+              <Typography variant="body2" sx={{ color: "var(--text-2)", lineHeight: 1.6, fontSize: TYPE_SCALE.body2 }}>
                 <strong>Phitopolis International Corp.</strong><br />
                 27/F Ecotower, 32nd St. cor. 9th Ave., Bonifacio Global City, Taguig, Metro Manila, Philippines 1634
               </Typography>
             </Stack>
           </Stack>
+          </Box>
         </Grid>
       </Grid>
 

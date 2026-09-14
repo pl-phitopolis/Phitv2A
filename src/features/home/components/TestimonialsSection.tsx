@@ -10,7 +10,7 @@ import { useGSAP } from "@gsap/react";
 
 import { SectionBeat } from "@/shared/components/stage/SectionBeat";
 import { aboutSection, sectionOrder } from "@/shared/sections";
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 import { MONO, DISPLAY_FONT } from "@/shared/theme/theme";
 import { BEAT_START, refreshPriorityFor } from "@/shared/motion/beatThresholds";
 import { NAV_ANCHORS } from "@/shared/components/NavbarContext";
@@ -42,7 +42,7 @@ const TESTIMONIALS: readonly Testimonial[] = [
     name: "Mikki",
     role: "Quantitative Researcher",
     quote:
-      "Joining Phitopolis is one of the best decisions I've ever made. I am fortunate to be part of a deeply talented team where high-stakes collaboration is the default and everyone roots for each other's success on every trading model.",
+      "Joining Phitopolis is one of the best decisions I've ever made. I'm on a deeply talented team where high-stakes collaboration is the default and everyone roots for each other's success on every trading model.",
     colSpan: { xs: 12, md: 6 },
   },
   {
@@ -50,7 +50,7 @@ const TESTIMONIALS: readonly Testimonial[] = [
     name: "Tyrone",
     role: "Graduate Trainee",
     quote:
-      "What helped me the most were the teammates around me who mentored me and supported my growth. The sense of community stands out—asking questions is actively encouraged, providing the perfect runway to build production-grade instincts.",
+      "What helped me most were the teammates who mentored me and backed my growth. Asking questions is actively encouraged here—the perfect runway to build production-grade instincts.",
     colSpan: { xs: 12, md: 6 },
   },
   {
@@ -58,7 +58,7 @@ const TESTIMONIALS: readonly Testimonial[] = [
     name: "Patricia",
     role: "Data Scientist / Graduate Trainee",
     quote:
-      "Phitopolis keeps you on your toes because every day brings a complex real-world puzzle. What makes it truly special are the people who genuinely support you in an environment that values deep mathematical curiosity, rigorous testing, and continuous learning.",
+      "Every day here brings a complex real-world puzzle. What makes it truly special are the people who genuinely support you, in an environment that values mathematical curiosity, rigorous testing, and continuous learning.",
     colSpan: { xs: 12, md: 12 },
   },
   {
@@ -66,7 +66,7 @@ const TESTIMONIALS: readonly Testimonial[] = [
     name: "Jes",
     role: "DevOps Engineer",
     quote:
-      "Working hands-on with people solving high-throughput latency problems gives you real-world experience transforming distributed open-source technologies and complex infrastructure into high-reliability business systems.",
+      "Working hands-on with people solving high-throughput latency problems is real experience transforming distributed open-source technology and complex infrastructure into high-reliability business systems.",
     colSpan: { xs: 12, md: 6 },
   },
   {
@@ -74,7 +74,7 @@ const TESTIMONIALS: readonly Testimonial[] = [
     name: "Ayesha",
     role: "Software Engineer",
     quote:
-      "The engineering atmosphere is transparent, demanding, and immensely collaborative. It provided the ideal environment to transition smoothly from an intern into a full-time low-latency systems engineer.",
+      "The engineering atmosphere is transparent, demanding, and deeply collaborative—the ideal environment to move from intern to full-time low-latency systems engineer.",
     colSpan: { xs: 12, md: 6 },
   },
 ];
@@ -94,7 +94,9 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          bgcolor: "rgba(255, 255, 255, 0.92)",
+          // SOFT register: one unified cool ground for every card — the block
+          // (Candidates · Testimonials) shares the light `panel` GroundLayer track.
+          bgcolor: SOFT.frost,
           border: "1px solid",
           borderColor: "rgba(10, 42, 102, 0.1)",
           boxShadow: "0 12px 32px -8px rgba(10, 42, 102, 0.05)",
@@ -166,7 +168,7 @@ function TestimonialCard({ testimonial }: { testimonial: Testimonial }) {
               sx={{
                 fontFamily: MONO,
                 fontSize: "0.75rem",
-                color: NOIR.mist,
+                color: "rgba(10, 42, 102, 0.7)",
                 fontWeight: 600,
                 letterSpacing: "0.06em",
                 mt: 0.25,
@@ -263,7 +265,7 @@ export function TestimonialsSection() {
                 sx={{
                   fontSize: "1.1rem",
                   lineHeight: 1.65,
-                  color: NOIR.mist,
+                  color: "rgba(10, 42, 102, 0.7)",
                   maxWidth: 400,
                 }}
               >

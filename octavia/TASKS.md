@@ -2,7 +2,7 @@
 
 <!-- Open tasks here, newest first. One line each:
      - [ ] T-014 Short title — <status>, <mode or lane>, tasks/T-014.md            -->
-- [ ] T-009 Home page rebuild: remove gunshot hero, rebuild scroll flow end-to-end — plan done 2026-09-13, handed to Astra to build, solo, tasks/T-009-home-rebuild.md
+- [ ] T-009 Home page rebuild: remove gunshot hero, rebuild scroll flow end-to-end — build in progress 2026-09-13, fully scroll-driven, foundation first, solo, tasks/T-009-home-rebuild.md
 - [ ] T-008 Home hero powerhouse layout + design pass — **superseded by T-009 (2026-09-13, Albert's call)**, HeroReel discarded not adapted, solo, tasks/T-008-hero-powerhouse-layout.md
 - [ ] T-007 Site finalization Phase 2: Home (making-tomorrow) + About — **home-page half superseded by T-009 (2026-09-13, Albert's call)**; `/about` half still stands, still awaiting Albert's manual visual review, solo, tasks/T-007-finalization-phase2-home-about.md
 - [ ] T-003 Home page V3 — marketing reimagining with same-document View Transitions — reverted 2026-09-09 at user instruction, solo, tasks/T-003-home-v3.md

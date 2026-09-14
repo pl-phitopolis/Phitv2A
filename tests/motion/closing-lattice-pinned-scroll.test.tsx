@@ -11,13 +11,12 @@ import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 import { ClosingLatticeSection } from "@/features/home/components/closing-scene/ClosingLattice";
-import { ClosingShelf } from "@/features/home/components/ClosingShelf";
 import { NavbarProvider } from "@/shared/components/NavbarContext";
 import { CONTENT } from "@/shared/content";
 import { homeSection, sectionOrder } from "@/shared/sections";
 import { refreshPriorityFor } from "@/shared/motion/beatThresholds";
 import { SCROLL_SPEED } from "@/shared/motion/scrollSpeed";
-import { PHASE_MOVE_END } from "@/features/hero/heroPhases";
+import { PHASE_MOVE_END } from "@/features/hero/canvasPhases";
 import {
   CLOSING_PIN_VH,
   CLOSURE_ZOOM_HOLD,
@@ -62,14 +61,14 @@ describe("M2 Empirical Verification 1: ScrollTrigger Pin & Travel Distance", () 
     expect(section.id).toBe("closing");
     expect(section.ownsPin).toBe(true);
     expect(section.noExitDim).toBe(true);
-    expect(section.chapter).toBe(6);
+    expect(section.chapter).toBe(8);
     expect(section.ground).toBe("base");
   });
 
   test("refresh priority preserves top-to-bottom hierarchy with upstream pinned sections", () => {
     const closingOrder = sectionOrder("closing");
     const useCasesOrder = sectionOrder("use-cases");
-    const heroOrder = sectionOrder("hero");
+    const heroOrder = sectionOrder("hero-sequence");
 
     expect(closingOrder).toBeGreaterThan(useCasesOrder);
     expect(useCasesOrder).toBeGreaterThan(heroOrder);
@@ -331,28 +330,3 @@ describe("M2 Empirical Verification 4: Reduced Motion Fallback Mode", () => {
   });
 });
 
-describe("M2 Empirical Verification 5: ClosingShelf Wrapper & SectionBeat Architecture", () => {
-  test("ClosingShelf renders SectionBeat with bare: true and MiniEstablishingShot", () => {
-    const { container } = renderWithNavbar(<ClosingShelf />);
-
-    // Root section id matches 'closing'
-    const section = container.querySelector("section#closing");
-    expect(section).not.toBeNull();
-
-    // Bare content container is rendered because ownsPin: true
-    const bareContainer = container.querySelector(".beat-bare-content");
-    expect(bareContainer).not.toBeNull();
-
-    // ClosingLatticeSection is placed inside bare container
-    const closingLattice = bareContainer?.querySelector('[data-testid="closing-lattice-section"]');
-    expect(closingLattice).not.toBeNull();
-
-    // Establishing shot is rendered in the section
-    const shot = container.querySelector(".beat-shot");
-    expect(shot).not.toBeNull();
-
-    // The establishing-shot category eyebrow (moved here from Verification 3 —
-    // MiniEstablishingShot renders `category` verbatim).
-    expect(screen.getByText("CONTACT // PARTNERSHIP")).toBeDefined();
-  });
-});

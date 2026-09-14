@@ -466,6 +466,79 @@ export const palette: PaletteOptions = {
  * Every stop is deliberately low-chroma. "Soft" in the brief is not a hedge —
  * a saturated sky out-shouts the mark, and the mark is the subject.
  */
+/**
+ * General-purpose soft/muted light-ground tokens for non-hero pages — About,
+ * Services, Contact, Blog, Careers, Innovation Hub, Terms/Privacy — going
+ * forward across the site's multi-phase finalization.
+ *
+ * The current site is almost entirely dark navy grounds (`NOIR.navyField` /
+ * `navyDeep` / `navyInk` / `navyFloor`) with gold accents. `SOFT` is not
+ * a hedge against that decision — it doesn't walk it back or introduce a
+ * second "maybe light, maybe dark" option per section. It is a deliberate,
+ * separate register: a handful of sections in the site's non-hero pages
+ * should read as calm and airy, and drawing them as another dark navy band
+ * would be the wrong tool for that job, not a shortcut around choosing one.
+ *
+ * A fourth sibling to `NOIR`, `DAWN` and `SKY`, and — the fact worth being
+ * explicit about — **not related to `TWILIGHT`** beyond both being "soft":
+ * `TWILIGHT` is scoped to one 3D scene (the Monolith room in the hero
+ * playground) and consumed only by hero-playground files; it is not a
+ * general palette and was never meant to be reached for outside that scene.
+ * `SOFT` is the opposite of that — general-purpose, page-level, and it
+ * carries body text — so it is its own object rather than an extension of
+ * either `TWILIGHT` (wrong scope) or `NOIR` (wrong role: `NOIR.navyField`
+ * stays the primary/text-color authority everywhere, including on `SOFT`'s
+ * own grounds — see below).
+ *
+ * Consumed the same way every other object in this file is: a plain import
+ * (`import { SOFT } from "@/shared/theme/palette"`) used directly in a
+ * component's `sx` prop. There is no MUI `theme.custom` slot for it and none
+ * should be added — that is not how `NOIR`/`DAWN`/`SKY`/`TWILIGHT` are wired
+ * up, and `SOFT` follows the same convention rather than inventing a second
+ * one.
+ *
+ * Six tokens, two roles:
+ *
+ *   `frost` / `mist` / `linen` — GROUNDS. Full-bleed section/page
+ *   backgrounds and card surfaces. `frost` is the cool near-white page
+ *   ground; `mist` a slightly deeper cool surface for cards; `linen` a
+ *   warm-neutral alternate ground so back-to-back sections don't all read
+ *   as the same cool grey. The text drawn on all three is `NOIR.navyField`
+ *   (or a navy-based secondary at alpha) — the same primary-text authority
+ *   the rest of the site uses, never a new ink colour.
+ *
+ *   `sand` / `sage` / `blush` — sparse accent SURFACES: captions, tags,
+ *   dividers, quote/callout backgrounds. Not meant to carry large blocks of
+ *   body copy; they exist to break up long runs of `frost`/`mist`/`linen`
+ *   with a little warmth or colour without introducing a new hue family —
+ *   all six tokens are deliberately low-chroma, the same "soft is not a
+ *   hedge, a saturated surface out-shouts the content" restraint `TWILIGHT`
+ *   states for its own sky.
+ *
+ * WCAG, `NOIR.navyField` as text (the role it actually plays) against each
+ * ground, computed with the same relative-luminance formula
+ * `tests/a11y-contrast.test.ts` already implements:
+ *
+ *     frost 12.64:1 · mist 11.56:1 · linen 11.93:1
+ *     sand 10.37:1 · sage 10.45:1 · blush 10.06:1
+ *
+ * Every figure clears the AA body-text floor (4.5:1) with wide margin,
+ * `sand`/`sage`/`blush` included — unlike `NOIR.live` or `NOIR.gold`-on-light
+ * elsewhere in this file, there is no sub-AA trade-off to record here. These
+ * are light grounds meant to carry dark navy text comfortably; if a future
+ * re-cut ever lightens one of the accent surfaces enough to threaten that,
+ * `tests/a11y-contrast.test.ts` pins the current figures so the regression
+ * is caught rather than discovered in the browser.
+ */
+export const SOFT = {
+  frost: "#F4F6FA",
+  mist: "#E9ECF3",
+  linen: "#F3EFE7",
+  sand: "#EADFCB",
+  sage: "#DCE3DA",
+  blush: "#EAD9DA",
+} as const;
+
 export const TWILIGHT = {
   /** The dominant. Near-pure white, the faintest cool cast so it reads as
    *  light rather than as paper stock. */

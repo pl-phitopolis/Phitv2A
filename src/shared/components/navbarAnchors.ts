@@ -15,6 +15,19 @@
  * Anchor ids now live here and useNavbarAnchor only accepts one of them.
  */
 export const NAV_ANCHORS = {
+  // T-009: live home flow, separate from section ids.
+  FLOW_HERO_SEQUENCE: "flow-hero-sequence",
+  FLOW_HOME_INTRODUCTION: "flow-home-introduction",
+  FLOW_HERO_MISSION: "flow-hero-mission",
+  FLOW_HERO_PILLARS: "flow-hero-pillars",
+  FLOW_USE_CASES: "flow-use-cases",
+  FLOW_HOME_CUT_RESEARCH: "flow-home-cut-research",
+  FLOW_PROCESS: "flow-process",
+  FLOW_REACH: "flow-reach",
+  FLOW_HOME_ACADEMY: "flow-home-academy",
+  FLOW_HOME_CUT_CLOSING: "flow-home-cut-closing",
+  FLOW_CLOSING: "flow-closing",
+
   /** The hero page's gunshot & smoking dark image sequence. */
   HERO_GUNSHOT: 'hero-gunshot',
   /** The daily-life film, which the navbar must go light over. */

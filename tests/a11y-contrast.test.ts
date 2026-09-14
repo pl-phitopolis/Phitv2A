@@ -29,7 +29,7 @@
 
 import { describe, expect, test } from "vitest";
 
-import { NOIR, DAWN, SKY, CHAPTER_ACCENTS, TECH_CAT_ACCENTS } from "@/shared/theme/palette";
+import { NOIR, DAWN, SKY, CHAPTER_ACCENTS, TECH_CAT_ACCENTS, SOFT } from "@/shared/theme/palette";
 
 /** WCAG relative luminance. */
 function luminance(hex: string): number {
@@ -389,6 +389,43 @@ describe("island-v2 navbar pill (dark mode)", () => {
       navyDark: NOIR.navyDark,
     })) {
       expect(luminance(NOIR.duskNavy), `duskNavy vs ${name}`).toBeGreaterThan(luminance(ground));
+    }
+  });
+});
+
+describe("SOFT — general-purpose light grounds (non-hero pages)", () => {
+  // SOFT.frost/mist/linen are page/section grounds; SOFT.sand/sage/blush are
+  // sparse accent surfaces (captions, tags, dividers, callouts). In every
+  // case the text drawn over them is NOIR.navyField — the primary/text-color
+  // authority the rest of the site uses, not a new ink colour. Measured:
+  //     frost 12.64:1 · mist 11.56:1 · linen 11.93:1
+  //     sand 10.37:1 · sage 10.45:1 · blush 10.06:1
+  const EXPECTED: Record<keyof typeof SOFT, number> = {
+    frost: 12.64,
+    mist: 11.56,
+    linen: 11.93,
+    sand: 10.37,
+    sage: 10.45,
+    blush: 10.06,
+  };
+
+  test("navyField text clears AA on every SOFT ground/surface", () => {
+    for (const [name, hex] of Object.entries(SOFT)) {
+      const ratio = contrast(NOIR.navyField, hex);
+      expect(ratio, `navyField on SOFT.${name} — ${ratio.toFixed(2)}:1`).toBeGreaterThanOrEqual(AA_BODY);
+    }
+  });
+
+  test("the measured ratios match the values documented in palette.ts", () => {
+    for (const [name, expected] of Object.entries(EXPECTED)) {
+      const ratio = contrast(NOIR.navyField, SOFT[name as keyof typeof SOFT]);
+      expect(ratio, `navyField on SOFT.${name} — ${ratio.toFixed(2)}:1`).toBeCloseTo(expected, 1);
+    }
+  });
+
+  test("every SOFT token is a full-length hex", () => {
+    for (const [key, value] of Object.entries(SOFT)) {
+      expect(value, `SOFT.${key}`).toMatch(/^#[0-9A-Fa-f]{6}$/);
     }
   });
 });

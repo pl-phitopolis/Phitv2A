@@ -13,7 +13,7 @@ async function renderHome() {
     history: createMemoryHistory({ initialEntries: ["/"] }),
   });
   renderWithProviders(<RouterProvider router={router} />, queryClient);
-  await screen.findByRole("heading", { level: 1, name: /phitopolis/i });
+  await screen.findByRole("heading", { level: 1, name: /quantitative R&D partner/i });
   return document.getElementById("home-main")!;
 }
 
@@ -21,7 +21,7 @@ test("reduced motion leaves every chapter readable without pins or a preloader",
   const home = await renderHome();
   expect(screen.queryByTestId("preloader")).not.toBeInTheDocument();
   expect(home.querySelector(".pin-spacer")).toBeNull();
-  for (const id of ["hero-mission", "global-markets", "hero-pillars", "proof-film", "use-cases", "process", "reach", "closing"]) {
+  for (const id of ["hero-mission", "home-introduction", "hero-pillars", "use-cases", "process", "reach", "home-academy", "closing"]) {
     const section = home.querySelector<HTMLElement>(`#${id}`)!;
     expect(section).toBeVisible();
     expect(section).not.toHaveAttribute("aria-hidden", "true");
@@ -32,7 +32,7 @@ test("reduced motion leaves every chapter readable without pins or a preloader",
 
 test("reduced motion shows film posters and keeps the closing contact action available", async () => {
   const home = await renderHome();
-  for (const id of ["proof-film", "closing"]) {
+  for (const id of ["closing"]) {
     const section = home.querySelector<HTMLElement>(`#${id}`)!;
     const poster = section.querySelector("img");
     expect(poster).toBeInTheDocument();

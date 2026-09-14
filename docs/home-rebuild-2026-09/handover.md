@@ -258,3 +258,26 @@ fallback), a real-wheel-event scroll pass rather than `window.scrollTo` (Lenis i
 programmatic scroll — CLAUDE.md flags this explicitly), and `tests/e2e/ladder-probe.js`
 for trigger-threshold parity across viewports if the beat/choreo system's timing changed
 materially.
+
+
+## Execution amendment — 2026-09-13, Albert confirmed directly in chat
+
+Albert selected "Fully scroll-driven (Recommended)" and explicitly requested
+implementation of the revised plan. This amendment governs over timed-motion/native
+in-page-cut instructions above; those remain preserved as superseded reasoning.
+- All home narrative motion is reversible and driven by scroll progress, including
+  strips, mission drawer, map routes, video.currentTime, and the final CTA push.
+- Sections 6/10 share one new GSAP scroll-driven primitive in separate unpinned
+  intervals. No document.startViewTransition calls, Lenis suspension, hold gates,
+  escape counters, or autoplay sequence within home. Cross-route transitions remain.
+- Preserve SCROLL_SPEED and SmoothScroll smoothing. MOTION_FAST=.85 and
+  MOTION_EXTREME=1.5 remain one-shot seconds constants, not narrative scrub timing.
+- Foundation explicitly extracts canvasPhases and preserved parity tests before
+  heroPhases deletion; preserved renderer consumers receive import-only migrations.
+- Use Outfit and existing R&D milestones (2019 / 2020-2025 / 2026), and the finisher
+  "R&D since 2019". New hero is an editorial research composition with a flat diagram.
+- Below 768px pillars/timeline stack vertically and closing CTA stacks below video.
+- Section 2 occupies three viewports of scrub travel: first quarter empty navy,
+  middle half strips, final quarter finisher. Section 3 uses one viewport of travel.
+  Desktop closing uses three viewports: first 75% seeks video, final 25% pushes
+  final frame left and reveals 45%-width white CTA. Phone video scrubs without pinning.

@@ -38,14 +38,15 @@ export function ServicesCategoryFilter({ selectedCategory, onSelectCategory }: S
                 fontWeight: isActive ? 800 : 600,
                 letterSpacing: "0.04em",
                 color: isActive ? NOIR.white : NOIR.navyField,
-                bgcolor: isActive ? NOIR.navyField : "transparent",
-                border: `1px solid ${isActive ? NOIR.navyField : NOIR.hairline}`,
-                borderRadius: "6px",
-                px: 0.8,
-                py: 0.4,
+                bgcolor: isActive ? NOIR.navyField : "rgba(10, 42, 102, 0.08)",
+                border: `1px solid ${isActive ? NOIR.navyField : "rgba(10,42,102,0.16)"}`,
+                borderRadius: "var(--r-pill)",
+                px: 1.2,
+                py: 0.7,
                 cursor: "pointer",
                 boxShadow: "none",
-                "&:hover": { bgcolor: isActive ? NOIR.navyField : "rgba(10,42,102,0.06)" },
+                transition: "all 0.15s ease",
+                "&:hover": { bgcolor: isActive ? NOIR.navyField : "rgba(10, 42, 102, 0.14)" },
               }}
             />
           );

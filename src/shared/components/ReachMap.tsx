@@ -50,7 +50,7 @@ function arcPath(from: City, to: City): string {
   return `M ${String(a.x)} ${String(a.y)} Q ${String(midX)} ${String(midY)} ${String(b.x)} ${String(b.y)}`;
 }
 
-export function ReachMap() {
+export function ReachMap({ motionMode = "ambient" }: { motionMode?: "ambient" | "scroll" }) {
   const theme = useTheme();
   const rootRef = useRef<HTMLDivElement>(null);
   const inView = useInView(rootRef, { once: true, amount: 0.2 });
@@ -62,6 +62,22 @@ export function ReachMap() {
   const show = inView;
 
   const hq = projectPoint(HQ.lon, HQ.lat);
+
+  // The home story supplies scroll progress; this mode contains no ambient clocks.
+  if (motionMode === "scroll") return <Box sx={{ width: "100%", color: NOIR.navyField }}>
+    <svg viewBox={`0 0 ${WORLD_MAP.width} ${WORLD_MAP.height}`} role="img" aria-labelledby={`reach-title-${uid}`} style={{ display: "block", width: "100%" }}>
+      <title id={`reach-title-${uid}`}>Global reach from Manila: clients, investors and leadership connections</title>
+      <path d={WORLD_DOTS_PATH} fill="none" stroke="currentColor" strokeWidth="3.8" strokeLinecap="round" opacity="0.28" />
+      {REACH.filter(city => !city.hideArc).map(city => <path key={city.label} data-home-map-arc d={arcPath(HQ, city)} fill="none" stroke={NOIR.goldDark} strokeWidth="2" pathLength="1" strokeDasharray="1" strokeDashoffset="0" />)}
+      {[HQ, ...REACH.filter(city => !city.hideArc)].map(city => {
+        const point = projectPoint(city.lon, city.lat);
+        return <g key={city.label}><circle cx={point.x} cy={point.y} r="6" fill={NOIR.navyField} /><circle cx={point.x} cy={point.y} r="12" stroke={NOIR.navyField} fill="none" opacity="0.4" /></g>;
+      })}
+    </svg>
+    <Box sx={{ display: "flex", flexWrap: "wrap", justifyContent: "space-between", gap: 2, borderTop: 1, borderColor: NOIR.navyField, pt: 3 }}>
+      {[HQ, ...REACH].map(city => <Typography key={city.label} variant="overline">{city.label}{city === HQ ? " / HQ" : ""}</Typography>)}
+    </Box>
+  </Box>;
 
   return (
     <Box

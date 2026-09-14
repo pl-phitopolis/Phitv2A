@@ -35,7 +35,7 @@
  * iteration.
  */
 
-import { PHASE_MOVE_END } from "@/features/hero/heroPhases";
+import { PHASE_MOVE_END } from "@/features/hero/canvasPhases";
 
 /** Pin length as a multiple of `window.innerHeight`. Retuned 1.3 → 2.0 → 2.6 →
  *  3.0: the buffered spine needs the extra room (re-check

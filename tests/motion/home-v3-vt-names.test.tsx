@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { render } from "@testing-library/react";
+import { cleanup, render } from "@testing-library/react";
 
 /**
  * A `view-transition-name` may be borne by at most ONE rendered element per
@@ -88,7 +88,9 @@ describe("home V3 shared elements: one name per snapshot, never two", () => {
     };
   });
 
-  afterEach(() => {
+  afterEach(async () => {
+    cleanup();
+    await new Promise(resolve => setTimeout(resolve, 80));
     (document as unknown as Record<string, unknown>).startViewTransition = original;
     delete document.documentElement.dataset.hv3Shot;
     delete document.documentElement.dataset.hv3Act;

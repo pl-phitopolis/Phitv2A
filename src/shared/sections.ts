@@ -26,7 +26,7 @@ export const ACT_LABELS: Record<Act, string> = {
  *  now collapses to a single act, and EyeFlow.tsx renders a flat list of the
  *  seven chapters with no act header — a one-act page needs no group label.
  *  ABOUT_CHAPTERS below only uses 0–2, so the narrowing is safe for it. */
-export type ChapterIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6;
+export type ChapterIndex = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 
 export interface ChapterDef {
   index: ChapterIndex;
@@ -59,18 +59,22 @@ export interface ChapterDef {
  *  The thesis begins immediately after the hero, which is why THESIS sits
  *  second. */
 export const CHAPTERS: readonly ChapterDef[] = [
-  { index: 0, label: "ORIGIN", act: "services" },
-  { index: 1, label: "THESIS", act: "services" },
-  { index: 2, label: "DISCIPLINES", act: "services" },
-  { index: 3, label: "PROOF", act: "services" },
-  { index: 4, label: "APPLICATIONS", act: "services" },
-  { index: 5, label: "REACH", act: "services" },
-  { index: 6, label: "HORIZON", act: "services" },
+  { index: 0, label: "RESEARCH", act: "services" },
+  { index: 1, label: "SINCE 2019", act: "services" },
+  { index: 2, label: "MISSION", act: "services" },
+  { index: 3, label: "PILLARS", act: "services" },
+  { index: 4, label: "IN PRODUCTION", act: "services" },
+  { index: 5, label: "R&D JOURNEY", act: "services" },
+  { index: 6, label: "GLOBAL REACH", act: "services" },
+  { index: 7, label: "ACADEMY", act: "people" },
+  { index: 8, label: "LET'S BUILD", act: "services" },
 ];
 
 /** One home-page section: single source of truth for snap points, the left
  *  dot rail, the right chapter rail, and anchor ids. */
 export interface SectionDef {
+  /** Home rebuild opts into reversible progress; existing consumers keep event entrances. */
+  motion?: "scroll";
   /** DOM id of the section element (anchor target). */
   id: string;
   /** Display number shown in the kicker, e.g. "02". Absent on unnumbered sections. */
@@ -161,104 +165,28 @@ export const STAGE_ATTR = "data-stage-section";
 // the ordered source for the rail and refresh priorities even though the route
 // no longer mounts the dynamic ground layer.
 export const HOME_SECTIONS: readonly SectionDef[] = [
-  // ── SERVICES ──────────────────────────────────────────────────────────────
-  { id: "hero-flatten", label: "Logo Flatten", chapter: 0, ground: "void" },
-  { id: "hero-align", label: "Logo Align", chapter: 0, ground: "void" },
-  { id: "hero-reveal", label: "Wordmark Reveal", chapter: 0, ground: "void" },
-  { id: "hero-dwell", label: "Logo Dwell", chapter: 0, ground: "void" },
-  { id: "hero", label: "Signal Core", chapter: 0, ground: "void" },
-  // The thesis component renders both the mission and global-markets copy as
-  // two consecutive bright editorial sections.
-  { id: "hero-mission", label: "Core Mission", chapter: 1, ground: "panel" },
-  // The second half of HomeThesis: the wager the following disciplines prove.
-  { id: "global-markets", label: "The Global-Markets Wager", chapter: 1, ground: "deep" },
-  {
-    // HomeDisciplines (making-tomorrow/HomeEditorial.tsx): an unpinned,
-    // vertical alternating photo/text composition (media pattern 02). No
-    // longer a pinned horizontal rail, so it drops `ownsPin`/`choreo`/
-    // `noExitDim`/`establishScale` entirely — `HomeDisciplines` bypasses
-    // `SectionBeat` and doesn't consume any of those. `ground` flips from
-    // `deep` to `panel` to match `.editorial-disciplines`'s actual paint
-    // (`--editorial-paper: #f8f9fb`, matching GROUNDS.panel's `#F8FAFC`
-    // closer than any other GroundName) — `GroundLayer` still reads this
-    // value independently to paint the scroll-driven background, so a stale
-    // `deep` here would paint a dark background behind the new light section.
-    id: "hero-pillars",
-    label: "Operating Pillars",
-    chapter: 2,
-    ground: "panel",
-  },
-  {
-    // HomeFilmScene (making-tomorrow/HomeFilmScene.tsx, scene="proof"): a
-    // pinned cinematic passage over the SERVICES_LOOP footage — the new
-    // proof-film beat between the disciplines and the applications. Its own
-    // ScrollTrigger pin lives in HomeFilmScene, not SectionBeat, hence
-    // `ownsPin`/`noExitDim` (nothing after it to dim toward while it's
-    // pinned) and no `establishScale` (it has no establishing shot). `ground`
-    // matches `.home-film`'s `--film-navy: #061226`, an exact match for
-    // GROUNDS.base (`NOIR.navyInk`, also `#061226`). Ordered ahead of
-    // `services`/`use-cases` in this array (not just by `chapter`) so
-    // `sectionOrder`/`refreshPriorityFor` matches the real page order the
-    // component renders in — this section comes right after the disciplines.
-    id: "proof-film",
-    label: "Proof Film",
-    chapter: 3,
-    ground: "base",
-    ownsPin: true,
-    noExitDim: true,
-  },
-  { id: "services", label: "Capabilities", chapter: 3, ground: "void", establishScale: "mini" },
-  {
-    // Vertical scroll of near-full-viewport blocks with a sticky crossfading
-    // 3D-isometric background per use case (UseCasesNarrative / UseCaseBackdrop).
-    // No longer `ownsPin` — the old pinned horizontal scrub is gone — but still
-    // `noExitDim`: the scrubbed exit dim would fade a full-bleed image and its
-    // copy to 25% right as the reader reaches the third use case.
-    id: "use-cases",
-    label: "Architectural Use-Cases",
-    chapter: 4,
-    ground: "panel",
-    noExitDim: true,
-    establishScale: "mini",
-  },
-  {
-    // HomeGrowth (making-tomorrow/HomeEditorial.tsx): an unpinned ordered-list
-    // 3-stop growth timeline (media pattern replaced the old pinned
-    // ProcessScrubStage). Drops `ownsPin`/`noExitDim`/`establishScale` for the
-    // same reason as `hero-pillars` above — `HomeGrowth` bypasses
-    // `SectionBeat`. `ground` flips from `deep` to `panel` to match
-    // `.editorial-growth`'s actual paint (`--editorial-paper: #f8f9fb`).
-    // Sits in the APPLICATIONS chapter alongside `use-cases` — growth reads
-    // as "more of what we build and how," not a rail-worthy identity of its
-    // own, and `CHAPTERS` stays at exactly 7 stops.
-    id: "process",
-    label: "Growing Into A Development Powerhouse",
-    chapter: 4,
-    ground: "panel",
-  },
-  {
-    id: "reach",
-    label: "Global Footprint",
-    chapter: 5,
-    choreo: "spotlight-clip",
-    ground: "white",
-    establishScale: "mini",
-    ariaLabel: "Global Footprint",
-    act: "services",
-  },
-  // HomeFilmScene's final, pinned CTA film.
-  {
-    id: "closing",
-    label: "Horizon Gateway",
-    chapter: 6,
-    ground: "base",
-    ownsPin: true,
-    noExitDim: true,
-  },
+  { id: "hero-sequence", label: "Quantitative R&D", chapter: 0, ground: "base", motion: "scroll", ownsPin: true, noExitDim: true },
+  { id: "home-introduction", label: "R&D since 2019", chapter: 1, ground: "deep", motion: "scroll", ownsPin: true, noExitDim: true },
+  { id: "hero-mission", label: "Core mission", chapter: 2, ground: "panel", motion: "scroll", ownsPin: true, noExitDim: true },
+  { id: "hero-pillars", label: "Three pillars", chapter: 3, ground: "deep", motion: "scroll", ownsPin: true, noExitDim: true },
+  { id: "use-cases", label: "Built and supported", chapter: 4, ground: "panel", motion: "scroll", noExitDim: true },
+  { id: "home-cut-research", label: "Into research", chapter: 5, ground: "deep", motion: "scroll", ownsPin: true, noExitDim: true },
+  { id: "process", label: "R&D journey", chapter: 5, ground: "deep", motion: "scroll", ownsPin: true, noExitDim: true },
+  { id: "reach", label: "Global reach", chapter: 6, ground: "panel", motion: "scroll", noExitDim: true },
+  { id: "home-academy", label: "Phitopolis Academy", chapter: 7, ground: "deep", motion: "scroll", noExitDim: true },
+  { id: "home-cut-closing", label: "Into what's next", chapter: 8, ground: "base", motion: "scroll", ownsPin: true, noExitDim: true },
+  { id: "closing", label: "Start a conversation", chapter: 8, ground: "base", motion: "scroll", ownsPin: true, noExitDim: true },
+];
+
+/** Parked components retain lookups without adding phantom stops to the live flow. */
+const LEGACY_HOME_SECTIONS: readonly SectionDef[] = [
+  { id: "services", label: "Capabilities", chapter: 4, ground: "panel", establishScale: "mini" },
+  { id: "global-markets", label: "Global markets", chapter: 2, ground: "deep" },
+  { id: "proof-film", label: "Proof film", chapter: 4, ground: "base", ownsPin: true, noExitDim: true },
 ];
 
 export function homeSection(id: string): SectionDef {
-  const def = HOME_SECTIONS.find((section) => section.id === id);
+  const def = HOME_SECTIONS.find((section) => section.id === id) ?? LEGACY_HOME_SECTIONS.find((section) => section.id === id);
   if (!def) throw new Error(`Unknown home section: ${id}`);
   return def;
 }
@@ -285,6 +213,8 @@ export function sectionOrder(id: string): number {
   if (home !== -1) return home;
   const about = ABOUT_SECTIONS.findIndex((section) => section.id === id);
   if (about !== -1) return about;
+  const legacy = LEGACY_HOME_SECTIONS.findIndex((section) => section.id === id);
+  if (legacy !== -1) return legacy;
   throw new Error(`Unknown section for order derivation: ${id}`);
 }
 
@@ -374,7 +304,7 @@ export function chapterTarget(chapter: ChapterIndex): string | undefined {
 // Module-level active-section store: written by ScrollTrigger callbacks on
 // every scroll, so a context would re-render the whole page tree — only the
 // two rail components subscribe.
-const DEFAULT_SECTION_ID = "hero";
+const DEFAULT_SECTION_ID = "hero-sequence";
 let activeId = DEFAULT_SECTION_ID;
 const listeners = new Set<() => void>();
 

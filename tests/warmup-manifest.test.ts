@@ -3,14 +3,14 @@ import { describe, expect, it } from "vitest";
 import { resolveRouteManifest } from "@/shared/components/AppShell";
 
 describe("resolveRouteManifest — route-aware warm-up manifest", () => {
-  it("home warms its actual hero poster, without eagerly loading later films", () => {
+  it("text and inline-SVG home hero has no blocking media or eager film load", () => {
     const m = resolveRouteManifest("/");
-    expect(m.blocking).toEqual(["/videos/hero-loop-poster.jpg"]);
+    expect(m.blocking).toEqual([]);
     expect(m.background).toEqual([]);
   });
 
   it("home blocking tier stays tiny (preloaded in full, so it must be cheap)", () => {
-    expect(resolveRouteManifest("/").blocking).toHaveLength(1);
+    expect(resolveRouteManifest("/").blocking).toHaveLength(0);
   });
 
   it("about landing warms its hero background loop poster + primary photo", () => {

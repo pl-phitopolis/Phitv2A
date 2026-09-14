@@ -8,12 +8,11 @@ tests/ (motion + home-route coverage for the new flow)
 Merged: <blank — nothing built yet>
 
 ## Current
-Stage: plan done (2026-09-13), then independently reviewed the same day against an
-Astra-drafted revision of this plan and corrected two real defects in the handover doc
-(see Log). No application code touched yet. Supersedes T-007's home-page scope and all
-of T-008 (see below).
-Blocking: none. Next: Astra revises its plan against the corrected handover doc, then
-runs the build, delegating per the N.5/N.6 breakdown.
+Stage: build in progress — Astra, 2026-09-13. Albert explicitly requested implementation
+of the revised, fully scroll-driven plan in chat. Foundation first, then N.5/N.6 units.
+Blocking: none recorded. Gate and browser acceptance checks remain not checked.
+Next: extract preserved canvas phase math with parity tests, integrate scroll-driven
+beat mode, then build and verify all 11 steps. Unrelated dirty work is preserved.
 
 ## Plan                         [claude → albert]
 
@@ -69,6 +68,22 @@ otherwise evidenced anywhere in the repo:
   aperture. The cross-route `fresko-home-aperture` (View Transitions API, fires on
   navigation *to* `/`) is untouched — orthogonal concern.
 
+### Amendment — 2026-09-13 [albert, observed directly in chat]
+Albert selected "Fully scroll-driven (Recommended)" and then explicitly requested
+"PLEASE IMPLEMENT THIS PLAN". This supersedes the original one-shot reveals, native
+in-page cuts, and timed CTA push. Every home narrative state derives from scroll
+progress and reverses; retain existing Lenis/GSAP smoothing. Both cuts use one new
+GSAP primitive, with no native View Transition calls and no Lenis hold. Cross-route
+fresko-home-aperture is untouched. Preserve the original approach above as history.
+
+Also confirmed directly: editorial research hero using existing Outfit tokens; use
+existing 2019 / 2020-2025 / 2026 facts, with "R&D since 2019" finisher; below 768px
+stack pillars/timeline and CTA; extract canvas phase math with import-only migrations
+before deleting heroPhases. MOTION_FAST/EXTREME retain one-shot seconds meaning and
+do not drive this scroll narrative. Astra owns shared integration; each numbered
+unit gets current-tree N.5 discovery before N.6 changes and tests. No protected
+GUARDRAILS/DECISIONS changes authorized or planned.
+
 ### Open questions
 - T-007's `/about` scope (untouched by this task) still needs Albert's manual visual
   review independently — not resolved by T-009 superseding T-007's home-page half.
@@ -77,8 +92,8 @@ otherwise evidenced anywhere in the repo:
   plan keeps it untouched by default since it's currently only consumed by the closing
   scene.
 
-## Build                        [pending — Astra]
-Not started.
+## Build                        [astra]
+In progress. Foundation discovery reverified; baseline gate running. No completion claim.
 
 ## Review                       [pending]
 Not started.
@@ -133,6 +148,31 @@ Not started.
      reason — so it's re-flagged for him rather than inherited as a default. Both fixes
      applied to `docs/home-rebuild-2026-09/handover.md`; not yet re-verified against a
      revised Astra plan.
+
+- 2026-09-13 astra/build: Starting authorized revised plan. Previous Current preserved:
+  ## Current
+  Stage: plan done (2026-09-13), then independently reviewed the same day against an
+  Astra-drafted revision of this plan and corrected two real defects in the handover doc
+  (see Log). No application code touched yet. Supersedes T-007's home-page scope and all
+  of T-008 (see below).
+  Blocking: none. Next: Astra revises its plan against the corrected handover doc, then
+  runs the build, delegating per the N.5/N.6 breakdown.
+  
+
+- 2026-09-13 astra/build: Prior SESSION next action preserved:
+  ## Next action
+  T-009 (home page rebuild — remove the gunshot hero and the entire home scroll
+  architecture, rebuild to Albert's 11-step flow: RnD/SaaS/FinTech hero → empty-
+  navy scroll teaser → 5 vertical strips → R&D-years finisher → drawer →
+  mission core → 3-pillars horizontal scroll → built/supported → view-transition
+  cut → R&D timeline → global reach → career-growth/Academy → view-transition
+  cut → video-scrub CTA). **Plan done 2026-09-13, handed to an Astra orchestrator
+  to build** — see `docs/home-rebuild-2026-09/handover.md` (full spec + N.5/N.6
+  delegation breakdown) and `tasks/T-009-*.md`. Supersedes T-008 entirely
+  (HeroReel discarded, not adapted) and T-007's home-page half (`/about` half
+  still stands, still awaiting Albert's review — see Superseded, below, for
+  both). No application code touched yet; nothing committed.
+  
 
 ## Handoff
 Status: plan complete, handed off — next runner is an Astra orchestrator session (or

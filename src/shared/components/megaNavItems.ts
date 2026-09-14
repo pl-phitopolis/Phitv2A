@@ -1,9 +1,24 @@
+export type NavGroupId = "work" | "people";
+
+export interface NavGroup {
+  id: NavGroupId;
+  label: string;
+}
+
+/** Two sections, not named after any single page (avoids literally calling
+ *  one "Services" when that's already a page label) — "what the firm does"
+ *  vs. "who you'd be reaching / joining / meeting". */
+export const NAV_GROUPS: NavGroup[] = [
+  { id: "work", label: "What We Do" },
+  { id: "people", label: "Meet The People" },
+];
+
 export interface NavSectionItem {
   to: string;
   label: string;
   sub: string;
-  preview: string;
   tag: string;
+  group: NavGroupId;
 }
 
 export const MEGA_NAV_ITEMS: NavSectionItem[] = [
@@ -11,42 +26,42 @@ export const MEGA_NAV_ITEMS: NavSectionItem[] = [
     to: "/",
     label: "Home",
     sub: "Signal Core & High-Performance Platforms",
-    preview: "/images/software-engineer-banner.webp",
     tag: "01",
-  },
-  {
-    to: "/about",
-    label: "About",
-    sub: "Who We Are, Principles & Manila R&D Firm",
-    preview: "/images/AboutPageHero.webp",
-    tag: "02",
+    group: "work",
   },
   {
     to: "/services",
     label: "Services",
     sub: "Full-Stack, Quant Research, Data & SRE Ops",
-    preview: "/images/quant-research-banner.webp",
-    tag: "03",
-  },
-  {
-    to: "/careers",
-    label: "Careers",
-    sub: "Graduate Fellowships & Paid R&D Internships",
-    preview: "/images/grads/FocusedProgramming.webp",
-    tag: "04",
-  },
-  {
-    to: "/blog",
-    label: "Blog",
-    sub: "Engineering Research & Tech Articles",
-    preview: "/images/ops-support-banner.webp",
-    tag: "05",
+    tag: "02",
+    group: "work",
   },
   {
     to: "/contact",
     label: "Contact",
     sub: "BGC Manila R&D Office",
-    preview: "/images/bgc-2.webp",
+    tag: "03",
+    group: "work",
+  },
+  {
+    to: "/about",
+    label: "About",
+    sub: "Who We Are, Principles & Manila R&D Firm",
+    tag: "04",
+    group: "people",
+  },
+  {
+    to: "/careers",
+    label: "Careers",
+    sub: "Graduate Fellowships & Paid R&D Internships",
+    tag: "05",
+    group: "people",
+  },
+  {
+    to: "/blog",
+    label: "Blog",
+    sub: "Engineering Research & Tech Articles",
     tag: "06",
+    group: "people",
   },
 ];

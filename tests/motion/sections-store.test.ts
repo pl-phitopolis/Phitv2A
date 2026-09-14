@@ -16,12 +16,12 @@ import {
 // that can be reasoned about in isolation. These tests pin that down.
 
 afterEach(() => {
-  setActiveSection("hero");
+  setActiveSection("hero-sequence");
 });
 
 test("useSyncExternalStore contract: subscribers see updates, snapshot is stable", () => {
   const { result, rerender } = renderHook(() => useActiveSection());
-  expect(result.current).toBe("hero");
+  expect(result.current).toBe("hero-sequence");
 
   act(() => { setActiveSection("use-cases"); });
   expect(result.current).toBe("use-cases");
@@ -68,8 +68,8 @@ test("every section EyeFlow can land on resolves, including the rail-only one", 
   }
   // `closing` is the final HomeFilmScene and owns the HORIZON target.
   expect(HOME_SECTIONS.map((s) => s.id)).toContain("closing");
-  expect(homeSection("closing").chapter).toBe(6);
-  expect(chapterTarget(homeSection("closing").chapter)).toBe("closing");
+  expect(homeSection("closing").chapter).toBe(8);
+  expect(chapterTarget(homeSection("closing").chapter)).toBe("home-cut-closing");
 });
 
 test("homeSection throws loudly on an unknown id rather than returning undefined", () => {
@@ -85,7 +85,7 @@ test("chapters are contiguous and non-decreasing down the page", () => {
   }
   // Seven chapters: the proof film and applications each earn their own rail
   // stop, while the hero sub-phases remain one ORIGIN stop.
-  expect(new Set(chapters)).toEqual(new Set([0, 1, 2, 3, 4, 5, 6]));
+  expect(new Set(chapters)).toEqual(new Set([0, 1, 2, 3, 4, 5, 6, 7, 8]));
   // Every declared chapter is actually used by a section, so the rail never
   // renders a label you cannot scroll to.
   expect(new Set(CHAPTERS.map((c) => c.index))).toEqual(new Set(chapters));
@@ -104,13 +104,13 @@ test("every chapter belongs to exactly one act", () => {
   }
 });
 
-test("home is a single SERVICES act front to back, now that PEOPLE relocated to /about", () => {
+test("home includes Academy before returning to the closing services chapter", () => {
   // PRD-home-client-focus §US-2 moved the whole PEOPLE act (daily-life,
   // candidates, testimonials, blog) to /about, so home's act sequence no
   // longer changes at all — this replaces the old "Services then People"
   // two-act partition test, which is no longer true of the page.
   const acts = HOME_SECTIONS.map((s) => actOfChapter(s.chapter));
   const switches = acts.filter((act, i) => i > 0 && act !== acts[i - 1]).length;
-  expect(switches).toBe(0);
-  expect(new Set(acts)).toEqual(new Set(["services"]));
+  expect(switches).toBe(2);
+  expect(new Set(acts)).toEqual(new Set(["services", "people"]));
 });

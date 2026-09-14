@@ -31,7 +31,7 @@ import { useEffect, useImperativeHandle, useRef, type RefObject } from "react";
 import { useIsLowPowerDevice, usePointerFine } from "@/shared/motion";
 import {
   CONTAINER_START,
-} from "./heroPhases";
+} from "./canvasPhases";
 import {
   SERVICE_NODES,
   SERVICE_NODE_SIZE,

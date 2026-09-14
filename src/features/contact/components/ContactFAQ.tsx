@@ -12,8 +12,10 @@ import { Plus, Minus, MagnifyingGlass } from "@phosphor-icons/react";
 import Link from "@mui/material/Link";
 import { Link as RouterLink } from "@tanstack/react-router";
 
+import { alpha } from "@mui/material/styles";
+
 import { MONO } from "@/shared/theme/theme";
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 import { CONTENT } from "@/shared/content";
 
 export interface FAQItem {
@@ -32,7 +34,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: "How fast can I expect a response to a partnership or technical inquiry?",
     answer: (
       <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7, fontSize: "0.98rem" }}>
-        All messages submitted through our contact form are routed directly to our engineering leadership and partnerships team in Bonifacio Global City. You will receive a direct human response within <strong>1 to 2 business days</strong>.
+        Messages route directly to our engineering leadership and partnerships team in Bonifacio Global City. Expect a human reply within <strong>1 to 2 business days</strong>.
       </Typography>
     ),
   },
@@ -43,11 +45,11 @@ const FAQ_ITEMS: FAQItem[] = [
     question: "How do I apply for the Graduate Fellowship or R&D Internships?",
     answer: (
       <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7, fontSize: "0.98rem" }}>
-        You can explore open positions and submit your application directly via our dedicated{" "}
+        Explore open roles and apply on our{" "}
         <Link component={RouterLink} to="/careers" underline="hover" color="primary" sx={{ fontWeight: 700 }}>
           Careers Page
         </Link>
-        . Alternatively, email your CV, GitHub portfolio, and code samples directly to{" "}
+        , or email your CV, GitHub portfolio, and code samples to{" "}
         <Link href={`mailto:${CONTENT.contact.careersEmail}`} underline="hover" color="primary" sx={{ fontWeight: 700 }}>
           {CONTENT.contact.careersEmail}
         </Link>
@@ -62,7 +64,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: "Where is the Phitopolis main engineering office located?",
     answer: (
       <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7, fontSize: "0.98rem" }}>
-        Our headquarters is located at <strong>27/F Ecotower Building, 32nd Street corner 9th Avenue, Bonifacio Global City (BGC), Taguig City, Metro Manila, Philippines 1634</strong>.
+        Our headquarters: <strong>27/F Ecotower Building, 32nd Street corner 9th Avenue, Bonifacio Global City (BGC), Taguig City, Metro Manila, Philippines 1634</strong>.
       </Typography>
     ),
   },
@@ -73,7 +75,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: "Does Phitopolis support flexible hybrid or remote working?",
     answer: (
       <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7, fontSize: "0.98rem" }}>
-        Yes! We operate a flexible hybrid model that combines collaborative in-person whiteboarding, system architecture reviews, and team sessions at our BGC office with quiet focus days working remotely.
+        Yes. Our hybrid model pairs in-person whiteboarding, architecture reviews, and team sessions at our BGC office with quiet remote focus days.
       </Typography>
     ),
   },
@@ -84,7 +86,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: "Can external researchers or universities collaborate on R&D projects?",
     answer: (
       <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7, fontSize: "0.98rem" }}>
-        We actively welcome research partnerships! We frequently collaborate with academic institutions, independent researchers, and open-source contributors on our R&D initiatives.
+        Yes. We collaborate with academic institutions, independent researchers, and open-source contributors on our R&amp;D initiatives.
       </Typography>
     ),
   },
@@ -95,7 +97,7 @@ const FAQ_ITEMS: FAQItem[] = [
     question: "What technical domains does Phitopolis specialize in?",
     answer: (
       <Typography variant="body1" color="text.secondary" sx={{ lineHeight: 1.7, fontSize: "0.98rem" }}>
-        Our core engineering focus spans <strong>Quantitative Research &amp; Financial Engineering</strong>, <strong>High-Performance Distributed C++ / Rust Systems</strong>, <strong>Data Science &amp; AI Signal Mining</strong>, and <strong>Cloud Infrastructure Engineering</strong>.
+        Our engineering spans <strong>Quantitative Research &amp; Financial Engineering</strong>, <strong>High-Performance Distributed C++ / Rust Systems</strong>, <strong>Data Science &amp; AI Signal Mining</strong>, and <strong>Cloud Infrastructure Engineering</strong>.
       </Typography>
     ),
   },
@@ -124,7 +126,15 @@ export function ContactFAQ() {
   }, [activeCategory, searchQuery]);
 
   return (
-    <Box sx={{ width: "100%", pt: 6, pb: 4 }}>
+    <Box
+      sx={{
+        width: "100%",
+        bgcolor: SOFT.mist,
+        borderRadius: "24px",
+        px: { xs: 2.5, md: 5 },
+        py: { xs: 4, md: 6 },
+      }}
+    >
       <Stack spacing={4}>
         {/* Header Block */}
         <Stack direction={{ xs: "column", md: "row" }} spacing={3} justifyContent="space-between" alignItems={{ xs: "flex-start", md: "flex-end" }}>
@@ -156,7 +166,7 @@ export function ContactFAQ() {
                 bgcolor: "background.paper",
                 fontFamily: MONO,
                 fontSize: "0.82rem",
-                border: "1px solid rgba(10, 42, 102, 0.12)",
+                border: `1px solid ${alpha(NOIR.navyField, 0.12)}`,
                 "&:hover": { borderColor: "var(--accent)" },
                 "&.Mui-focused": { borderColor: "var(--accent-40)", boxShadow: "0 0 0 2px var(--accent-20)" },
               },
@@ -182,13 +192,13 @@ export function ContactFAQ() {
                   px: 1,
                   borderRadius: "8px",
                   cursor: "pointer",
-                  bgcolor: isActive ? NOIR.navyField : "rgba(10, 42, 102, 0.04)",
+                  bgcolor: isActive ? NOIR.navyField : SOFT.sand,
                   color: isActive ? "var(--accent-ink)" : "text.secondary",
                   border: "1px solid",
-                  borderColor: isActive ? NOIR.navyField : "rgba(10, 42, 102, 0.1)",
+                  borderColor: isActive ? NOIR.navyField : alpha(NOIR.navyField, 0.1),
                   transition: "all 0.2s ease",
                   "&:hover": {
-                    bgcolor: isActive ? NOIR.navyField : "rgba(10, 42, 102, 0.08)",
+                    bgcolor: isActive ? NOIR.navyField : alpha(NOIR.navyField, 0.12),
                   },
                 }}
               />
@@ -205,7 +215,7 @@ export function ContactFAQ() {
             No questions match this search or filter.
           </Typography>
         ) : (
-        <Stack spacing={0} sx={{ borderTop: "1px solid rgba(10, 42, 102, 0.12)" }}>
+        <Stack spacing={0} sx={{ borderTop: `1px solid ${alpha(NOIR.navyField, 0.12)}` }}>
           {filteredItems.map((item) => {
             const isOpen = expanded === item.id;
             return (
@@ -218,13 +228,13 @@ export function ContactFAQ() {
                 sx={{
                   bgcolor: "transparent",
                   borderRadius: "0px !important",
-                  borderBottom: "1px solid rgba(10, 42, 102, 0.08)",
+                  borderBottom: `1px solid ${alpha(NOIR.navyField, 0.08)}`,
                   borderLeft: isOpen ? "3px solid var(--accent)" : "3px solid transparent",
                   transition: "all 0.25s ease",
                   pl: { xs: 1, md: 2 },
                   "&:before": { display: "none" },
                   "&:hover": {
-                    bgcolor: "rgba(10, 42, 102, 0.02)",
+                    bgcolor: alpha(NOIR.navyField, 0.03),
                   },
                 }}
               >

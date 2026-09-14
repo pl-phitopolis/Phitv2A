@@ -1,4 +1,4 @@
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 import { useRef, useState, useEffect } from "react";
 import Box from "@mui/material/Box";
 import Container from "@mui/material/Container";
@@ -32,7 +32,7 @@ const VALUES_DATA: ValueItem[] = [
   {
     number: "01",
     label: CONTENT.principles.values[0]!.label,
-    headline: "Unwavering Honesty & Ethical Engineering",
+    headline: "Honest, Ethical Engineering",
     definition: CONTENT.principles.values[0]!.definition,
     valueToClient: CONTENT.principles.values[0]!.valueToClient,
     image: "/images/software-engineer-banner.webp",
@@ -59,7 +59,7 @@ const VALUES_DATA: ValueItem[] = [
   {
     number: "04",
     label: CONTENT.principles.values[3]!.label,
-    headline: "Relentless Pursuit of Superior Engineering Standards",
+    headline: "A Relentless Bar for Engineering Standards",
     definition: CONTENT.principles.values[3]!.definition,
     valueToClient: CONTENT.principles.values[3]!.valueToClient,
     image: "/images/grads/FocusedProgramming.webp",
@@ -121,7 +121,7 @@ export function PrinciplesValuesShowcase() {
           top: 0,
           height: "100vh",
           width: "100%",
-          bgcolor: NOIR.void,
+          bgcolor: SOFT.mist,
           color: NOIR.navyField,
           overflow: "hidden",
           display: "flex",

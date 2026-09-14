@@ -1,6 +1,5 @@
 import { lazy, Suspense } from "react";
 import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { createFileRoute } from "@tanstack/react-router";
@@ -10,7 +9,6 @@ import { Reveal } from "@/shared/components/Reveal";
 import { NAV_ANCHORS } from "@/shared/components/NavbarContext";
 import { useNavbarAnchor } from "@/shared/components/navbarHooks";
 import { BackgroundReveal } from "@/features/about/components/BackgroundReveal";
-import { HeroGallery } from "@/features/about/components/HeroGallery";
 import { SmoothSection } from "@/features/about/components/SmoothSection";
 import { MissionSection } from "@/features/about/components/MissionSection";
 import { PoweredBySection } from "@/features/about/components/PoweredBySection";
@@ -19,7 +17,7 @@ import { PrinciplesValuesShowcase } from "@/features/about/components/Principles
 import { TalentSection } from "@/features/about/components/TalentSection";
 import { AcademySection } from "@/features/about/components/AcademySection";
 import { pageHead } from "@/shared/seo";
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 import { MONO, TYPE_SCALE } from "@/shared/theme/theme";
 
 // ── Talent/culture narrative, relocated from the home page ──────────────────
@@ -87,7 +85,7 @@ function AboutPage() {
   const heroAnchorRef = useNavbarAnchor(NAV_ANCHORS.ABOUT_HERO, { dark: true });
   const valuesAnchorRef = useNavbarAnchor(NAV_ANCHORS.ABOUT_VALUES, { dark: false });
   const timelineAnchorRef = useNavbarAnchor(NAV_ANCHORS.ABOUT_TIMELINE, { dark: true });
-  const certsAnchorRef = useNavbarAnchor(NAV_ANCHORS.ABOUT_CERTIFICATIONS, { dark: true });
+  const certsAnchorRef = useNavbarAnchor(NAV_ANCHORS.ABOUT_CERTIFICATIONS, { dark: false });
   const dailyLifeAnchorRef = useNavbarAnchor(NAV_ANCHORS.ABOUT_DAILY_LIFE, { dark: true });
   const candidatesAnchorRef = useNavbarAnchor(NAV_ANCHORS.ABOUT_CANDIDATES, { dark: false });
   const testimonialsAnchorRef = useNavbarAnchor(NAV_ANCHORS.ABOUT_TESTIMONIALS, { dark: false });
@@ -129,17 +127,13 @@ function AboutPage() {
         }}
       >
         <BackgroundReveal />
-        <Grid
-          container
-          spacing={{ xs: 6, md: 4 }}
-          alignItems="center"
-          justifyContent="center"
-          sx={{ position: "relative", zIndex: 2, width: "100%", mx: "auto" }}
-        >
-          {/* Left Column: Centralized Left-Aligned Text Block */}
-          <Grid size={{ xs: 12, md: 5.5 }}>
+        {/* Hero is now a single left-aligned text column over the full-bleed
+            video — no right-hand card. The sticky Box's responsive `px`
+            provides the left inset; `alignItems: center` keeps it vertically
+            centered. */}
+        <Box sx={{ position: "relative", zIndex: 2, width: "100%", maxWidth: { xs: "100%", md: 640 } }}>
             <Reveal>
-              <Stack spacing={3} sx={{ textAlign: "left", maxWidth: 620 }}>
+              <Stack spacing={3} sx={{ textAlign: "left" }}>
                 <Box sx={{ display: "inline-flex" }}>
                   <Typography
                     variant="overline"
@@ -186,15 +180,7 @@ function AboutPage() {
                 </Typography>
               </Stack>
             </Reveal>
-          </Grid>
-
-          {/* Right Column: 3-Image Composition with Glowing Center Piece */}
-          <Grid size={{ xs: 12, md: 6.5 }}>
-            <Reveal delay={0.2}>
-              <HeroGallery />
-            </Reveal>
-          </Grid>
-        </Grid>
+        </Box>
       </Box>
 
       {/* ── Parallax Overlay Sheet (Slides up and covers the Hero section) ── */}
@@ -206,46 +192,72 @@ function AboutPage() {
           borderTopLeftRadius: { xs: 28, md: 48 },
           borderTopRightRadius: { xs: 28, md: 48 },
           boxShadow: "0 -16px 48px rgba(0, 0, 0, 0.22)",
-          pt: { xs: 8, md: 14 },
+          pt: 0,
           pb: 0,
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <Box sx={{ mb: { xs: 12, md: 16 } }}>
-          <SmoothSection>
-            <MissionSection />
-          </SmoothSection>
+        {/* Block A — Mission·PoweredBy·Principles on ONE continuous mist
+            ground. This wrapper is opaque mist so the parallax gaps between
+            the sections (and the sheet's own top pad, moved here) read mist,
+            not the near-white `background.default` sheet behind them — same
+            occlusion pattern as the navy Boxes below. The sheet's rounded top
+            edge is carried here too so it reads mist. (linen is reserved for
+            the home page; non-home light grounds use frost/mist only.) */}
+        <Box
+          sx={{
+            bgcolor: SOFT.mist,
+            position: "relative",
+            zIndex: 1,
+            borderTopLeftRadius: { xs: 28, md: 48 },
+            borderTopRightRadius: { xs: 28, md: 48 },
+            pt: { xs: 8, md: 14 },
+          }}
+        >
+          <Box sx={{ mb: { xs: 12, md: 16 } }}>
+            <SmoothSection>
+              <MissionSection />
+            </SmoothSection>
+          </Box>
+
+          <Box sx={{ mb: { xs: 12, md: 20 } }}>
+            <SmoothSection>
+              <PoweredBySection />
+            </SmoothSection>
+          </Box>
+
+          <Box sx={{ mb: { xs: 12, md: 20 } }} ref={valuesAnchorRef}>
+            <PrinciplesValuesShowcase />
+          </Box>
         </Box>
 
-        <Box sx={{ mb: { xs: 12, md: 20 } }}>
-          <SmoothSection>
-            <PoweredBySection />
-          </SmoothSection>
-        </Box>
-        
-        <Box sx={{ mb: { xs: 12, md: 20 } }} ref={valuesAnchorRef}>
-          <PrinciplesValuesShowcase />
-        </Box>
-        
-        <Box sx={{ mb: { xs: 12, md: 20 } }} ref={timelineAnchorRef}>
-          <SmoothSection>
-            <Suspense fallback={null}>
-              <JourneyTimeline />
-            </Suspense>
-          </SmoothSection>
-        </Box>
-        
-        <Box sx={{ mb: { xs: 12, md: 20 } }}>
-          <SmoothSection>
-            <TalentSection />
-          </SmoothSection>
+        {/* JourneyTimeline — navy signature. Its own opaque navy Box occludes
+            the light sheet so its parallax gap reads navy (matches the
+            `NOIR.navyField` it paints internally). */}
+        <Box sx={{ bgcolor: NOIR.navyField, position: "relative", zIndex: 1 }}>
+          <Box sx={{ mb: { xs: 12, md: 20 } }} ref={timelineAnchorRef}>
+            <SmoothSection>
+              <Suspense fallback={null}>
+                <JourneyTimeline />
+              </Suspense>
+            </SmoothSection>
+          </Box>
         </Box>
 
-        <Box sx={{ mb: 0 }} ref={certsAnchorRef}>
-          <SmoothSection>
-            <CertificationsSection />
-          </SmoothSection>
+        {/* Block B — Talent·Certifications on ONE continuous frost ground. */}
+        <Box sx={{ bgcolor: SOFT.frost, position: "relative", zIndex: 1 }}>
+          <Box sx={{ mb: { xs: 12, md: 20 } }}>
+            <SmoothSection>
+              <TalentSection />
+            </SmoothSection>
+          </Box>
+
+          <Box sx={{ mb: 0 }} ref={certsAnchorRef}>
+            <SmoothSection>
+              <CertificationsSection />
+            </SmoothSection>
+          </Box>
         </Box>
 
         {/* ── Talent/culture narrative (relocated from home) ──────────────

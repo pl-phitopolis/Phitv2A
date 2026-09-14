@@ -69,7 +69,7 @@ export function BackgroundReveal() {
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(to right, rgba(9, 18, 38, 0.94) 0%, rgba(9, 18, 38, 0.72) 22%, rgba(9, 18, 38, 0.22) 42%, rgba(9, 18, 38, 0.05) 65%, transparent 85%)",
+              "linear-gradient(to right, rgba(9, 18, 38, 0.90) 0%, rgba(9, 18, 38, 0.68) 20%, rgba(9, 18, 38, 0.30) 40%, rgba(9, 18, 38, 0.08) 60%, transparent 78%)",
             pointerEvents: "none",
           }}
         />

@@ -31,6 +31,21 @@ export const CONTENT = {
      *  single source, so editing it here changes what ships. It used to be dead
      *  data while the hero carried its own hardcoded literal. */
     tagline: "Making Tomorrow's Technology Available Today",
+    /** Hero left-column intro line, rendered under the tagline by
+     *  `SuperHeroSequence`'s `.hero-statement`. Single source — edit here. */
+    statement:
+      "We are an R&D firm built on three equal strengths — research, engineering, and operations. Working alongside clients worldwide, we turn hard problems into systems they can run for years.",
+    /** Rendered by the hero left column instead of the full `statement`;
+     *  `statement` stays for other readers. */
+    lead: "We are an R&D firm built on three equal strengths — research, engineering, and operations.",
+    /** Hero proof row (mono meta-labels). Facts only, each traceable to
+     *  another CONTENT key — never a manufactured number. */
+    proof: [
+      "Est. 2019 · BGC, Metro Manila",
+      "Clients in the US & UK",
+      "Backed across the US, Europe & Hong Kong",
+      "24/7 operations",
+    ] as readonly string[],
     description:
       "At Phitopolis, we view global markets as the ultimate intellectual puzzle. As a R&D firm, we create technology and solutions driven by deep insights, modern engineering, and latest trends in Artificial Intelligence.",
     salesPitch: {
@@ -40,7 +55,7 @@ export const CONTENT = {
           "Engineering cloud systems, machine learning, and AI for quantitative finance and financial technology.",
       },
       execSummary:
-        "At Phitopolis, we view global markets as the ultimate intellectual puzzle. Operating as a specialized R&D firm, we build cloud-native systems, data science engines, and artificial intelligence solutions for international clients operating in high-complexity environments.",
+        "At Phitopolis, we view global markets as the ultimate intellectual puzzle. As a specialized R&D firm, we build cloud-native systems, data-science engines, and AI for international clients working in high-complexity environments.",
       capabilities: [
         {
           title: "QUANTITATIVE RESEARCH & AI",
@@ -166,30 +181,30 @@ export const CONTENT = {
       {
         label: "Integrity",
         definition:
-          "We operate with unwavering honesty and transparency in every interaction. Our word is our bond",
+          "We operate with honesty and transparency in every interaction. Our word is our bond.",
         valueToClient:
-          "A foundation of trust and predictability: truthful reporting and ethical decisions that reduce risk and keep partnerships stable for the long run",
+          "Trust and predictability: truthful reporting and ethical decisions that reduce risk and keep partnerships stable.",
       },
       {
         label: "Accountability",
         definition:
-          "We take full ownership of our commitments and results, standing behind the quality of our output without excuses",
+          "We take full ownership of our commitments and results, and stand behind our output without excuses.",
         valueToClient:
-          "Reliability and peace of mind: by owning both wins and setbacks, we manage outcomes proactively to hit every milestone",
+          "Reliability: by owning wins and setbacks alike, we manage outcomes proactively to hit every milestone.",
       },
       {
         label: "Forward Thinking",
         definition:
-          "We don't just solve today's problems; we anticipate tomorrow's through innovation and deliberate strategy",
+          "We don't just solve today's problems; we anticipate tomorrow's through deliberate strategy.",
         valueToClient:
-          "A competitive edge: a proactive read on technology and market shifts keeps your business resilient and ready to scale",
+          "A competitive edge: a proactive read on technology and market shifts keeps your business ready to scale.",
       },
       {
         label: "Excellence",
         definition:
-          "We set the highest standard for performance and continuously refine our process to deliver superior quality",
+          "We set a high bar for performance and continuously refine our process to deliver quality.",
         valueToClient:
-          "Fewer errors, higher efficiency, and a final product that exceeds expectations, maximizing return on every engagement",
+          "Fewer errors, higher efficiency, and a product that exceeds expectations — maximizing return on every engagement.",
       },
     ],
   },
@@ -238,7 +253,7 @@ export const CONTENT = {
   /** Professional certifications, grouped by provider — insight, not a badge wall. */
   certifications: {
     headline: "Certified across the stack",
-    note: "Our engineers hold professional certifications spanning every cloud and the standards that govern them. The upskilling never stops",
+    note: "Certifications spanning every cloud and the standards that govern them. The upskilling never stops.",
     groups: [
       {
         provider: "Amazon Web Services",
@@ -362,12 +377,12 @@ export const CONTENT = {
     },
     {
       title: "Technical Graduate Program",
-      role: "Our premier 12-month paid fellowship for outstanding computer science, engineering, and mathematics graduates",
+      role: "A 12-month paid fellowship for outstanding computer science, engineering, and mathematics graduates",
       stack: ["C++", "Python", "TypeScript", "Linux", "Docker", "AWS"]
     },
     {
       title: "R&D Internship Program",
-      role: "Immersive paid engineering internship for top undergraduate students, working directly on production systems with senior mentorship",
+      role: "Paid engineering internship for top undergraduates — production systems, senior mentorship",
       stack: ["React", "TypeScript", "Node.js", "Python", "Git"]
     }
   ],
@@ -379,12 +394,12 @@ export const CONTENT = {
       {
         id: "2019-foundation",
         name: "2019: The Foundation",
-        caption: "A small, focused engineering and research team laying the groundwork for resilient core infrastructure",
+        caption: "A small, focused team laying the groundwork for resilient core infrastructure",
       },
       {
         id: "2022-expansion",
         name: "2020-2025: The Expansion",
-        caption: "Integrating deep data architecture and 24/7 operations to scale alongside complex, high-demand datasets",
+        caption: "Deep data architecture and 24/7 operations, scaling with complex, high-demand datasets",
       },
       {
         id: "2026-powerhouse",
@@ -459,7 +474,7 @@ export const CONTENT = {
       title: "Algorithmic Signal Generation",
       tag: "Quantitative Finance",
       caseTag: "CASE 01 // QUANTITATIVE R&D",
-      line: "Statistical models and machine learning applied to noisy market data, built to find signal that holds up out of sample",
+      line: "Statistical models and machine learning on noisy market data, built to find signal that holds out of sample",
       stats: ["STATISTICAL MODELING", "APPLIED ML"],
       specs: [
         { num: "01", name: "High-Frequency Market Sampling" },
@@ -475,7 +490,7 @@ export const CONTENT = {
       title: "Cloud-Native Infrastructure",
       tag: "Full-Stack & Data",
       caseTag: "CASE 02 // DISTRIBUTED SYSTEMS",
-      line: "Event-driven pipelines and cloud systems built to ingest, process, and serve high-volume market and operational data",
+      line: "Event-driven pipelines built to ingest, process, and serve high-volume market and operational data",
       stats: ["CLOUD-NATIVE", "DATA PIPELINES"],
       specs: [
         { num: "01", name: "Multi-Region Ingestion Mesh" },
@@ -491,7 +506,7 @@ export const CONTENT = {
       title: "Global Technical Operations",
       tag: "DevOps & Support",
       caseTag: "CASE 03 // TECHNICAL OPERATIONS",
-      line: "Technical teams working alongside clients across time zones, keeping systems monitored and supported around the clock",
+      line: "Technical teams working with clients across time zones, keeping systems monitored around the clock",
       stats: ["24/7 COVERAGE", "SYSTEM MONITORING"],
       specs: [
         { num: "01", name: "Around-the-Clock Live Monitoring" },

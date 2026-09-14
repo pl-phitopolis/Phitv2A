@@ -8,7 +8,7 @@ import { useAnimationFrame } from "motion/react";
 import { Reveal } from "@/shared/components/Reveal";
 import { useReducedMotion } from "@/shared/motion";
 import { MONO } from "@/shared/theme/theme";
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 import { CONTENT } from "@/shared/content";
 
 interface CertBadgeData {
@@ -50,10 +50,10 @@ const CertBadge = React.memo(({ cert }: { cert: CertBadgeData }) => (
       sx={{ width: 56, height: 56, objectFit: "contain", flexShrink: 0 }}
     />
     <Stack spacing={0.25}>
-      <Typography sx={{ fontWeight: 700, fontSize: "1rem", color: "common.white", whiteSpace: "nowrap" }}>
+      <Typography sx={{ fontWeight: 700, fontSize: "1rem", color: NOIR.navyField, whiteSpace: "nowrap" }}>
         {cert.name}
       </Typography>
-      <Typography sx={{ fontFamily: MONO, fontSize: "0.68rem", letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)" }}>
+      <Typography sx={{ fontFamily: MONO, fontSize: "0.68rem", letterSpacing: "0.1em", color: "rgba(10, 42, 102, 0.82)" }}>
         {cert.provider.toUpperCase()}
       </Typography>
     </Stack>
@@ -157,8 +157,8 @@ export function CertificationsSection() {
       component="section"
       sx={{
         minHeight: "100vh",
-        bgcolor: NOIR.navyField,
-        color: "common.white",
+        bgcolor: SOFT.frost,
+        color: NOIR.navyField,
         display: "flex",
         flexDirection: "column",
         justifyContent: "center",
@@ -170,10 +170,10 @@ export function CertificationsSection() {
       <Box sx={{ px: { xs: 3, md: 8 } }}>
         <Reveal>
           <Stack spacing={2} sx={{ maxWidth: 720 }}>
-            <Typography variant="h2" component="h2" sx={{ fontWeight: 800, color: "common.white" }}>
+            <Typography variant="h2" component="h2" sx={{ fontWeight: 800, color: NOIR.navyField }}>
               {headline}
             </Typography>
-            <Typography variant="subtitle1" sx={{ color: "rgba(255,255,255,0.6)", fontSize: "1.1rem", lineHeight: 1.6 }}>
+            <Typography variant="subtitle1" sx={{ color: "rgba(10, 42, 102, 0.82)", fontSize: "1.1rem", lineHeight: 1.6 }}>
               {note}
             </Typography>
           </Stack>
@@ -196,10 +196,10 @@ export function CertificationsSection() {
                     sx={{ width: 48, height: 48, objectFit: "contain", flexShrink: 0 }}
                   />
                   <Stack spacing={0.25}>
-                    <Typography sx={{ fontWeight: 700, fontSize: "0.92rem", color: "common.white" }}>
+                    <Typography sx={{ fontWeight: 700, fontSize: "0.92rem", color: NOIR.navyField }}>
                       {cert.name}
                     </Typography>
-                    <Typography sx={{ fontFamily: MONO, fontSize: "0.65rem", letterSpacing: "0.1em", color: "rgba(255,255,255,0.5)" }}>
+                    <Typography sx={{ fontFamily: MONO, fontSize: "0.65rem", letterSpacing: "0.1em", color: "rgba(10, 42, 102, 0.82)" }}>
                       {cert.provider.toUpperCase()}
                     </Typography>
                   </Stack>

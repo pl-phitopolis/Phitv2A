@@ -12,7 +12,7 @@ import {
 import { Reveal } from "@/shared/components/Reveal";
 import { RevealLines } from "@/shared/components/reveal/RevealLines";
 import { FONT, MONO } from "@/shared/theme/theme";
-import { NOIR, TECH_CAT_ACCENTS } from "@/shared/theme/palette";
+import { NOIR, SOFT, TECH_CAT_ACCENTS } from "@/shared/theme/palette";
 import {
   LOCAL_TECHS,
   ROW1_TECHS,
@@ -180,7 +180,7 @@ export function PoweredBySection() {
   return (
     <Box
       sx={{
-        bgcolor: "background.default",
+        bgcolor: SOFT.mist,
         py: { xs: 8, md: 10 },
         position: "relative",
         overflow: "hidden",
@@ -228,7 +228,7 @@ export function PoweredBySection() {
                   maxWidth: 420
                 }}
               >
-                the full arsenal — from model training and orchestration to deployment, data pipelines, and cloud infrastructure. Every tool chosen deliberately, every stack decision backed by real production experience.
+                from model training and orchestration to deployment, data pipelines, and cloud infrastructure — every tool chosen deliberately, every decision backed by real production experience.
               </Typography>
             </Reveal>
           </Stack>

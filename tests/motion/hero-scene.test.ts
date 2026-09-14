@@ -34,14 +34,7 @@ import {
   pointAtLoopDistance,
   project,
 } from "@/features/hero/heroScene";
-import { heroStage, heroVars, sameStage } from "@/features/hero/heroVars";
-import {
-  CONTAINER_START,
-  DWELL_END,
-  GUNSHOT_END,
-  PHASE_FLATTEN_END,
-  SMOKING_START,
-} from "@/features/hero/heroPhases";
+import { CONTAINER_START, PHASE_FLATTEN_END } from "@/features/hero/canvasPhases";
 
 describe("scene geometry", () => {
   test("expanded plane geometry: 16 core cubes on a 30x30 grid (1260px at GRID_CELL=42)", () => {
@@ -268,83 +261,3 @@ describe("frame state", () => {
   });
 });
 
-describe("CSS custom-property bridge", () => {
-  test("reduced motion produces the settled layout the old branches hardcoded", () => {
-    const v = heroVars(0, true);
-    expect(v.scale).toBe(1);
-    expect(v.g).toBe(0);
-    expect(v.botx).toBe(0);
-    expect(v.flank).toBe(1);
-    expect(v.pexit).toBe(1);
-    expect(v.atenter).toBe(1);
-    expect(v.tight).toBe(0);
-    expect(v.border).toBe(1);
-    expect(v.panel).toBe(1);
-    expect(v.word).toBe(1);
-    expect(v.wordlift).toBe(0);
-    // The flanking texts mount but are parked off-screen, exactly as before.
-    expect(v.lefty).toBe(-240);
-    expect(v.righty).toBe(240);
-  });
-
-  test("split panels stay at stable resting offset for smooth continuous auto-pan", () => {
-    const before = heroVars(DWELL_END, false);
-    expect(before.topx).toBeCloseTo(-14.2857, 3);
-    expect(before.botx).toBeCloseTo(-14.2857, 3);
-
-    const after = heroVars(GUNSHOT_END, false);
-    expect(after.topx).toBeCloseTo(-14.2857, 3);
-    expect(after.botx).toBeCloseTo(-14.2857, 3);
-  });
-
-  test("every emitted value is finite for any progress in range", () => {
-    for (let p = 0; p <= 1.0001; p += 0.01) {
-      const v = heroVars(p, false);
-      for (const [key, value] of Object.entries(v)) {
-        expect(Number.isFinite(value), `${key} at p=${p.toFixed(2)}`).toBe(true);
-      }
-    }
-  });
-});
-
-describe("discrete stage", () => {
-  test("stage flags flip at the documented phase boundaries", () => {
-    expect(heroStage(0).gunshot).toBe(false);
-    expect(heroStage(DWELL_END + 0.005).gunshot).toBe(true);
-
-    expect(heroStage(SMOKING_START).flank).toBe(false);
-    expect(heroStage(SMOKING_START + 0.01).flank).toBe(true);
-
-    expect(heroStage(CONTAINER_START - 0.001).container).toBe(false);
-    expect(heroStage(CONTAINER_START).container).toBe(true);
-
-    expect(heroStage(DWELL_END - 0.01).navActive).toBe(false);
-    expect(heroStage(DWELL_END).navActive).toBe(true);
-    expect(heroStage(GUNSHOT_END).navDark).toBe(true);
-    expect(heroStage(0.99).navDark).toBe(true);
-  });
-
-  test("the stage changes only a handful of times across the whole pin", () => {
-    // This is the property that makes it safe to keep in React state: if it churned per
-    // frame we would be back to the render storm the canvas rewrite removed.
-    let changes = 0;
-    let prev = heroStage(0);
-    for (let p = 0; p <= 1.0001; p += 0.001) {
-      const next = heroStage(p);
-      if (!sameStage(prev, next)) {
-        changes++;
-        prev = next;
-      }
-    }
-    expect(changes).toBeLessThanOrEqual(10);
-  });
-
-  test("sameStage distinguishes every field", () => {
-    const base = heroStage(0);
-    const keys = Object.keys(base) as (keyof typeof base)[];
-    for (const k of keys) {
-      const mutated = { ...base, [k]: !base[k] };
-      expect(sameStage(base, mutated), `sameStage ignored ${k}`).toBe(false);
-    }
-  });
-});

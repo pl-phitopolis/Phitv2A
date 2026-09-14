@@ -1,0 +1,2 @@
+poster.svg — authored (original hand-drawn SVG by Claude/media-forge, 2026-09-09), no external source, no license required.
+frames/ (office-window flythrough sequence) — not yet generated; placeholder only. See manifest.json's promptPack for the exact regeneration prompt once a media-gen provider (e.g. Higgsfield) is authenticated.

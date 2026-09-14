@@ -1,4 +1,4 @@
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 import Alert from "@mui/material/Alert";
 import Box from "@mui/material/Box";
@@ -7,6 +7,7 @@ import CircularProgress from "@mui/material/CircularProgress";
 import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
+import { alpha } from "@mui/material/styles";
 import { useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
@@ -42,6 +43,16 @@ const EMPTY_FORM: FormValues = {
 
 type FieldName = keyof FormValues;
 type FieldErrors = Partial<Record<FieldName, string>>;
+
+/** The calm, airy card the form (and its success state) sit inside — a
+ *  `SOFT` ground so this utility page reads as a light register against the
+ *  dark inspector panel beside it. */
+const CARD_SX = {
+  bgcolor: SOFT.frost,
+  border: `1px solid ${alpha(NOIR.navyField, 0.08)}`,
+  borderRadius: "20px",
+  p: { xs: 3, md: 4 },
+} as const;
 
 /** Visual + focus order of the validated fields (excludes the honeypot). */
 const FIELD_ORDER = ["name", "email", "subject", "message"] as const;
@@ -118,31 +129,33 @@ export function ContactForm() {
 
   if (mutation.isSuccess) {
     return (
-      <Stack spacing={2} alignItems="flex-start">
-        <CheckCircleOutlineIcon color="primary" fontSize="large" />
-        <Typography variant="h3" component="p">
-          Message received.
-        </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Thank you. Our partnerships team reads every inquiry and will reply within two
-          business days.
-        </Typography>
-        <Button
-          variant="outlined"
-          onClick={() => {
-            mutation.reset();
-            setValues(EMPTY_FORM);
-            setErrors({});
-          }}
-        >
-          Send another message
-        </Button>
-      </Stack>
+      <Box sx={{ height: "100%", ...CARD_SX }}>
+        <Stack spacing={2} alignItems="flex-start">
+          <CheckCircleOutlineIcon color="primary" fontSize="large" />
+          <Typography variant="h3" component="p">
+            Message received.
+          </Typography>
+          <Typography variant="body1" color="text.secondary">
+            Thank you. Our partnerships team reads every inquiry and will reply within two
+            business days.
+          </Typography>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              mutation.reset();
+              setValues(EMPTY_FORM);
+              setErrors({});
+            }}
+          >
+            Send another message
+          </Button>
+        </Stack>
+      </Box>
     );
   }
 
   return (
-    <Box sx={{ height: "100%", display: "flex", flexDirection: "column" }}>
+    <Box sx={{ height: "100%", display: "flex", flexDirection: "column", ...CARD_SX }}>
       <Stack component="form" spacing={2.5} onSubmit={handleSubmit} noValidate sx={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
         <Box>
           {/* Client-side validation summary — a role="alert" region (MUI's

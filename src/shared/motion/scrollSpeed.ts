@@ -18,3 +18,9 @@ export const LENIS_SMOOTH_DURATION = 0.45;
 export function scrollEase(t: number): number {
   return 1 - Math.pow(1 - t, 4);
 }
+
+/** Seconds for discrete one-shot reveals and emphasis; never scroll narrative mapping. */
+export const MOTION_FAST = 0.85;
+
+/** Seconds for large, rare one-shot motions; independent of scrub and establishing timings. */
+export const MOTION_EXTREME = 1.5;

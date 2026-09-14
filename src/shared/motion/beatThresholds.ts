@@ -92,7 +92,12 @@ export const BEAT_EXIT_END = "bottom top";
  *   SCRUB      scrubbed one plays backwards on every scroll micro-reversal.
  *              Use a time-based tween on a `once` trigger instead.
  *
- * The one scrubbed tween that is not a pin — SectionBeat's exit dim — is
+ * T-009 amendment (Albert, 2026-09-13): home sections explicitly marked
+ * motion: "scroll" are progress-linked narratives, including their entrances.
+ * They use reversible scrubbing. The event-based defaults above remain for
+ * About and other consumers; this opt-in does not change those defaults.
+ *
+ * The legacy scrubbed tween that is not a pin — SectionBeat's exit dim — is
  * permitted only because it animates opacity alone, which makes its reversal
  * imperceptible. That exemption does not generalise.
  */
@@ -122,3 +127,6 @@ export const BEAT_REFRESH_BASE = 20;
 export function refreshPriorityFor(order: number): number {
   return BEAT_REFRESH_BASE - order;
 }
+
+/** Opt-in T-009 progress reveals finish before their content is read. */
+export const HOME_REVEAL_END = "top 60%";

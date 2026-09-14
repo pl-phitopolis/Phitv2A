@@ -5,6 +5,7 @@ import { Reveal } from "@/shared/components/Reveal";
 import { RevealLines } from "@/shared/components/reveal/RevealLines";
 import { MetaLabel } from "./MetaLabel";
 import { FONT } from "@/shared/theme/theme";
+import { SOFT } from "@/shared/theme/palette";
 
 export function MissionSection() {
   return (
@@ -15,7 +16,9 @@ export function MissionSection() {
         flexDirection: "column",
         justifyContent: "center",
         position: "relative",
-        py: { xs: 8, md: 10 }
+        py: { xs: 8, md: 10 },
+        bgcolor: SOFT.mist,
+        borderRadius: { xs: 4, md: 6 },
       }}
     >
       <Box sx={{ px: { xs: 3, md: 5 } }}>
@@ -53,7 +56,7 @@ export function MissionSection() {
                   maxWidth: 960
                 }}
               >
-                At Phitopolis, we view global markets as the ultimate intellectual puzzle. Operating as a specialized R&D firm, we build cloud-native systems, data science engines, and artificial intelligence solutions for international clients operating in high-complexity environments.
+                We treat global markets as the ultimate intellectual puzzle. As a specialized R&D firm, we build cloud-native systems, data science engines, and AI solutions for international clients working in high-complexity environments.
               </Typography>
             </Reveal>
           </Stack>

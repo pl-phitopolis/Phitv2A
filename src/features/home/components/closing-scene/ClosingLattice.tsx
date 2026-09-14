@@ -37,7 +37,7 @@ import { SplitText } from "gsap/SplitText";
 import { useGSAP } from "@gsap/react";
 
 import { CONTENT } from "@/shared/content";
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 import { MONO } from "@/shared/theme/theme";
 import { useReducedMotion } from "@/shared/motion";
 import { SCROLL_SPEED } from "@/shared/motion/scrollSpeed";
@@ -463,7 +463,7 @@ export function ClosingLatticeSection() {
           width: "100%",
           height: "100vh",
           minHeight: { xs: "auto", md: 680 },
-          bgcolor: NOIR.white,
+          bgcolor: SOFT.frost,
           color: NOIR.navyField,
           overflow: "hidden",
           display: "flex",
@@ -530,7 +530,7 @@ export function ClosingLatticeSection() {
           width: "100%",
           height: "auto",
           minHeight: "auto",
-          bgcolor: NOIR.white,
+          bgcolor: SOFT.frost,
           color: NOIR.navyField,
           overflow: "hidden",
           display: "flex",
@@ -573,7 +573,7 @@ export function ClosingLatticeSection() {
         width: "100%",
         height: "100vh",
         minHeight: { md: 680 },
-        bgcolor: NOIR.white,
+        bgcolor: SOFT.frost,
         color: NOIR.navyField,
         overflow: "hidden",
       }}

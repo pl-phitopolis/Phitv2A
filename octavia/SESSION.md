@@ -1,5 +1,5 @@
 # Session state
-Updated: 2026-09-13 (T-009) · by: claude
+Updated: 2026-09-13 (T-009) · by: astra
 Observed — branch: main (Fresko) / main (Heimdall CMS). NOTE: the
 `new-hero-and-video` branch was merged to `main` (see `git log`: merges
 `afd2016`, `4a75dfe`, plus `e4b36fd` the home redesign). Prior SESSION headers
@@ -7,17 +7,10 @@ said `new-hero-and-video`; that is stale — Fresko is on `main`.
 Declared — Regime: solo · Next free ID: T-010
 
 ## Next action
-T-009 (home page rebuild — remove the gunshot hero and the entire home scroll
-architecture, rebuild to Albert's 11-step flow: RnD/SaaS/FinTech hero → empty-
-navy scroll teaser → 5 vertical strips → R&D-years finisher → drawer →
-mission core → 3-pillars horizontal scroll → built/supported → view-transition
-cut → R&D timeline → global reach → career-growth/Academy → view-transition
-cut → video-scrub CTA). **Plan done 2026-09-13, handed to an Astra orchestrator
-to build** — see `docs/home-rebuild-2026-09/handover.md` (full spec + N.5/N.6
-delegation breakdown) and `tasks/T-009-*.md`. Supersedes T-008 entirely
-(HeroReel discarded, not adapted) and T-007's home-page half (`/about` half
-still stands, still awaiting Albert's review — see Superseded, below, for
-both). No application code touched yet; nothing committed.
+T-009 build in progress (Astra, 2026-09-13), implementing Albert's fully scroll-driven
+revision. Foundation extraction/tests first, then numbered N.5/N.6 units. See task
+Current and dated Approach amendment. No in-page native transitions or scroll holds.
+Preserve prior dirty work and About scope. Acceptance gates remain not checked.
 
 ---
 
@@ -90,7 +83,7 @@ DB, `JobDetailsDrawer` click-through, and the career-tabs-vs-pagination UX call)
 ## Active
 | Task | Mode | Stage / status | Who is up | Branch | File scope |
 |---|---|---|---|---|---|
-| T-009 Home page rebuild (remove gunshot hero, rebuild scroll flow) | solo | plan done 2026-09-13 · handed to Astra to build | astra | main | see tasks/T-009-home-rebuild.md File scope header |
+| T-009 Home page rebuild (remove gunshot hero, rebuild scroll flow) | solo | build in progress 2026-09-13 · foundation first | astra | main | see tasks/T-009-home-rebuild.md File scope header |
 | T-007 Site finalization Phase 2 — About only (home half superseded by T-009) | solo | review done 2026-09-10 · gate green · awaiting Albert's manual visual review of `/about` | albert | main | src/routes/about.tsx, src/features/about/components/**, CONTENT.* (relevant keys) |
 | T-003 Home page V3 — marketing reimagining with same-document View Transitions | solo | reverted 2026-09-09 at user instruction; `/` restored to the branch's own uncommitted hero-video HomePage; V3 code untouched on disk for later | — | new-hero-and-video | see tasks/T-003-home-v3.md header |
 | T-001 hero lockup disappear/reappear + closing CTA video stall fix | solo | review · code complete, hero fix verified live, closing-video fix needs a manual scroll QA pass | — | new-hero-and-video | src/features/hero/**, src/features/home/components/closing-scene/**, tests/motion/hero-phases.test.ts |
@@ -103,6 +96,8 @@ T-002: None open — user resolved two scope forks in chat (innovation-hub list 
 JobDetailsDrawer migrates to the API). See tasks/T-002-ws4-pagination.md Log.
 
 ## Last session
+- 2026-09-13 astra/build: Implementing the revised fully scroll-driven T-009 plan,
+  explicitly requested by Albert. Previous next action is preserved in the task Log.
 - 2026-09-13: T-009 opened (plan mode). Explored the current hero/home
   architecture, reusable components for Albert's new 11-step home flow, and
   read the Octavia protocol + prior Astra-authored docs for handover-format

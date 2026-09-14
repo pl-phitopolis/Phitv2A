@@ -93,5 +93,5 @@ test("every anchor id is registered in NAV_ANCHORS, none left as bare strings", 
   );
 
   expect(calls.length).toBeGreaterThan(0);
-  for (const call of calls) expect(call).toMatch(/: NAV_ANCHORS\./);
+  for (const call of calls) expect(call).toMatch(/: NAV_ANCHORS(?:\.|\[)/);
 });

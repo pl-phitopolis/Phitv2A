@@ -33,16 +33,9 @@ test("every stop resolves to a real colour from the palette", () => {
   }
 });
 
-test("the home page's ground track has no act break, having collapsed to a single act", () => {
-  // PRD-home-client-focus §US-2 relocated `daily-life`/`candidates`/
-  // `testimonials`/`blog` (the PEOPLE act) to /about, so home is now a single
-  // "services" act front to back and there is nothing for the ground layer to
-  // wipe between. This replaces the old "reach -> daily-life" act-break
-  // assertion, which is no longer true of the page.
-  const breaks = GROUND_STOPS.filter((s) => s.actBreak);
-  expect(breaks).toHaveLength(0);
-  expect(ACT_BREAK_INDEX).toBe(-1);
-  expect(new Set(GROUND_STOPS.map((s) => s.act))).toEqual(new Set(["services"]));
+test("home marks Academy's people act and returns to the closing services act", () => {
+  expect(GROUND_STOPS.filter(s => s.actBreak).map(s => s.id)).toEqual(["home-academy", "home-cut-closing"]);
+  expect(ACT_BREAK_INDEX).toBe(8);
 });
 
 /**
@@ -115,7 +108,7 @@ test("the act break is a visible colour change, not just a flag", () => {
 });
 
 test("Act I resolves to the light footprint ground", () => {
-  expect(GROUND_STOPS.find((s) => s.id === "reach")?.color).toBe(GROUNDS.white.bg);
+  expect(GROUND_STOPS.find((s) => s.id === "reach")?.color).toBe(GROUNDS.panel.bg);
 });
 
 test("home page stops are light except the sections declared dark", () => {
@@ -146,19 +139,10 @@ test("home page stops are light except the sections declared dark", () => {
     }
   }
 
-  // `daily-life` and `blog` dropped out of this list when they relocated to
-  // /about (PRD-home-client-focus §US-2). WS-02 added `global-markets`
-  // (ground "deep") right after the hero — the lifted text blob's own
-  // full-viewport statement beat.
-  const dark = GROUND_STOPS.filter((s) => GROUNDS[s.ground].dark);
-  // The "Making tomorrow" redesign unpinned `hero-pillars`/`process` back to
-  // light grounds and added `proof-film` (ground "base") as the new dark
-  // pinned cinematic passage; `closing` (also ground "base" now, matching
-  // `proof-film`'s navy) is the only other dark stop that stayed on home.
-  expect(dark.map((s) => s.id), "the home page's declared dark grounds").toEqual([
-    "global-markets",
-    "proof-film",
-    "closing",
+  const dark = GROUND_STOPS.filter(s => GROUNDS[s.ground].dark);
+  expect(dark.map(s => s.id)).toEqual([
+    "hero-sequence", "home-introduction", "hero-pillars", "home-cut-research",
+    "process", "home-academy", "home-cut-closing", "closing",
   ]);
 });
 
@@ -283,13 +267,13 @@ test("sampleGround survives an empty track and a missing section", () => {
   expect(Number.isFinite(s.progress)).toBe(true);
 });
 
-test("acts partition the stop list with no interleaving", () => {
+test("ground acts agree with the actual home chapters", () => {
   // Home collapsed to a single act (PRD-home-client-focus §US-2), so there
   // are zero switches now rather than the one Services -> People switch that
   // used to exist here.
   const acts = GROUND_STOPS.map((s) => s.act);
   const switches = acts.filter((a, i) => i > 0 && a !== acts[i - 1]).length;
-  expect(switches).toBe(0);
+  expect(switches).toBe(2);
   for (const stop of GROUND_STOPS) {
     const section = HOME_SECTIONS.find((s) => s.id === stop.id);
     expect(stop.act).toBe(actOfChapter(section!.chapter));

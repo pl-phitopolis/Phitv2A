@@ -6,38 +6,54 @@ import {
   Code, Database, Cloud, Pulse
 } from "@phosphor-icons/react";
 import { MONO, DISPLAY_FONT } from "@/shared/theme/theme";
-import { NOIR } from "@/shared/theme/palette";
+import { NOIR, SOFT } from "@/shared/theme/palette";
 
 const TECH_CATEGORIES = [
   {
     icon: Code,
     title: "LANGUAGES & FRAMEWORKS",
-    description: "Built with typed, high-concurrency systems for reliability and sub-millisecond execution.",
+    description: "Typed, high-concurrency systems built for sub-millisecond execution.",
     tools: ["C++20", "Rust", "TypeScript", "React", "Python 3.12", "Go", "GraphQL", "Node.js"],
   },
   {
     icon: Database,
     title: "DATA PIPELINES & ML",
-    description: "Processing petabyte-scale market data feeds, real-time analytics, and feature extraction.",
+    description: "Petabyte-scale market data feeds, real-time analytics, feature extraction.",
     tools: ["PyTorch", "Polars", "PostgreSQL", "ClickHouse", "Apache Kafka", "Redis", "DuckDB", "Pandas"],
   },
   {
     icon: Cloud,
     title: "CLOUD & INFRASTRUCTURE",
-    description: "Containerized, immutable infrastructure deployed across global multi-cloud locations.",
+    description: "Containerized, immutable infrastructure across global multi-cloud regions.",
     tools: ["AWS", "GCP", "Kubernetes", "Docker", "Terraform", "Helm", "Cloudflare", "Linux Kernel"],
   },
   {
     icon: Pulse,
     title: "SITE RELIABILITY & OPS",
-    description: "Continuous telemetry, active chaos engineering, and automated disaster recovery.",
+    description: "Continuous telemetry, chaos engineering, automated disaster recovery.",
     tools: ["Prometheus", "Grafana", "OpenTelemetry", "PagerDuty", "Datadog", "ArgoCD", "Vault", "eBPF"],
   },
 ];
 
+/**
+ * The tech-stack band — the page's one deliberately `SOFT`-ground section:
+ * a soft `mist` panel holding four `frost` category cards, so it reads as
+ * a calm, distinct surface rather than another stretch of the page's own
+ * off-white. Tag chips use a soft navy tint (`rgba(10,42,102,0.08)`), the same
+ * accent treatment the category filter and drawer use for tags elsewhere on
+ * this page — an all-blue palette, no warm accent.
+ */
 export function TechStackSection() {
   return (
-    <Box sx={{ mt: { xs: 8, md: 12 }, mb: { xs: 8, md: 12 } }}>
+    <Box
+      sx={{
+        mt: { xs: 8, md: 12 },
+        mb: { xs: 8, md: 12 },
+        p: { xs: 3, sm: 5, md: 6 },
+        borderRadius: 6,
+        bgcolor: SOFT.mist,
+      }}
+    >
       {/* Section Header */}
       <Box sx={{ mb: { xs: 5, md: 7 }, maxWidth: "720px" }}>
         <Typography
@@ -76,7 +92,7 @@ export function TechStackSection() {
             lineHeight: 1.65,
           }}
         >
-          We build with production-proven, open-source technology stacks optimized for determinism, resilience, and horizontal scaling.
+          Production-proven, open-source stacks — built for determinism, resilience, and scale.
         </Typography>
       </Box>
 
@@ -89,20 +105,25 @@ export function TechStackSection() {
               <Box
                 sx={{
                   p: { xs: 3, sm: 4 },
-                  borderRadius: 4,
-                  bgcolor: "transparent",
-                  border: "none",
+                  borderRadius: "var(--r-card)",
+                  bgcolor: SOFT.frost,
+                  border: "1px solid rgba(10, 42, 102, 0.08)",
                   boxShadow: "none",
                   height: "100%",
                   display: "flex",
                   flexDirection: "column",
+                  transition: "transform 0.18s ease, box-shadow 0.18s ease",
+                  "&:hover": {
+                    transform: "translateY(-2px)",
+                    boxShadow: "0 8px 20px rgba(10, 42, 102, 0.1)",
+                  },
                 }}
               >
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 2 }}>
                   <Box
                     sx={{
                       p: 1,
-                      borderRadius: "8px",
+                      borderRadius: "var(--r-control)",
                       bgcolor: "transparent",
                       border: "1px solid rgba(10, 42, 102, 0.12)",
                       color: NOIR.navyField,
@@ -145,11 +166,13 @@ export function TechStackSection() {
                         fontSize: "0.72rem",
                         fontWeight: 700,
                         color: NOIR.navyField,
-                        bgcolor: "rgba(10, 42, 102, 0.05)",
-                        border: "1px solid rgba(10, 42, 102, 0.12)",
-                        borderRadius: "4px",
+                        bgcolor: "rgba(10, 42, 102, 0.08)",
+                        border: "1px solid rgba(10, 42, 102, 0.16)",
+                        borderRadius: "var(--r-control)",
                         px: 1.2,
                         py: 0.4,
+                        transition: "background-color 0.15s ease",
+                        "&:hover": { bgcolor: "rgba(10, 42, 102, 0.14)" },
                       }}
                     >
                       {tool}

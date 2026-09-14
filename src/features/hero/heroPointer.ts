@@ -36,7 +36,7 @@
  */
 
 import { GRID_CELL } from "./heroScene";
-import { PHASE_FLATTEN_END } from "./heroPhases";
+import { PHASE_FLATTEN_END } from "./canvasPhases";
 
 /* ───────────────────────────── Interaction gate ───────────────────────────── */
 

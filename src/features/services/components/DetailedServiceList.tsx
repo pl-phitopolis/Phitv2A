@@ -15,6 +15,8 @@ import {
 
 import { ServiceIcon } from "./ServiceIcon";
 import { ServiceDrawer } from "./ServiceDrawer";
+import { MediaFrame } from "@/shared/components/media/MediaFrame";
+import { Reveal } from "@/shared/components/Reveal";
 import { MONO, DISPLAY_FONT } from "@/shared/theme/theme";
 import { NOIR } from "@/shared/theme/palette";
 import type { Service } from "../api";
@@ -61,13 +63,6 @@ function SubTeamItem({ team }: { team: { name: string; description: string } }) 
   return (
     <Box
       sx={{
-        p: 0,
-        pl: 1.8,
-        py: 0.5,
-        borderRadius: 0,
-        bgcolor: "transparent",
-        borderLeft: "2px solid rgba(10, 42, 102, 0.12)",
-        boxShadow: "none",
         width: "100%",
         height: "100%",
         display: "flex",
@@ -77,7 +72,7 @@ function SubTeamItem({ team }: { team: { name: string; description: string } }) 
     >
       <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 0.5 }}>
         <Box sx={{ color: NOIR.navyField, display: "flex", alignItems: "center" }}>
-          <Icon weight="duotone" size={17} />
+          <Icon weight="regular" size={16} />
         </Box>
         <Typography
           sx={{
@@ -119,43 +114,23 @@ function ModernRowServiceCard({
       id={`service-${service.id}`}
       sx={{
         width: "100%",
-        bgcolor: "transparent",
-        border: "none",
-        boxShadow: "none",
-        backdropFilter: "none",
         pb: { xs: 5, md: 7 },
         borderBottom: "1px solid rgba(10, 42, 102, 0.08)",
-        transform: "none !important",
-        transition: "none !important",
-        "&:hover": {
-          bgcolor: "transparent",
-          boxShadow: "none",
-          border: "none",
-          borderBottom: "1px solid rgba(10, 42, 102, 0.08)",
-          transform: "none !important",
-        },
       }}
     >
-      <Grid container spacing={{ xs: 4, md: 5 }} alignItems="stretch">
-        {/* Left Column of Row Card: Info & Sub-teams */}
-        <Grid size={{ xs: 12, md: 7 }}>
+      <MediaFrame
+        pattern="split"
+        mediaSide="right"
+        aspectRatio={16 / 10}
+        mediaSx={{ maxWidth: 440, mx: "auto" }}
+        items={[{ src: bannerSrc, alt: `${service.name} banner`, width: 1200, height: 1500 }]}
+        overlayContent={
           <Stack spacing={2.5} sx={{ height: "100%", justifyContent: "space-between" }}>
             <Box>
               {/* Header Lockup: Icon + Title + Specs Button */}
               <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1.5 }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1.8 }}>
-                  <Box
-                    sx={{
-                      p: 0,
-                      borderRadius: 0,
-                      bgcolor: "transparent",
-                      border: "none",
-                      color: NOIR.navyField,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+                <Box sx={{ display: "flex", alignItems: "center", gap: 1.4 }}>
+                  <Box sx={{ color: NOIR.navyField, display: "flex", alignItems: "center" }}>
                     <ServiceIcon icon={service.icon} />
                   </Box>
                   <Typography
@@ -187,18 +162,16 @@ function ModernRowServiceCard({
                     border: "none",
                     borderRadius: 0,
                     bgcolor: "transparent",
-                    px: 1,
+                    px: 0.5,
                     py: 0.5,
                     textTransform: "none",
                     boxShadow: "none",
-                    transform: "none !important",
-                    transition: "none !important",
                     "&:hover": {
                       bgcolor: "transparent",
                       color: NOIR.navyField,
                       boxShadow: "none",
                       border: "none",
-                      transform: "none !important",
+                      textDecoration: "underline",
                     },
                   }}
                 >
@@ -257,41 +230,8 @@ function ModernRowServiceCard({
               </Box>
             )}
           </Stack>
-        </Grid>
-
-        {/* Right Column of Row Card: Spatial Banner Image */}
-        <Grid size={{ xs: 12, md: 5 }}>
-          <Box
-            sx={{
-              height: "100%",
-              minHeight: { xs: 220, md: "100%" },
-              borderRadius: 4,
-              overflow: "hidden",
-              border: "none",
-              boxShadow: "none",
-              bgcolor: "transparent",
-            }}
-          >
-            {bannerSrc && (
-              <Box
-                component="img"
-                decoding="async"
-                loading="lazy"
-                src={bannerSrc}
-                alt={`${service.name} banner`}
-                sx={{
-                  width: "100%",
-                  height: "100%",
-                  minHeight: { xs: "220px", md: "100%" },
-                  objectFit: "cover",
-                  display: "block",
-                  borderRadius: 4,
-                }}
-              />
-            )}
-          </Box>
-        </Grid>
-      </Grid>
+        }
+      />
     </Box>
   );
 }
@@ -303,11 +243,12 @@ export function DetailedServiceList({ services }: { services: Service[] }) {
     <>
       <Stack spacing={{ xs: 6, md: 8 }}>
         {services.map((service) => (
-          <ModernRowServiceCard
-            key={service.id}
-            service={service}
-            onOpenDrawer={(s) => setActiveService(s)}
-          />
+          <Reveal key={service.id}>
+            <ModernRowServiceCard
+              service={service}
+              onOpenDrawer={(s) => setActiveService(s)}
+            />
+          </Reveal>
         ))}
       </Stack>
 

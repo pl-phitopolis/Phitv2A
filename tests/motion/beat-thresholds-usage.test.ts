@@ -22,7 +22,6 @@ const REVEAL_FILES = [
   "features/home/components/CandidatesAndCareersSection.tsx",
   "features/home/components/TestimonialsSection.tsx",
   "features/home/components/BlogSection.tsx",
-  "features/home/components/ClosingShelf.tsx",
 ];
 
 // A quoted ScrollTrigger position string of the shape "top 75%" / 'bottom 30%'.

@@ -217,3 +217,15 @@ reading the docs. Instead the skill was authored directly from the
 this repo's actual usage — including the one live gap found while writing it:
 **`lenis/dist/lenis.css` is never imported**, despite the README recommending it.
 Not fixed automatically — flag it if you're touching `stopLenis()`/`startLenis()`.
+
+### caveman + ponytail skills (vendored)
+
+`.claude/skills/caveman/` (terse prose mode) and `.claude/skills/ponytail*/`
+(YAGNI / stdlib-first build discipline, plus `/ponytail-review`, `-audit`,
+`-debt`, `-gain`, `-help`) are hand-vendored, not `claude plugin` installs.
+Slash commands are in `.claude/commands/ponytail*.md`. Upstream ships
+auto-activation hooks that depend on the plugin runtime — those are **not**
+vendored, so ponytail activates via its skill trigger or `/ponytail`, and the
+intensity level does not persist across sessions. Full provenance:
+`.claude/skills/VENDORED.md` (same set is mirrored at the Armstrong root and in
+Heimdall).
