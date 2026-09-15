@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TermsRouteImport } from './routes/terms'
+import { Route as TeamRouteImport } from './routes/team'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as PrivacyRouteImport } from './routes/privacy'
 import { Route as ContactRouteImport } from './routes/contact'
@@ -25,6 +26,11 @@ import { Route as BlogSlugRouteImport } from './routes/blog.$slug'
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TeamRoute = TeamRouteImport.update({
+  id: '/team',
+  path: '/team',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ServicesRoute = ServicesRouteImport.update({
@@ -89,6 +95,7 @@ export interface FileRoutesByFullPath {
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/careers/$jobId': typeof CareersJobIdRoute
@@ -103,6 +110,7 @@ export interface FileRoutesByTo {
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/careers/$jobId': typeof CareersJobIdRoute
@@ -118,6 +126,7 @@ export interface FileRoutesById {
   '/contact': typeof ContactRoute
   '/privacy': typeof PrivacyRoute
   '/services': typeof ServicesRoute
+  '/team': typeof TeamRoute
   '/terms': typeof TermsRoute
   '/blog/$slug': typeof BlogSlugRoute
   '/careers/$jobId': typeof CareersJobIdRoute
@@ -134,6 +143,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/privacy'
     | '/services'
+    | '/team'
     | '/terms'
     | '/blog/$slug'
     | '/careers/$jobId'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/privacy'
     | '/services'
+    | '/team'
     | '/terms'
     | '/blog/$slug'
     | '/careers/$jobId'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/contact'
     | '/privacy'
     | '/services'
+    | '/team'
     | '/terms'
     | '/blog/$slug'
     | '/careers/$jobId'
@@ -177,6 +189,7 @@ export interface RootRouteChildren {
   ContactRoute: typeof ContactRoute
   PrivacyRoute: typeof PrivacyRoute
   ServicesRoute: typeof ServicesRoute
+  TeamRoute: typeof TeamRoute
   TermsRoute: typeof TermsRoute
   BlogSlugRoute: typeof BlogSlugRoute
   CareersJobIdRoute: typeof CareersJobIdRoute
@@ -193,6 +206,13 @@ declare module '@tanstack/react-router' {
       path: '/terms'
       fullPath: '/terms'
       preLoaderRoute: typeof TermsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/team': {
+      id: '/team'
+      path: '/team'
+      fullPath: '/team'
+      preLoaderRoute: typeof TeamRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/services': {
@@ -281,6 +301,7 @@ const rootRouteChildren: RootRouteChildren = {
   ContactRoute: ContactRoute,
   PrivacyRoute: PrivacyRoute,
   ServicesRoute: ServicesRoute,
+  TeamRoute: TeamRoute,
   TermsRoute: TermsRoute,
   BlogSlugRoute: BlogSlugRoute,
   CareersJobIdRoute: CareersJobIdRoute,
