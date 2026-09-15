@@ -54,6 +54,16 @@ heimdall/ .env  data/ backups/  src/  deployed.digest  [attempted.digest]
 - `CONTRACT-DRIFT` (Fresko) exists when the committed `schema.d.ts` differs
   from the live Heimdall OpenAPI — advisory; regenerate with `yarn typegen`.
 
+## Installing the box side (once)
+
+```bash
+sudo cp deploy/box/phit-uat-watch.sh /srv/phit-uat/bin/
+sudo cp deploy/box/phit-uat-deploy.{service,timer} /etc/systemd/system/
+# SELinux is enforcing on this host: systemd may not exec a var_t file.
+sudo semanage fcontext -a -t bin_t '/srv/phit-uat/bin(/.*)?' && sudo restorecon -R /srv/phit-uat/bin
+sudo systemctl daemon-reload && sudo systemctl enable --now phit-uat-deploy.timer
+```
+
 ## Operating it
 
 ```bash
