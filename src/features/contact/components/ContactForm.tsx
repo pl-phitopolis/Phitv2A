@@ -8,10 +8,13 @@ import Stack from "@mui/material/Stack";
 import TextField from "@mui/material/TextField";
 import Typography from "@mui/material/Typography";
 import { alpha } from "@mui/material/styles";
+import { motion } from "motion/react";
 import { useId, useRef, useState } from "react";
 import type { FormEvent } from "react";
 
 import { messageFromError } from "@/shared/api/errors";
+import { Reveal } from "@/shared/components/Reveal";
+import { EASE_OUT_EXPO } from "@/shared/motion/easing";
 import { MINIMAL_FIELD_SX } from "@/shared/theme/formField";
 
 import { useSubmitContactMessage } from "../api";
@@ -129,7 +132,13 @@ export function ContactForm() {
 
   if (mutation.isSuccess) {
     return (
-      <Box sx={{ height: "100%", ...CARD_SX }}>
+      <Box
+        component={motion.div}
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4, ease: EASE_OUT_EXPO }}
+        sx={{ height: "100%", ...CARD_SX }}
+      >
         <Stack spacing={2} alignItems="flex-start">
           <CheckCircleOutlineIcon color="primary" fontSize="large" />
           <Typography variant="h3" component="p">
@@ -169,6 +178,7 @@ export function ContactForm() {
           {mutation.isError ? (
             <Alert severity="error" sx={{ mb: 2 }}>{messageFromError(mutation.error)}</Alert>
           ) : null}
+          <Reveal>
           <Stack spacing={2.5}>
             <TextField
               id={`${formId}-name`}
@@ -226,6 +236,7 @@ export function ContactForm() {
               sx={MINIMAL_FIELD_SX}
             />
           </Stack>
+          </Reveal>
         </Box>
 
         {/* Honeypot */}

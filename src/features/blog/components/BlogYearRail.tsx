@@ -7,6 +7,7 @@ import { CaretDown } from "@phosphor-icons/react";
 import { useQuery } from "@tanstack/react-query";
 
 import { MONO, TRACKING, TYPE_SCALE } from "@/shared/theme/theme";
+import { StaggerGroup, StaggerItem } from "@/shared/components/Reveal";
 
 import { blogMonthsQuery, blogYearsQuery } from "../api";
 import type { BlogMonthFacet } from "../api";
@@ -101,12 +102,14 @@ export function BlogYearRail({ activeYear, activeMonth, onSelectionChange }: Blo
     monthFacets.filter((facet) => facet.year === year && facet.count > 0);
 
   return (
+    <StaggerGroup>
     <Stack
       component="nav"
       aria-label="Filter posts by year and month"
       spacing={0}
       sx={{ minWidth: 96 }}
     >
+      <StaggerItem>
       <RailRow
         label="All"
         count={null}
@@ -115,14 +118,15 @@ export function BlogYearRail({ activeYear, activeMonth, onSelectionChange }: Blo
           onSelectionChange(null, null);
         }}
       />
+      </StaggerItem>
       {facets.map((facet) => {
         const isExpanded = expandedYear === facet.year;
         const isYearActive = activeYear === facet.year;
         const yearMonths = monthsByYear(facet.year);
 
         return (
+          <StaggerItem key={facet.year}>
           <Box
-            key={facet.year}
             sx={{
               borderTop: "1px solid rgba(10, 42, 102, 0.12)",
               "&:last-of-type": {
@@ -234,9 +238,11 @@ export function BlogYearRail({ activeYear, activeMonth, onSelectionChange }: Blo
               </Stack>
             </Collapse>
           </Box>
+          </StaggerItem>
         );
       })}
     </Stack>
+    </StaggerGroup>
   );
 }
 

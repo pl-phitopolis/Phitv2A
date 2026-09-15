@@ -2,9 +2,12 @@ import Box from "@mui/material/Box";
 import Chip from "@mui/material/Chip";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { motion } from "motion/react";
 
 import type { BlogPost } from "../api";
 import { isImageParagraph, preferWebp, resolveImageUrl } from "@/shared/bodyImages";
+import { Reveal } from "@/shared/components/Reveal";
+import { EASE_OUT_EXPO } from "@/shared/motion/easing";
 
 /** Post bodies are plain text; blank lines separate paragraphs.
  *  React escapes everything — no HTML, no markdown, no XSS surface. The one
@@ -67,9 +70,10 @@ export function BlogPostArticle({ post }: { post: BlogPost }) {
   const cover = resolveImageUrl(post.image_url);
   return (
     <Stack spacing={5} component="article" useFlexGap>
+      <Reveal>
       <Stack spacing={1.5} sx={{ maxWidth: 760, mx: "auto", width: "100%" }}>
         <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
-          <Chip label={post.category} size="small" color="primary" variant="outlined" sx={{ 
+          <Chip label={post.category} size="small" color="primary" variant="outlined" sx={{
             transition: "all 0.2s ease",
             "&:hover": { bgcolor: "primary.main", color: "primary.contrastText" }, cursor: "default"
           }} />
@@ -89,9 +93,11 @@ export function BlogPostArticle({ post }: { post: BlogPost }) {
           {post.excerpt}
         </Typography>
       </Stack>
+      </Reveal>
       {cover === null ? null : (
         <Box
-          component="img" decoding="async"
+          component={motion.img}
+          decoding="async"
           src={cover.src}
           onError={(event) => {
             // Only the .webp twin exists on disk for most stored paths, but if a
@@ -103,6 +109,10 @@ export function BlogPostArticle({ post }: { post: BlogPost }) {
           // BlogPostOut has no dedicated cover-image caption/alt field, so the
           // post title — real, sourced data — is the only honest alt available.
           alt={post.title}
+          initial={{ opacity: 0, scale: 0.98 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "0px 0px -80px 0px" }}
+          transition={{ duration: 0.5, ease: EASE_OUT_EXPO }}
           sx={{
             width: "100%",
             aspectRatio: "21/9",

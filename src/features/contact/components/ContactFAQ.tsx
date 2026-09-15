@@ -17,6 +17,7 @@ import { alpha } from "@mui/material/styles";
 import { MONO } from "@/shared/theme/theme";
 import { NOIR, SOFT } from "@/shared/theme/palette";
 import { CONTENT } from "@/shared/content";
+import { Reveal, StaggerGroup, StaggerItem } from "@/shared/components/Reveal";
 
 export interface FAQItem {
   id: string;
@@ -126,6 +127,7 @@ export function ContactFAQ() {
   }, [activeCategory, searchQuery]);
 
   return (
+    <Reveal>
     <Box
       sx={{
         width: "100%",
@@ -175,12 +177,13 @@ export function ContactFAQ() {
         </Stack>
 
         {/* Minimalist Filter Category Pills */}
+        <StaggerGroup>
         <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
           {CATEGORIES.map((cat) => {
             const isActive = activeCategory === cat;
             return (
+              <StaggerItem key={cat}>
               <Chip
-                key={cat}
                 label={cat}
                 size="small"
                 onClick={() => setActiveCategory(cat)}
@@ -202,12 +205,14 @@ export function ContactFAQ() {
                   },
                 }}
               />
+              </StaggerItem>
             );
           })}
           <Typography sx={{ fontFamily: MONO, fontSize: "0.72rem", color: "text.secondary", alignSelf: "center", ml: "auto", display: { xs: "none", sm: "block" } }}>
             [ SHOWING {filteredItems.length} OF {FAQ_ITEMS.length} ]
           </Typography>
         </Stack>
+        </StaggerGroup>
 
         {/* Minimalist Accordion List */}
         {filteredItems.length === 0 ? (
@@ -295,5 +300,6 @@ export function ContactFAQ() {
         )}
       </Stack>
     </Box>
+    </Reveal>
   );
 }

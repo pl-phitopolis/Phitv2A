@@ -6,6 +6,7 @@ import TextField from "@mui/material/TextField";
 import { useEffect, useRef, useState } from "react";
 
 import type { BlogSort } from "@/features/blog/api";
+import { Reveal } from "@/shared/components/Reveal";
 
 const DEBOUNCE_MS = 300;
 
@@ -72,6 +73,7 @@ export function BlogToolbar({ q, sort, onQChange, onSortChange }: BlogToolbarPro
   };
 
   return (
+    <Reveal>
     <Stack direction={{ xs: "column", sm: "row" }} spacing={2} sx={{ mb: 4 }}>
       <TextField
         value={value}
@@ -109,5 +111,6 @@ export function BlogToolbar({ q, sort, onQChange, onSortChange }: BlogToolbarPro
         ))}
       </TextField>
     </Stack>
+    </Reveal>
   );
 }

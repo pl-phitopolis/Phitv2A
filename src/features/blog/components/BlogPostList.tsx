@@ -7,6 +7,7 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 
 import { RouterLink } from "@/shared/components/RouterLink";
+import { StaggerGroup, StaggerItem } from "@/shared/components/Reveal";
 import { NOIR } from "@/shared/theme/palette";
 
 import type { BlogPostPage, BlogPostSummary } from "../api";
@@ -280,25 +281,30 @@ export function BlogPostList({
           No posts match this search or filter.
         </Typography>
       ) : (
+        <StaggerGroup>
         <Stack spacing={4}>
           {heroPost && (
+            <StaggerItem>
             <BlogPostCard
               post={heroPost}
               activeCategory={activeCategory}
               onCategoryChange={onCategoryChange}
               isHero
             />
+            </StaggerItem>
           )}
-          
+
           {remainingPosts.map((post) => (
+            <StaggerItem key={post.id}>
             <BlogPostCard
-              key={post.id}
               post={post}
               activeCategory={activeCategory}
               onCategoryChange={onCategoryChange}
             />
+            </StaggerItem>
           ))}
         </Stack>
+        </StaggerGroup>
       )}
       
       {pageCount > 1 ? (

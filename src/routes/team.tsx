@@ -1,5 +1,4 @@
 import Box from "@mui/material/Box";
-import Button from "@mui/material/Button";
 import Grid from "@mui/material/Grid";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
@@ -8,9 +7,11 @@ import { Link, createFileRoute } from "@tanstack/react-router";
 import { TeamMemberCard } from "@/features/team";
 import { CONTENT } from "@/shared/content";
 import { NAV_ANCHORS } from "@/shared/components/NavbarContext";
+import { MagneticBox } from "@/shared/components/MagneticBox";
 import { PageHeader } from "@/shared/components/PageHeader";
-import { Reveal } from "@/shared/components/Reveal";
+import { Reveal, StaggerGroup, StaggerItem } from "@/shared/components/Reveal";
 import { Section } from "@/shared/components/Section";
+import { SpecularButton as Button } from "@/shared/components/ui/specular";
 import { useNavbarAnchor } from "@/shared/components/navbarHooks";
 import { pageHead } from "@/shared/seo";
 import { NOIR } from "@/shared/theme/palette";
@@ -33,15 +34,19 @@ function TeamPage() {
     <Section ref={anchorRef}>
       <PageHeader overline={CONTENT.team.overline} title={CONTENT.team.title} lead={CONTENT.team.lead} />
 
-      <Grid container spacing={{ xs: 6, md: 8 }} sx={{ mb: 10 }}>
-        {CONTENT.team.members.map((member) => (
-          <Grid key={member.name} size={{ xs: 12, md: 6 }}>
-            <Reveal>
-              <TeamMemberCard member={member} />
-            </Reveal>
-          </Grid>
-        ))}
-      </Grid>
+      <StaggerGroup>
+        <Grid container spacing={{ xs: 6, md: 8 }} sx={{ mb: 10 }}>
+          {CONTENT.team.members.map((member) => (
+            <Grid key={member.name} size={{ xs: 12, md: 6 }}>
+              <StaggerItem>
+                <MagneticBox>
+                  <TeamMemberCard member={member} />
+                </MagneticBox>
+              </StaggerItem>
+            </Grid>
+          ))}
+        </Grid>
+      </StaggerGroup>
 
       <Reveal>
         <Box
