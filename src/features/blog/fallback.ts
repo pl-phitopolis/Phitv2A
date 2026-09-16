@@ -25,6 +25,10 @@ const FALLBACK_DATES = [
   "2026-03-27",
   "2026-02-18",
   "2026-02-06",
+  // Carried over from the legacy site's two real posts — see the matching
+  // CONTENT.blog entries appended below the original nine.
+  "2025-12-18",
+  "2025-08-27",
 ];
 
 const FALLBACK_BLOG_IMAGES = [
@@ -37,6 +41,10 @@ const FALLBACK_BLOG_IMAGES = [
   "/images/blog/2026-wellness-week/01.webp",
   "/images/blog/2024-technical-graduates-batch-1-two-years-milestones-of-growth/01.webp",
   "/images/blog/game-on-boomerang-fu-brings-the-heat-and-the-chaos/01.webp",
+  // Legacy-site thumbnails, referenced directly rather than mirrored locally
+  // — same host the rest of the fallback content came from.
+  "https://phitopolis.com/blog/wp-content/uploads/2025/12/001-2048x1536.jpg",
+  "https://phitopolis.com/blog/wp-content/uploads/2025/08/a0a499d4-3f45-4bd7-9db5-870f125ffc91.jpg",
 ];
 
 /** Static fallback derived from the site's insight teasers, so the Blog
