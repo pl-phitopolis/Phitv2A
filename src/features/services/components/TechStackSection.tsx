@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import {
   Code, Database, Cloud, Pulse
 } from "@phosphor-icons/react";
+import { Reveal, StaggerGroup, StaggerItem } from "@/shared/components/Reveal";
 import { MONO, DISPLAY_FONT } from "@/shared/theme/theme";
 import { NOIR, SOFT } from "@/shared/theme/palette";
 
@@ -55,6 +56,7 @@ export function TechStackSection() {
       }}
     >
       {/* Section Header */}
+      <Reveal>
       <Box sx={{ mb: { xs: 5, md: 7 }, maxWidth: "720px" }}>
         <Typography
           variant="overline"
@@ -95,13 +97,16 @@ export function TechStackSection() {
           Production-proven, open-source stacks — built for determinism, resilience, and scale.
         </Typography>
       </Box>
+      </Reveal>
 
       {/* Grid of Tech Stack Categories */}
+      <StaggerGroup>
       <Grid container spacing={{ xs: 2.5, md: 3 }}>
         {TECH_CATEGORIES.map((cat) => {
           const Icon = cat.icon;
           return (
             <Grid size={{ xs: 12, sm: 6 }} key={cat.title}>
+              <StaggerItem>
               <Box
                 sx={{
                   p: { xs: 3, sm: 4 },
@@ -180,10 +185,12 @@ export function TechStackSection() {
                   ))}
                 </Stack>
               </Box>
+              </StaggerItem>
             </Grid>
           );
         })}
       </Grid>
+      </StaggerGroup>
     </Box>
   );
 }

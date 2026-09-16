@@ -234,7 +234,7 @@ function Grid3UpPattern({ items }: RenderArgs) {
           <Grid key={item.alt + i} size={{ xs: 12, sm: 4 }}>
             <MediaTile item={item} aspectRatio={16 / 9} />
             {item.caption && (
-              <Typography sx={{ mt: 1, fontSize: TYPE_SCALE.caption, color: SOFT.mist }}>
+              <Typography sx={{ mt: 1, fontSize: TYPE_SCALE.caption, color: "text.secondary" }}>
                 {item.caption}
               </Typography>
             )}
@@ -384,7 +384,7 @@ function StickyPinnedPattern({ items, steps, aspectRatio }: RenderArgs) {
               </Typography>
               <Box>
                 <Typography sx={{ fontWeight: 700, mb: 0.5 }}>{step.label}</Typography>
-                <Typography sx={{ color: SOFT.mist }}>{step.body}</Typography>
+                <Typography sx={{ color: "text.secondary" }}>{step.body}</Typography>
               </Box>
             </Stack>
           ))}
@@ -410,7 +410,7 @@ function PortraitQuotePattern({ items, overlayContent, attribution }: RenderArgs
         </Typography>
         {attribution && (
           <Typography
-            sx={{ mt: 1.5, fontFamily: MONO, fontSize: TYPE_SCALE.caption, letterSpacing: TRACKING.meta, color: SOFT.mist }}
+            sx={{ mt: 1.5, fontFamily: MONO, fontSize: TYPE_SCALE.caption, letterSpacing: TRACKING.meta, color: "text.secondary" }}
           >
             {attribution}
           </Typography>
@@ -464,7 +464,7 @@ function InlineEditorialPattern({ items }: RenderArgs) {
     <Box sx={{ maxWidth: 720, mx: "auto" }}>
       <MediaTile item={item} aspectRatio={16 / 9} />
       {item.caption && (
-        <Typography sx={{ mt: 1, fontSize: TYPE_SCALE.caption, color: SOFT.mist, textAlign: "center" }}>
+        <Typography sx={{ mt: 1, fontSize: TYPE_SCALE.caption, color: "text.secondary", textAlign: "center" }}>
           {item.caption}
         </Typography>
       )}

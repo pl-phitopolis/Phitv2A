@@ -4,11 +4,14 @@ import Link from "@mui/material/Link";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { createFileRoute } from "@tanstack/react-router";
+import { motion, useScroll, useSpring, useTransform } from "motion/react";
+import { useRef } from "react";
 
 import { ContactForm, EcotowerMap, ContactFAQ } from "@/features/contact";
 import { CONTENT } from "@/shared/content";
 import { PageHeader } from "@/shared/components/PageHeader";
 import { Section } from "@/shared/components/Section";
+import { StaggerGroup, StaggerItem } from "@/shared/components/Reveal";
 import { pageHead } from "@/shared/seo";
 
 import { NOIR } from "@/shared/theme/palette";
@@ -28,8 +31,33 @@ const NEXT_STEPS = [
 ] as const;
 
 function NextStepsTimeline() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  // Same scroll-linked-line technique as GraduateHallOfFameSection.tsx
+  // (careers) — one continuous track behind the dots, filled as the reader
+  // scrolls through it, instead of a static bar.
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ["start center", "end center"],
+  });
+  const smoothProgress = useSpring(scrollYProgress, { stiffness: 100, damping: 20 });
+  const lineHeight = useTransform(smoothProgress, [0, 1], ["0%", "100%"]);
+
   return (
-    <Stack sx={{ position: "relative", pl: 0.5 }}>
+    <Stack ref={containerRef} sx={{ position: "relative", pl: 0.5 }}>
+      <Box
+        aria-hidden
+        sx={{
+          position: "absolute",
+          left: 10,
+          top: 7,
+          bottom: 7,
+          width: "2px",
+          bgcolor: "var(--divider)",
+          overflow: "hidden",
+        }}
+      >
+        <Box component={motion.div} style={{ height: lineHeight }} sx={{ width: "100%", bgcolor: "var(--accent)" }} />
+      </Box>
       {NEXT_STEPS.map((step, index) => {
         const isLast = index === NEXT_STEPS.length - 1;
         return (
@@ -38,6 +66,8 @@ function NextStepsTimeline() {
             direction="row"
             spacing={2.5}
             sx={{
+              position: "relative",
+              zIndex: 1,
               "&:hover .timeline-node": { transform: "scale(1.4)", bgcolor: "var(--accent)", borderColor: "var(--accent)" }
             }}
           >
@@ -54,7 +84,6 @@ function NextStepsTimeline() {
                   transition: "all 0.25s ease",
                 }}
               />
-              {isLast ? null : <Box sx={{ width: "2px", flexGrow: 1, bgcolor: "var(--divider)", my: 0.8 }} />}
             </Stack>
             <Box sx={{ pb: isLast ? 0 : 3.5, pt: 0.2 }}>
               <Typography variant="body2" sx={{ fontWeight: 500, color: "var(--text-1)", lineHeight: 1.5 }}>
@@ -88,10 +117,13 @@ function ContactPage() {
         lead="Partnership inquiries, data questions, research discussions — our engineering leadership in Bonifacio Global City reads every message."
       />
 
+      <StaggerGroup>
       <Grid container spacing={6} alignItems="stretch" sx={{ mb: 10 }}>
         {/* Contact Form Column */}
         <Grid size={{ xs: 12, md: 7 }} sx={{ display: "flex", flexDirection: "column" }}>
+          <StaggerItem>
           <ContactForm />
+          </StaggerItem>
         </Grid>
 
         {/* Inspector Column — a dark navy card, deliberately alternating
@@ -101,6 +133,7 @@ function ContactPage() {
             child below keeps using the ordinary theme-relative tokens
             instead of hardcoding a second set of colors. */}
         <Grid size={{ xs: 12, md: 5 }} sx={{ display: "flex", flexDirection: "column" }}>
+          <StaggerItem>
           <Box
             data-ground="dark"
             sx={{
@@ -159,8 +192,10 @@ function ContactPage() {
             </Stack>
           </Stack>
           </Box>
+          </StaggerItem>
         </Grid>
       </Grid>
+      </StaggerGroup>
 
       {/* Interactive BGC Ecotower Map Section */}
       <Box sx={{ mt: 8, mb: 10 }}>

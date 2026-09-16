@@ -4,6 +4,7 @@ import Typography from "@mui/material/Typography";
 
 import { Section } from "@/shared/components/Section";
 import { Reveal } from "@/shared/components/Reveal";
+import { MagneticBox } from "@/shared/components/MagneticBox";
 import { MONO } from "@/shared/theme/theme";
 
 /**
@@ -92,35 +93,37 @@ export function FuntopolisSection() {
         >
           {MOMENTS.map((moment, i) => (
             <Reveal key={moment.id} delay={i * 0.08}>
-              <Stack spacing={2}>
-                <Box
-                  sx={{
-                    position: "relative",
-                    aspectRatio: "4 / 3",
-                    overflow: "hidden",
-                    borderRadius: "12px",
-                  }}
-                >
+              <MagneticBox>
+                <Stack spacing={2}>
                   <Box
-                    component="img"
-                    src={moment.image}
-                    alt={moment.alt}
-                    loading="lazy"
-                    decoding="async"
-                    sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                  />
-                </Box>
-                <Typography
-                  component="span"
-                  sx={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.16em", color: "text.secondary" }}
-                >
-                  {moment.label}
-                </Typography>
-                <Typography variant="h6" component="h3">
-                  {moment.title}
-                </Typography>
-                <Typography sx={{ color: "text.secondary" }}>{moment.body}</Typography>
-              </Stack>
+                    sx={{
+                      position: "relative",
+                      aspectRatio: "4 / 3",
+                      overflow: "hidden",
+                      borderRadius: "12px",
+                    }}
+                  >
+                    <Box
+                      component="img"
+                      src={moment.image}
+                      alt={moment.alt}
+                      loading="lazy"
+                      decoding="async"
+                      sx={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
+                  </Box>
+                  <Typography
+                    component="span"
+                    sx={{ fontFamily: MONO, fontSize: 11, letterSpacing: "0.16em", color: "text.secondary" }}
+                  >
+                    {moment.label}
+                  </Typography>
+                  <Typography variant="h6" component="h3">
+                    {moment.title}
+                  </Typography>
+                  <Typography sx={{ color: "text.secondary" }}>{moment.body}</Typography>
+                </Stack>
+              </MagneticBox>
             </Reveal>
           ))}
         </Box>

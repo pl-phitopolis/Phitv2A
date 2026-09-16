@@ -415,6 +415,30 @@ export const CONTENT = {
     careersEmail: "jobs@phitopolis.com",
     generalInquiries: "info@phitopolis.com"
   },
+  /** /team route — leadership bios. Carried over from the legacy site's
+   *  `/team` page (no equivalent existed here); see the rebuild carryover
+   *  proposal, "port" item 1. */
+  team: {
+    overline: "The Collective",
+    title: "Meet the practitioners.",
+    lead: "At Phitopolis, caliber is our only currency. We are a team of global technologists and entrepreneurs dedicated to solving the most complex engineering challenges.",
+    members: [
+      {
+        name: "Mark Walbaum",
+        role: "Chief Technology Officer",
+        bio: "Former Executive Director at Morgan Stanley with 20+ years of experience in distributed systems and high-frequency trading infrastructure.",
+        expertise: ["Low Latency", "Distributed Systems", "FinTech"],
+        image: "https://phitopolis.com/img/core-competencies/teamwork-and-leadership.jpg",
+      },
+      {
+        name: "Ben Cilia",
+        role: "Chief Data Officer",
+        bio: "Data visionary specializing in quantitative analytics and machine learning strategies for large-scale financial institutions.",
+        expertise: ["Data Science", "ML Ops", "Quant Strategy"],
+        image: "https://phitopolis.com/img/core-competencies/innovation.jpg",
+      },
+    ],
+  },
   /** Insight teasers drawn from the flagship projects in the source of truth. */
   blog: [
     {
@@ -461,6 +485,19 @@ export const CONTENT = {
       category: "People",
       title: "Game On: Boomerang Fu Brings the Heat (and the Chaos)",
       blurb: "What happens when you take a group of professionals fresh out of a monthly spotlight meeting and arm them with virtual boomerangs? Pure, glorious chaos"
+    },
+    // Carried over from the legacy site's two real fallback posts (rebuild
+    // carryover proposal, "port" item 2) — appended after the existing nine
+    // so the newest-first order holds; both predate every date above.
+    {
+      category: "Community & CSR",
+      title: "Joy in Every Bag: Christmas Gift Giving at Brgy. Pinagsama",
+      blurb: "It's that time of the year again when giving back takes center stage, as we bring Christmas cheer to the children of Barangay Pinagsama"
+    },
+    {
+      category: "Events & Culture",
+      title: "Riding into Our 6th Year: Phitopolis' Wild West Anniversary Celebration",
+      blurb: "Phitopolis saddled up and rode into a new frontier, celebrating six remarkable years of growth, innovation, and camaraderie"
     }
   ],
   // Each use case is a vertical, near-full-viewport block on the home page; its
