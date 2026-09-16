@@ -64,11 +64,4 @@ export const MEGA_NAV_ITEMS: NavSectionItem[] = [
     tag: "06",
     group: "people",
   },
-  {
-    to: "/team",
-    label: "Team",
-    sub: "Leadership Across Engineering & Data",
-    tag: "07",
-    group: "people",
-  },
 ];
