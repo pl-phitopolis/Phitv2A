@@ -111,9 +111,6 @@ export const NAV_ANCHORS = {
   BLOG_LISTING: 'blog-listing',
   /** The /contact route. One anchor for the whole page, light ground throughout. */
   CONTACT_PAGE: 'contact-page',
-  /** The /team route. One anchor for the whole page — same single-register
-   *  rationale as CONTACT_PAGE/SERVICES_PAGE, light ground throughout. */
-  TEAM_PAGE: 'team-page',
   /** Home page: the `BarTransitionSection` wipe blocks. Each is a full opaque
    *  viewport between two grounds — without an anchor the navbar lost all
    *  dark/light state whenever one filled the screen. One id per boundary

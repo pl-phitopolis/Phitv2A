@@ -1240,7 +1240,7 @@ const NAV_GLASS_DARK = {
                         key={item.to}
                         to={item.to}
                         underline="none"
-                        onClick={(e) => {
+                        onClick={(e: React.MouseEvent) => {
                           if (e.button === 0 && !e.metaKey && !e.ctrlKey && !e.shiftKey && !e.altKey) {
                             e.preventDefault();
                             navigateWithCurtain(item.to);
